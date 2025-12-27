@@ -431,10 +431,10 @@ if df is not None and model is not None:
     elif "Anomalo" not in estado_sel:
         df_f = df_f[df_f["estado"] == "Normal"]
 
-    # Muestreo para acelerar graficos
-    df_plot = df_f
-    if sample_plots and len(df_f) > 5000:
-        df_plot = df_f.sample(n=5000, random_state=st.session_state["sample_seed"])
+    # Muestreo para acelerar graficos (mantener orden temporal)
+    df_plot = df_f.sort_values("timestamp")
+    if sample_plots and len(df_plot) > 5000:
+        df_plot = df_plot.tail(5000)
 
     df_plot = apply_smoothing(df_plot, var_sel, smoothing_method, int(rolling_window), int(resample_minutes))
 
