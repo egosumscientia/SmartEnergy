@@ -154,6 +154,33 @@ def load_model():
     return bundle["model"], bundle["scaler"], bundle["features"]
 
 
+def apply_smoothing(df: pd.DataFrame, var: str, method: str, window_samples: int, resample_minutes: int) -> pd.DataFrame:
+    """Aplica suavizado o downsampling para reducir ruido en series largas."""
+    if df is None or df.empty:
+        return df
+    df_sorted = df.sort_values("timestamp").copy()
+    if method == "Media movil":
+        df_sorted[var] = df_sorted[var].rolling(window_samples, min_periods=1).mean()
+        return df_sorted
+    if method == "Downsample por ventana":
+        freq = f"{resample_minutes}min"
+        agg_numeric = {col: "mean" for col in ["corriente", "voltaje", "potencia_activa", "temperatura_motor"] if col in df_sorted}
+        agg_extra = {
+            "estado": lambda x: x.value_counts().idxmax() if len(x) else None,
+            "label_anomalia": "mean"
+        }
+        df_resampled = (
+            df_sorted.set_index("timestamp")
+            .resample(freq)
+            .agg({**agg_numeric, **agg_extra})
+            .dropna(subset=[var])
+            .reset_index()
+        )
+        df_resampled["label_anomalia"] = (df_resampled["label_anomalia"] > 0.5).astype(int)
+        return df_resampled
+    return df_sorted
+
+
 def run_script(cmd: list[str]):
     """Ejecuta un comando mostrando errores en UI y guardando stdout/stderr."""
     if "exec_logs" not in st.session_state:
@@ -291,6 +318,12 @@ if df is not None and model is not None:
         st.session_state["sample_plots"] = True
     if "table_limit" not in st.session_state:
         st.session_state["table_limit"] = 1000
+    if "smoothing_method" not in st.session_state:
+        st.session_state["smoothing_method"] = "Ninguno"
+    if "rolling_window" not in st.session_state:
+        st.session_state["rolling_window"] = 60
+    if "resample_minutes" not in st.session_state:
+        st.session_state["resample_minutes"] = 5
 
     with st.sidebar.form("filters_form"):
         st.sidebar.header("Filtros de analisis")
@@ -300,15 +333,24 @@ if df is not None and model is not None:
         estado_sel = st.sidebar.multiselect("Estado de anomalia", ["Normal", "Anomalo"], default=["Normal", "Anomalo"])
         sample_plots = st.sidebar.checkbox("Muestrear graficos (max 5000 filas)", value=st.session_state["sample_plots"])
         table_limit = st.sidebar.number_input("Filas max en tabla", min_value=100, max_value=20000, step=100, value=int(st.session_state["table_limit"]))
+        smoothing_method = st.sidebar.selectbox("Reduccion de ruido", ["Ninguno", "Media movil", "Downsample por ventana"], index=["Ninguno", "Media movil", "Downsample por ventana"].index(st.session_state["smoothing_method"]))
+        rolling_window = st.sidebar.number_input("Ventana media movil (muestras)", min_value=1, max_value=5000, step=10, value=int(st.session_state["rolling_window"]))
+        resample_minutes = st.sidebar.number_input("Ventana de downsample (minutos)", min_value=1, max_value=240, step=1, value=int(st.session_state["resample_minutes"]))
         apply_filters = st.form_submit_button("Aplicar filtros")
 
     if apply_filters:
         st.session_state["sample_plots"] = sample_plots
         st.session_state["table_limit"] = table_limit
         st.session_state["sample_seed"] = int(datetime.now().timestamp())
+        st.session_state["smoothing_method"] = smoothing_method
+        st.session_state["rolling_window"] = int(rolling_window)
+        st.session_state["resample_minutes"] = int(resample_minutes)
     else:
         sample_plots = st.session_state["sample_plots"]
         table_limit = st.session_state["table_limit"]
+        smoothing_method = st.session_state["smoothing_method"]
+        rolling_window = st.session_state["rolling_window"]
+        resample_minutes = st.session_state["resample_minutes"]
 
     mask_fecha = (df["timestamp"].dt.date >= rango_fecha[0]) & (df["timestamp"].dt.date <= rango_fecha[1])
     df_f = df[mask_fecha].copy()
@@ -321,6 +363,8 @@ if df is not None and model is not None:
     df_plot = df_f
     if sample_plots and len(df_f) > 5000:
         df_plot = df_f.sample(n=5000, random_state=st.session_state["sample_seed"])
+
+    df_plot = apply_smoothing(df_plot, var_sel, smoothing_method, int(rolling_window), int(resample_minutes))
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "Analisis general", "Variables energeticas",

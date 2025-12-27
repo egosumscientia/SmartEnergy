@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from datetime import datetime, timedelta
+from sqlalchemy import text
 from core.database import SessionLocal, engine
 from core.models import Registro, Base
 
@@ -8,7 +9,7 @@ from core.models import Registro, Base
 # CONFIGURACION GENERAL
 # ============================
 NUM_SAMPLES = 10000
-ANOMALY_RATIO = 0.10  # 10% fijo
+ANOMALY_RATIO = random.uniform(0.10, 0.20)  # Variable entre 10% y 20%
 SAMPLING_INTERVAL = 1  # segundos
 MAX_REGISTROS = 20000  # limite total de registros en BD
 
