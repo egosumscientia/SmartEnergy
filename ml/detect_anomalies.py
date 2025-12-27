@@ -4,11 +4,13 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import pandas as pd
 import joblib
+from filelock import FileLock, Timeout
 from core.database import SessionLocal
 from core.models import Registro, Metrica
 from datetime import datetime, timezone
 
 MODEL_FILE = "models/anomaly_detector.pkl"
+LOCK_FILE = MODEL_FILE + ".lock"
 
 if SessionLocal is None:
     raise RuntimeError("DATABASE_URL no configurada o engine no inicializado. No se puede detectar anomalias.")
@@ -16,10 +18,14 @@ if SessionLocal is None:
 if not os.path.exists(MODEL_FILE):
     raise FileNotFoundError("No se encontro el modelo entrenado. Ejecuta train_model.py primero.")
 
-bundle = joblib.load(MODEL_FILE)
-model = bundle["model"]
-scaler = bundle["scaler"]
-features = bundle["features"]
+try:
+    with FileLock(LOCK_FILE, timeout=60):
+        bundle = joblib.load(MODEL_FILE)
+    model = bundle["model"]
+    scaler = bundle["scaler"]
+    features = bundle["features"]
+except Timeout:
+    raise RuntimeError("No se pudo obtener el lock del modelo (otro proceso esta escribiendo).")
 
 session = SessionLocal()
 try:
