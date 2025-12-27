@@ -39,6 +39,7 @@ if df.empty:
 # ============================
 features = ["corriente", "voltaje", "potencia_activa", "temperatura_motor"]
 X = df[features].values
+labels_true = (df["estado"] == "Anomalo").astype(int)
 
 # Escalado
 scaler = StandardScaler()
@@ -47,9 +48,13 @@ X_scaled = scaler.fit_transform(X)
 # ============================
 # ENTRENAMIENTO DEL MODELO
 # ============================
+# Ajustamos contamination a la tasa observada de anomalias
+anom_rate = float(labels_true.mean()) if len(labels_true) > 0 else 0.02
+contamination = min(0.2, max(0.01, anom_rate + 0.01))
+
 model = IsolationForest(
     n_estimators=200,
-    contamination=random.choice([0.005, 0.02, 0.08]),
+    contamination=contamination,
     random_state=None,
     n_jobs=-1
 )

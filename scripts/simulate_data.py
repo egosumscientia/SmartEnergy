@@ -8,7 +8,7 @@ from core.models import Registro, Base
 # CONFIGURACION GENERAL
 # ============================
 NUM_SAMPLES = 10000
-ANOMALY_RATIO = random.choice([0.0, 0.02, 0.08])  # 0%, 2%, 8%
+ANOMALY_RATIO = 0.10  # 10% fijo
 SAMPLING_INTERVAL = 1  # segundos
 MAX_REGISTROS = 20000  # limite total de registros en BD
 
@@ -28,6 +28,7 @@ corriente = np.random.normal(25, 3, NUM_SAMPLES)
 voltaje = np.random.normal(220, 5, NUM_SAMPLES)
 temperatura = np.random.normal(45, 2, NUM_SAMPLES)
 estado_maquina = np.random.choice([0, 1], NUM_SAMPLES, p=[0.1, 0.9])
+# Potencia base consistente
 potencia = corriente * voltaje * np.random.uniform(0.8, 0.95, NUM_SAMPLES) / 1000
 
 # ============================
@@ -37,26 +38,47 @@ labels = np.zeros(NUM_SAMPLES)
 num_anom = int(NUM_SAMPLES * ANOMALY_RATIO)
 anom_indices = np.random.choice(NUM_SAMPLES, num_anom, replace=False)
 
+print(f"Generando {num_anom} anomalias garantizadas...")
+
 for idx in anom_indices:
     tipo = random.choice([
         "corriente_alta", "voltaje_bajo", "temperatura_alta",
         "potencia_irregular", "ruido_extremo", "fallo_comb_inicial"
     ])
+    
     if tipo == "corriente_alta":
-        corriente[idx] *= np.random.uniform(1.5, 2.0)
+        # Corriente absurda (2.5x - 4.0x) -> Afecta potencia al alza
+        vals_extra = np.random.uniform(2.5, 4.0)
+        corriente[idx] *= vals_extra
+        potencia[idx] = corriente[idx] * voltaje[idx] * 0.9 / 1000
+
     elif tipo == "voltaje_bajo":
-        voltaje[idx] *= np.random.uniform(0.6, 0.85)
+        # Caida severa de voltaje (40% - 60% del valor)
+        vals_extra = np.random.uniform(0.4, 0.6)
+        voltaje[idx] *= vals_extra
+        potencia[idx] = corriente[idx] * voltaje[idx] * 0.9 / 1000
+
     elif tipo == "temperatura_alta":
-        temperatura[idx] += np.random.uniform(10, 35)
+        # Sobrecalentamiento critico (+50-100 grados)
+        temperatura[idx] += np.random.uniform(50, 100)
+
     elif tipo == "potencia_irregular":
-        potencia[idx] *= np.random.uniform(1.6, 2.8)
+        # Desacople fisico: potencia sube mucho pero corriente baja (fisicamente imposible)
+        corriente[idx] *= 0.5
+        potencia[idx] *= np.random.uniform(2.0, 3.0)
+
     elif tipo == "ruido_extremo":
-        corriente[idx] += np.random.normal(0, 10)
-        voltaje[idx] += np.random.normal(0, 20)
+        # Ruido aditivo grande
+        corriente[idx] += np.random.normal(0, 20)
+        voltaje[idx] += np.random.normal(0, 40)
+        # Recalcular potencia con los valores ruidosos (usando abs para evitar negativos extraños si el ruido es muy bajo)
+        potencia[idx] = abs(corriente[idx] * voltaje[idx] * 0.9 / 1000)
+
     elif tipo == "fallo_comb_inicial":
-        corriente[idx] *= np.random.uniform(1.4, 1.8)
-        temperatura[idx] += np.random.uniform(8, 20)
-        potencia[idx] *= np.random.uniform(1.3, 1.7)
+        corriente[idx] *= np.random.uniform(2.0, 3.0)
+        temperatura[idx] += np.random.uniform(20, 40)
+        potencia[idx] = corriente[idx] * voltaje[idx] * 0.9 / 1000
+    
     labels[idx] = 1
 
 # ============================
@@ -77,6 +99,10 @@ registros = [
 # ============================
 # GUARDADO EN LA BASE DE DATOS
 # ============================
+# Borrar datos anteriores para asegurar limpieza (opcional, pero util si queremos ver solo lo nuevo)
+# session.query(Registro).delete() 
+# No borramos aqui porque reset_db ya lo hace. Solo insertamos.
+
 session.bulk_save_objects(registros)
 session.commit()
 
@@ -88,7 +114,7 @@ if total > MAX_REGISTROS:
     exceso = total - MAX_REGISTROS
     print(f"Se supero el limite ({MAX_REGISTROS}). Eliminando {exceso} registros antiguos...")
     session.execute(
-        f"DELETE FROM registros WHERE id IN (SELECT id FROM registros ORDER BY id ASC LIMIT {exceso});"
+        text(f"DELETE FROM registros WHERE id IN (SELECT id FROM registros ORDER BY id ASC LIMIT {exceso});")
     )
     session.commit()
 

@@ -10,7 +10,8 @@ import plotly.io as pio
 import joblib
 import subprocess
 from datetime import datetime
-from core.database import SessionLocal
+from sqlalchemy import text
+from core.database import SessionLocal, engine
 from core.models import Registro, Metrica
 
 # ============================
@@ -79,14 +80,20 @@ MODEL_PATH = "models/anomaly_detector.pkl"
 # FUNCIONES AUXILIARES
 # ============================
 def load_data_from_db():
-    session = SessionLocal()
-    query = session.query(
-        Registro.id, Registro.timestamp, Registro.corriente,
-        Registro.voltaje, Registro.potencia_activa,
-        Registro.temperatura_motor, Registro.estado
-    )
-    df = pd.read_sql(query.statement, session.bind)
-    session.close()
+    if SessionLocal is None:
+        return None
+    try:
+        session = SessionLocal()
+        query = session.query(
+            Registro.id, Registro.timestamp, Registro.corriente,
+            Registro.voltaje, Registro.potencia_activa,
+            Registro.temperatura_motor, Registro.estado
+        )
+        df = pd.read_sql(query.statement, session.bind)
+        session.close()
+    except Exception as exc:
+        st.error(f"No se pudo leer datos: {exc}")
+        return None
     if df.empty:
         return None
     df["timestamp"] = pd.to_datetime(df["timestamp"])
@@ -95,10 +102,16 @@ def load_data_from_db():
     return df
 
 def load_metrics_from_db():
-    session = SessionLocal()
-    query = session.query(Metrica).order_by(Metrica.id.desc()).limit(1)
-    metrica = query.first()
-    session.close()
+    if SessionLocal is None:
+        return None
+    try:
+        session = SessionLocal()
+        query = session.query(Metrica).order_by(Metrica.id.desc()).limit(1)
+        metrica = query.first()
+        session.close()
+    except Exception as exc:
+        st.error(f"No se pudo leer metricas: {exc}")
+        return None
     if not metrica:
         return None
     return {
@@ -111,6 +124,8 @@ def load_metrics_from_db():
 
 def load_metrics_history(n=2):
     """Retorna las ultimas n metricas para mostrar tendencia."""
+    if SessionLocal is None:
+        return []
     session = SessionLocal()
     metricas = (
         session.query(Metrica)
@@ -122,10 +137,15 @@ def load_metrics_history(n=2):
     return list(metricas)
 
 def get_data_count():
-    session = SessionLocal()
-    total = session.query(Registro).count()
-    session.close()
-    return total
+    if SessionLocal is None:
+        return 0
+    try:
+        session = SessionLocal()
+        total = session.query(Registro).count()
+        session.close()
+        return total
+    except Exception:
+        return 0
 
 def load_model():
     if not os.path.exists(MODEL_PATH):
@@ -135,13 +155,41 @@ def load_model():
 
 
 def run_script(cmd: list[str]):
-    """Ejecuta un comando mostrando errores en UI."""
+    """Ejecuta un comando mostrando errores en UI y guardando stdout/stderr."""
+    if "exec_logs" not in st.session_state:
+        st.session_state["exec_logs"] = []
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        res = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        st.session_state["exec_logs"].insert(0, {
+            "cmd": " ".join(cmd),
+            "ok": True,
+            "stdout": (res.stdout or "").strip(),
+            "stderr": (res.stderr or "").strip()
+        })
+        st.session_state["exec_logs"] = st.session_state["exec_logs"][:10]
         return None
     except subprocess.CalledProcessError as exc:
+        st.session_state["exec_logs"].insert(0, {
+            "cmd": " ".join(cmd),
+            "ok": False,
+            "stdout": (exc.stdout or "").strip(),
+            "stderr": (exc.stderr or str(exc)).strip()
+        })
+        st.session_state["exec_logs"] = st.session_state["exec_logs"][:10]
         st.error(f"Fallo al ejecutar {' '.join(cmd)}:\n{exc.stderr}")
         return exc
+
+
+def check_db_connection():
+    """Verifica si hay URL y conexion disponible."""
+    if engine is None:
+        return False, "DATABASE_URL no configurada en .env"
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True, None
+    except Exception as exc:
+        return False, f"No se pudo conectar a la base de datos: {exc}"
 
 # ============================
 # LAYOUT PRINCIPAL
@@ -154,6 +202,7 @@ model_exists = os.path.exists(MODEL_PATH)
 latest_metrics = load_metrics_from_db()
 history_metrics = load_metrics_history(2)
 prev_metric = history_metrics[1] if len(history_metrics) > 1 else None
+db_ok, db_msg = check_db_connection()
 
 status_col1, status_col2, status_col3 = st.columns(3)
 status_col1.metric("Registros en BD", data_count)
@@ -172,48 +221,65 @@ if latest_metrics:
 else:
     status_col3.metric("Ultimo analisis (%)", "N/A")
 
+if not db_ok:
+    st.error(db_msg or "Problema de conexion a la base de datos.")
+
 st.subheader("Acciones rapidas")
 colA, colB, colC, colD = st.columns(4)
 
 # Habilitacion de botones segun estado de datos/modelo
-can_train = data_count > 0
-can_recalc = model_exists and data_count > 0
+can_train = data_count > 0 and db_ok
+can_recalc = model_exists and data_count > 0 and db_ok
+can_db_actions = db_ok
 
 with colA:
-    if st.button("Generar dataset"):
+    if st.button("Generar dataset", disabled=not can_db_actions):
         with st.spinner("Generando datos simulados..."):
             err = run_script(["python", "-m", "scripts.simulate_data"])
         if not err:
-            st.success("Datos simulados agregados.")
+            st.toast("Datos simulados agregados.", icon="✅")
 
 with colB:
-    result = st.empty()
     if st.button("Entrenar modelo", disabled=not can_train):
         with st.spinner("Entrenando modelo y registrando metricas..."):
             err1 = run_script(["python", "-m", "ml.train_model"])
             if not err1:
                 err2 = run_script(["python", "-m", "ml.detect_anomalies"])
         if not err1 and not err2:
-            result.success("Modelo entrenado y metricas guardadas.")
+            st.toast("Modelo entrenado y metricas guardadas.", icon="✅")
     elif not can_train:
-        result.info("Necesitas datos para entrenar.")
+        st.toast("Necesitas datos para entrenar.", icon="⚠️")
 
 with colC:
-    result = st.empty()
     if st.button("Recalcular metricas", disabled=not can_recalc):
         with st.spinner("Ejecutando analisis de anomalias..."):
             err = run_script(["python", "-m", "ml.detect_anomalies"])
         if not err:
-            result.success("Metricas recalculadas.")
+            st.toast("Metricas recalculadas.", icon="✅")
     elif not can_recalc:
-        result.info("Necesitas datos y modelo entrenado.")
+        st.toast("Necesitas datos y modelo entrenado.", icon="⚠️")
 
 with colD:
-    if st.button("Reiniciar base de datos"):
+    if st.button("Reiniciar base de datos", disabled=not can_db_actions):
         with st.spinner("Limpiando tablas y generando nuevo dataset..."):
             err = run_script(["python", "-m", "scripts.reset_db"])
         if not err:
-            st.success("Base de datos reiniciada y repoblada.")
+            st.toast("Base de datos reiniciada y repoblada.", icon="✅")
+
+# Panel de ejecucion (stdout/stderr)
+with st.expander("Ver detalles de ejecución (Técnico)", expanded=False):
+    st.subheader("Panel de ejecucion")
+    logs = st.session_state.get("exec_logs", [])
+    if logs:
+        for i, log in enumerate(logs):
+            status = "✅" if log["ok"] else "❌"
+            st.markdown(f"{status} `{log['cmd']}`")
+            if log["stdout"]:
+                st.text_area("stdout", log["stdout"], height=120, key=f"stdout_{i}_{log['cmd']}")
+            if log["stderr"]:
+                st.text_area("stderr", log["stderr"], height=120, key=f"stderr_{i}_{log['cmd']}")
+    else:
+        st.caption("Aun no hay ejecuciones registradas.")
 
 df = load_data_from_db() if data_count > 0 else None
 model, scaler, features = load_model() if model_exists else (None, None, None)
