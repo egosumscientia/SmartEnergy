@@ -101,6 +101,19 @@ def load_data_from_db():
     df["label_anomalia"] = (df["estado"] == "Anomalo").astype(int)
     return df
 
+
+def get_last_data_timestamp():
+    """Devuelve el timestamp mas reciente en registros, o None si no hay datos/BD."""
+    if SessionLocal is None:
+        return None
+    try:
+        session = SessionLocal()
+        last_ts = session.query(Registro.timestamp).order_by(Registro.timestamp.desc()).limit(1).scalar()
+        session.close()
+        return last_ts
+    except Exception:
+        return None
+
 def load_metrics_from_db():
     if SessionLocal is None:
         return None
@@ -258,18 +271,25 @@ st.markdown("Panel de monitoreo y deteccion de anomalias")
 data_count = get_data_count()
 model_exists = os.path.exists(MODEL_PATH)
 latest_metrics = load_metrics_from_db()
+last_data_ts = get_last_data_timestamp()
 db_ok, db_msg = check_db_connection()
-# Calcula metricas en vivo si hay modelo y datos, para sincronizar con la BD actual
-live_df = load_data_from_db() if data_count > 0 and model_exists else None
-live_model, live_scaler, live_features = load_model() if model_exists else (None, None, None)
-live_metrics = compute_model_metrics(live_df, live_model, live_scaler, live_features) if live_df is not None else None
-live_df_max_ts = live_df["timestamp"].max() if live_df is not None and not live_df.empty else None
 
 status_col1, status_col2, status_col3 = st.columns(3)
 status_col1.metric("Registros en BD", data_count)
-status_col2.metric("Modelo entrenado", "Si" if model_exists else "No")
-# Mostrar métrica persistida si está al día; si está desactualizada respecto a los datos, mostrar cálculo en vivo
-if latest_metrics and live_df_max_ts and latest_metrics["fecha"] >= live_df_max_ts:
+model_label = "No"
+model_help = "No se encontro el archivo de modelo."
+if model_exists:
+    model_mtime = datetime.fromtimestamp(os.path.getmtime(MODEL_PATH))
+    metric_ts = latest_metrics.get("fecha") if latest_metrics else None
+    if latest_metrics:
+        model_label = "Si"
+        model_help = f"Modelo: {model_mtime} | Ultima metrica: {metric_ts}"
+    else:
+        model_label = "Desactualizado"
+        model_help = f"Modelo guardado: {model_mtime} | Sin metricas registradas."
+status_col2.metric("Modelo entrenado", model_label, help=model_help)
+# Mostrar solo la última métrica persistida
+if latest_metrics:
     history_metrics = load_metrics_history(2)
     prev_metric = history_metrics[1] if len(history_metrics) > 1 else None
     delta = None
@@ -280,18 +300,6 @@ if latest_metrics and live_df_max_ts and latest_metrics["fecha"] >= live_df_max_
         "Ultimo analisis (%)",
         latest_metrics["porcentaje"],
         delta=delta,
-        help=f"{latest_metrics['estado']} @ {latest_metrics['fecha']}"
-    )
-elif live_metrics:
-    status_col3.metric(
-        "Ultimo analisis (%)",
-        float(f"{live_metrics['coverage']:.2f}"),
-        help=f"{live_metrics['estado']} (en vivo, modelo vs datos actuales)"
-    )
-elif latest_metrics:
-    status_col3.metric(
-        "Ultimo analisis (%)",
-        latest_metrics["porcentaje"],
         help=f"{latest_metrics['estado']} @ {latest_metrics['fecha']}"
     )
 else:
