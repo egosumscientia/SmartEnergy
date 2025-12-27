@@ -282,6 +282,10 @@ latest_metrics = load_metrics_from_db()
 last_data_ts = get_last_data_timestamp()
 db_ok, db_msg = check_db_connection()
 
+can_train = data_count > 0 and db_ok
+can_recalc = model_exists and data_count > 0 and db_ok
+can_db_actions = db_ok
+
 status_col1, status_col2, status_col3 = st.columns(3)
 status_col1.metric("Registros en BD", data_count)
 model_label = "No"
@@ -319,21 +323,11 @@ if not db_ok:
 st.subheader("Acciones rapidas")
 colA, colB, colC, colD = st.columns(4)
 
-# Habilitacion de botones segun estado de datos/modelo
-can_train = data_count > 0 and db_ok
-can_recalc = model_exists and data_count > 0 and db_ok
-can_db_actions = db_ok
+st.subheader("Acciones de Modelo")
+col_model_1, col_model_2 = st.columns(2)
 
-with colA:
-    if st.button("Generar dataset", disabled=not can_db_actions):
-        with st.spinner("Generando datos simulados..."):
-            err = run_script(["python", "-m", "scripts.simulate_data"])
-        if not err:
-            st.toast("Datos simulados agregados.", icon="✅")
-            st.rerun()
-
-with colB:
-    if st.button("Entrenar modelo", disabled=not can_train):
+with col_model_1:
+    if st.button("Entrenar modelo", disabled=not can_train, help="Re-entrena la IA con los datos mas recientes"):
         with st.spinner("Entrenando modelo y registrando metricas..."):
             err1 = run_script(["python", "-m", "ml.train_model"])
             if not err1:
@@ -344,8 +338,8 @@ with colB:
     elif not can_train:
         st.toast("Necesitas datos para entrenar.", icon="⚠️")
 
-with colC:
-    if st.button("Recalcular metricas", disabled=not can_recalc):
+with col_model_2:
+    if st.button("Recalcular metricas", disabled=not can_recalc, help="Evalua el rendimiento del modelo actual"):
         with st.spinner("Ejecutando analisis de anomalias..."):
             err = run_script(["python", "-m", "ml.detect_anomalies"])
         if not err:
@@ -354,16 +348,25 @@ with colC:
     elif not can_recalc:
         st.toast("Necesitas datos y modelo entrenado.", icon="⚠️")
 
-with colD:
-    if st.button("Reiniciar base de datos", disabled=not can_db_actions):
-        with st.spinner("Limpiando tablas y generando nuevo dataset..."):
-            err = run_script(["python", "-m", "scripts.reset_db"])
-        if not err:
-            st.toast("Base de datos reiniciada y repoblada.", icon="✅")
-            st.rerun()
+with st.expander("Zona de Mantenimiento (Datos)", expanded=False):
+    col_maint_1, col_maint_2 = st.columns(2)
+    with col_maint_1:
+         if st.button("Generar dataset historico (Batch)", disabled=not can_db_actions, help="Crea 10,000 registros estaticos"):
+            with st.spinner("Generando datos simulados..."):
+                err = run_script(["python", "-m", "scripts.simulate_data"])
+            if not err:
+                st.toast("Datos simulados agregados.", icon="✅")
+                st.rerun()
+    with col_maint_2:
+        if st.button("Reiniciar base de datos", disabled=not can_db_actions, type="primary", help="BORRA TODOS LOS DATOS"):
+            with st.spinner("Limpiando tablas y generando nuevo dataset..."):
+                err = run_script(["python", "-m", "scripts.reset_db"])
+            if not err:
+                st.toast("Base de datos reiniciada y repoblada.", icon="✅")
+                st.rerun()
 
 # Panel de ejecucion (stdout/stderr)
-with st.expander("Ver detalles de ejecución (Técnico)", expanded=False):
+with st.expander("Ver logs de ejecución (Técnico)", expanded=False):
     st.subheader("Panel de ejecucion")
     logs = st.session_state.get("exec_logs", [])
     if logs:
