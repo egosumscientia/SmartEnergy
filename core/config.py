@@ -2,7 +2,7 @@
 import os
 from dotenv import load_dotenv
 
-# Carga el archivo .env desde la raíz del proyecto
+# Carga el archivo .env desde la raiz del proyecto
 load_dotenv()
 
 # URL completa: postgresql://smartuser:smartpass@localhost:5432/smartenergy

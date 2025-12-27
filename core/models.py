@@ -12,7 +12,7 @@ class Registro(Base):
     voltaje = Column(Float)
     potencia_activa = Column(Float)
     temperatura_motor = Column(Float)
-    estado = Column(String)  # "Normal" o "Anómalo"
+    estado = Column(String)  # "Normal" o "Anomalo"
 
 class Metrica(Base):
     __tablename__ = "metricas"

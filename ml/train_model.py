@@ -9,7 +9,6 @@ import joblib
 import random
 from core.database import SessionLocal
 from core.models import Registro
-import os
 
 # ============================
 # CONFIGURACION
@@ -78,9 +77,3 @@ print(f"Precision aproximada: {100 * true_positives / max(detected,1):.2f}%")
 # ============================
 joblib.dump({"model": model, "scaler": scaler, "features": features}, MODEL_FILE)
 print(f"[OK] Modelo guardado en: {MODEL_FILE}")
-
-
-
-
-
-
