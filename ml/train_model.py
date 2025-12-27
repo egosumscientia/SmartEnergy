@@ -19,17 +19,21 @@ os.makedirs("models", exist_ok=True)
 # ============================
 # LECTURA DESDE POSTGRESQL
 # ============================
-session = SessionLocal()
-query = session.query(
-    Registro.corriente,
-    Registro.voltaje,
-    Registro.potencia_activa,
-    Registro.temperatura_motor,
-    Registro.estado
-)
+if SessionLocal is None:
+    raise RuntimeError("DATABASE_URL no configurada o engine no inicializado. No se puede entrenar el modelo.")
 
-df = pd.read_sql(query.statement, session.bind)
-session.close()
+session = SessionLocal()
+try:
+    query = session.query(
+        Registro.corriente,
+        Registro.voltaje,
+        Registro.potencia_activa,
+        Registro.temperatura_motor,
+        Registro.estado
+    )
+    df = pd.read_sql(query.statement, session.bind)
+finally:
+    session.close()
 
 if df.empty:
     raise ValueError("No hay datos disponibles en la tabla 'registros' para entrenar el modelo.")

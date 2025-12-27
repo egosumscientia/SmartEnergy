@@ -154,6 +154,37 @@ def load_model():
     return bundle["model"], bundle["scaler"], bundle["features"]
 
 
+def compute_model_metrics(df_src: pd.DataFrame, model, scaler, features: list[str]):
+    """Calcula cobertura, precision y estado usando las mismas reglas que detect_anomalies.py."""
+    if model is None or scaler is None or not features or df_src is None or df_src.empty:
+        return None
+    X = df_src[features].values
+    preds = model.predict(scaler.transform(X))
+    df_eval = df_src.copy()
+    df_eval["pred_anomalia"] = (preds == -1).astype(int)
+    total = len(df_eval)
+    detectadas = int(df_eval["pred_anomalia"].sum())
+    anomalias_reales = int((df_eval["estado"] == "Anomalo").sum())
+    verdaderos_positivos = int(((df_eval["estado"] == "Anomalo") & (df_eval["pred_anomalia"] == 1)).sum())
+    recall = float(100 * verdaderos_positivos / max(anomalias_reales, 1))
+    precision = float(100 * verdaderos_positivos / max(detectadas, 1))
+    coverage = float(100 * detectadas / max(total, 1))
+    if precision >= 80 and recall >= 70:
+        estado = "Normal"
+    elif precision >= 60 and recall >= 40:
+        estado = "Precaucion"
+    else:
+        estado = "Critico"
+    return {
+        "total": total,
+        "detectadas": detectadas,
+        "recall": recall,
+        "precision": precision,
+        "coverage": coverage,
+        "estado": estado,
+    }
+
+
 def apply_smoothing(df: pd.DataFrame, var: str, method: str, window_samples: int, resample_minutes: int) -> pd.DataFrame:
     """Aplica suavizado o downsampling para reducir ruido en series largas."""
     if df is None or df.empty:
@@ -227,14 +258,20 @@ st.markdown("Panel de monitoreo y deteccion de anomalias")
 data_count = get_data_count()
 model_exists = os.path.exists(MODEL_PATH)
 latest_metrics = load_metrics_from_db()
-history_metrics = load_metrics_history(2)
-prev_metric = history_metrics[1] if len(history_metrics) > 1 else None
 db_ok, db_msg = check_db_connection()
+# Calcula metricas en vivo si hay modelo y datos, para sincronizar con la BD actual
+live_df = load_data_from_db() if data_count > 0 and model_exists else None
+live_model, live_scaler, live_features = load_model() if model_exists else (None, None, None)
+live_metrics = compute_model_metrics(live_df, live_model, live_scaler, live_features) if live_df is not None else None
+live_df_max_ts = live_df["timestamp"].max() if live_df is not None and not live_df.empty else None
 
 status_col1, status_col2, status_col3 = st.columns(3)
 status_col1.metric("Registros en BD", data_count)
 status_col2.metric("Modelo entrenado", "Si" if model_exists else "No")
-if latest_metrics:
+# Mostrar métrica persistida si está al día; si está desactualizada respecto a los datos, mostrar cálculo en vivo
+if latest_metrics and live_df_max_ts and latest_metrics["fecha"] >= live_df_max_ts:
+    history_metrics = load_metrics_history(2)
+    prev_metric = history_metrics[1] if len(history_metrics) > 1 else None
     delta = None
     if prev_metric:
         delta_val = latest_metrics["porcentaje"] - prev_metric.porcentaje
@@ -243,6 +280,18 @@ if latest_metrics:
         "Ultimo analisis (%)",
         latest_metrics["porcentaje"],
         delta=delta,
+        help=f"{latest_metrics['estado']} @ {latest_metrics['fecha']}"
+    )
+elif live_metrics:
+    status_col3.metric(
+        "Ultimo analisis (%)",
+        float(f"{live_metrics['coverage']:.2f}"),
+        help=f"{live_metrics['estado']} (en vivo, modelo vs datos actuales)"
+    )
+elif latest_metrics:
+    status_col3.metric(
+        "Ultimo analisis (%)",
+        latest_metrics["porcentaje"],
         help=f"{latest_metrics['estado']} @ {latest_metrics['fecha']}"
     )
 else:
@@ -265,6 +314,7 @@ with colA:
             err = run_script(["python", "-m", "scripts.simulate_data"])
         if not err:
             st.toast("Datos simulados agregados.", icon="✅")
+            st.rerun()
 
 with colB:
     if st.button("Entrenar modelo", disabled=not can_train):
@@ -274,6 +324,7 @@ with colB:
                 err2 = run_script(["python", "-m", "ml.detect_anomalies"])
         if not err1 and not err2:
             st.toast("Modelo entrenado y metricas guardadas.", icon="✅")
+            st.rerun()
     elif not can_train:
         st.toast("Necesitas datos para entrenar.", icon="⚠️")
 
@@ -283,6 +334,7 @@ with colC:
             err = run_script(["python", "-m", "ml.detect_anomalies"])
         if not err:
             st.toast("Metricas recalculadas.", icon="✅")
+            st.rerun()
     elif not can_recalc:
         st.toast("Necesitas datos y modelo entrenado.", icon="⚠️")
 
@@ -292,6 +344,7 @@ with colD:
             err = run_script(["python", "-m", "scripts.reset_db"])
         if not err:
             st.toast("Base de datos reiniciada y repoblada.", icon="✅")
+            st.rerun()
 
 # Panel de ejecucion (stdout/stderr)
 with st.expander("Ver detalles de ejecución (Técnico)", expanded=False):
@@ -373,16 +426,23 @@ if df is not None and model is not None:
     ])
 
     with tab1:
-        total = len(df_f)
-        num_anom = int(df_f["label_anomalia"].sum())
-        ratio = (num_anom / max(total, 1)) * 100
+        metrics_model = compute_model_metrics(df_f, model, scaler, features)
+        if metrics_model:
+            total = metrics_model["total"]
+            num_anom = metrics_model["detectadas"]
+            ratio = metrics_model["coverage"]
+            estado = metrics_model["estado"]
+        else:
+            total = len(df_f)
+            num_anom = int(df_f["label_anomalia"].sum())
+            ratio = (num_anom / max(total, 1)) * 100
+            estado = "Critico" if ratio > 4 else "Precaucion" if ratio >= 1 else "Normal"
 
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Registros totales", total)
         col2.metric("Anomalias detectadas", num_anom)
         col3.metric("Porcentaje", f"{ratio:.2f}%")
 
-        estado = "Critico" if ratio > 4 else "Precaucion" if ratio >= 1 else "Normal"
         if estado == "Normal":
             col4.success("Estado: Normal")
         elif estado == "Precaucion":
