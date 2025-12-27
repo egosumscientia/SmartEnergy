@@ -22,7 +22,7 @@ from streamlit_autorefresh import st_autorefresh
 # ============================
 # CONFIGURACION GENERAL
 # ============================
-st.set_page_config(page_title="SmartEnergy Optimizer v3.5", layout="wide")
+st.set_page_config(page_title="SmartEnergy", layout="wide")
 
 # Auto-refresco real para simulacion en vivo (4000ms = 4s)
 st_autorefresh(interval=4000, key="auto_refresh_counter")
@@ -273,7 +273,7 @@ def check_db_connection():
 # ============================
 # LAYOUT PRINCIPAL
 # ============================
-st.title("SmartEnergy Optimizer v3.5")
+st.title("SmartEnergy")
 st.markdown("Panel de monitoreo y deteccion de anomalias")
 
 data_count = get_data_count()
