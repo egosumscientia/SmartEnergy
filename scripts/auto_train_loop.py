@@ -13,6 +13,7 @@ Notas:
 import argparse
 import subprocess
 import time
+import sys
 
 
 def run_cmd(cmd: list[str]) -> bool:
@@ -32,10 +33,10 @@ def main():
     print(f"[auto_train_loop] Iniciando loop cada {args.interval} segundos. Ctrl+C para salir.")
     try:
         while True:
-            ok_train = run_cmd(["python", "-m", "ml.train_model"])
+            ok_train = run_cmd([sys.executable, "-m", "ml.train_model"])
             ok_detect = False
             if ok_train:
-                ok_detect = run_cmd(["python", "-m", "ml.detect_anomalies"])
+                ok_detect = run_cmd([sys.executable, "-m", "ml.detect_anomalies"])
             if ok_train and ok_detect:
                 print("[auto_train_loop] OK: modelo entrenado y metricas recalculadas.")
             time.sleep(max(args.interval, 1))
