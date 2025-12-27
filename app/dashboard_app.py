@@ -10,7 +10,7 @@ import plotly.io as pio
 import joblib
 import subprocess
 import math
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import text
 from core.database import SessionLocal, engine
 from core.models import Registro, Metrica
@@ -397,6 +397,8 @@ if df is not None and model is not None:
         st.session_state["rolling_window"] = 60
     if "resample_minutes" not in st.session_state:
         st.session_state["resample_minutes"] = 5
+    if "recent_hours" not in st.session_state:
+        st.session_state["recent_hours"] = 2  # limitar por defecto a ultimas 2h para graficos mas legibles
 
     with st.sidebar.form("filters_form"):
         st.sidebar.header("Filtros de analisis")
@@ -409,6 +411,7 @@ if df is not None and model is not None:
         smoothing_method = st.sidebar.selectbox("Reduccion de ruido", ["Ninguno", "Media movil", "Downsample por ventana"], index=["Ninguno", "Media movil", "Downsample por ventana"].index(st.session_state["smoothing_method"]))
         rolling_window = st.sidebar.number_input("Ventana media movil (muestras)", min_value=1, max_value=5000, step=10, value=int(st.session_state["rolling_window"]))
         resample_minutes = st.sidebar.number_input("Ventana de downsample (minutos)", min_value=1, max_value=240, step=1, value=int(st.session_state["resample_minutes"]))
+        recent_hours = st.sidebar.number_input("Limitar a ultimas horas (0 = todo)", min_value=0, max_value=72, step=1, value=int(st.session_state["recent_hours"]))
         apply_filters = st.form_submit_button("Aplicar filtros")
 
     if apply_filters:
@@ -418,12 +421,14 @@ if df is not None and model is not None:
         st.session_state["smoothing_method"] = smoothing_method
         st.session_state["rolling_window"] = int(rolling_window)
         st.session_state["resample_minutes"] = int(resample_minutes)
+        st.session_state["recent_hours"] = int(recent_hours)
     else:
         sample_plots = st.session_state["sample_plots"]
         table_limit = st.session_state["table_limit"]
         smoothing_method = st.session_state["smoothing_method"]
         rolling_window = st.session_state["rolling_window"]
         resample_minutes = st.session_state["resample_minutes"]
+        recent_hours = st.session_state["recent_hours"]
 
     mask_fecha = (df["timestamp"].dt.date >= rango_fecha[0]) & (df["timestamp"].dt.date <= rango_fecha[1])
     df_f = df[mask_fecha].copy()
@@ -431,6 +436,10 @@ if df is not None and model is not None:
         df_f = df_f[df_f["estado"] == "Anomalo"]
     elif "Anomalo" not in estado_sel:
         df_f = df_f[df_f["estado"] == "Normal"]
+    # Limitar a ventana reciente (ej. ultimas 2h) para evitar compresion de puntos recientes
+    if recent_hours and recent_hours > 0 and not df_f.empty:
+        cutoff = df_f["timestamp"].max() - timedelta(hours=recent_hours)
+        df_f = df_f[df_f["timestamp"] >= cutoff]
 
     # Muestreo para acelerar graficos (mantener orden temporal y representativo)
     df_plot = df_f.sort_values("timestamp")
