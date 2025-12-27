@@ -436,7 +436,27 @@ if df is not None and model is not None:
     if sample_plots and len(df_plot) > 5000:
         # Tomar indices equidistantes para no concentrar puntos al final
         step = max(len(df_plot) // 5000, 1)
-        df_plot = df_plot.iloc[::step].tail(5000)
+        df_plot = df_plot.iloc[::step]
+
+    # Downsample temporal automatico para evitar bloques densos en graficos
+    if sample_plots and len(df_plot) > 1500:
+        time_span = (df_plot["timestamp"].max() - df_plot["timestamp"].min()).total_seconds()
+        if time_span > 0:
+            target_points = 800
+            seconds_per_bin = max(int(time_span / target_points), 1)
+            freq = f"{seconds_per_bin}S"
+            df_plot = df_plot.set_index("timestamp")
+            estado_mode = df_plot["estado"].resample(freq).agg(lambda x: x.value_counts().idxmax() if len(x) else None)
+            label_mean = df_plot["label_anomalia"].resample(freq).mean()
+            df_plot = (
+                df_plot.resample(freq).mean(numeric_only=True)
+                .assign(
+                    estado=estado_mode.values,
+                    label_anomalia=(label_mean > 0.5).astype(int).values,
+                )
+                .dropna(subset=[var_sel])
+                .reset_index()
+            )
 
     df_plot = apply_smoothing(df_plot, var_sel, smoothing_method, int(rolling_window), int(resample_minutes))
 
