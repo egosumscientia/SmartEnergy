@@ -17,7 +17,15 @@ from core.models import Registro, Metrica
 # ============================
 # CONFIGURACION GENERAL
 # ============================
+from streamlit_autorefresh import st_autorefresh
+
+# ============================
+# CONFIGURACION GENERAL
+# ============================
 st.set_page_config(page_title="SmartEnergy Optimizer v3.5", layout="wide")
+
+# Auto-refresco real para simulacion en vivo (4000ms = 4s)
+st_autorefresh(interval=4000, key="auto_refresh_counter")
 
 # === Tema oscuro ===
 dark_css = """<style>

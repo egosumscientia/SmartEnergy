@@ -24,7 +24,8 @@ print("=== Generando datos simulados de energia ===")
 # ============================
 # GENERACION DE DATOS BASE
 # ============================
-timestamps = [datetime.now() + timedelta(seconds=i * SAMPLING_INTERVAL) for i in range(NUM_SAMPLES)]
+start_time = datetime.now() - timedelta(seconds=(NUM_SAMPLES - 1) * SAMPLING_INTERVAL)
+timestamps = [start_time + timedelta(seconds=i * SAMPLING_INTERVAL) for i in range(NUM_SAMPLES)]
 corriente = np.random.normal(25, 3, NUM_SAMPLES)
 voltaje = np.random.normal(220, 5, NUM_SAMPLES)
 temperatura = np.random.normal(45, 2, NUM_SAMPLES)
