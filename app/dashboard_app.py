@@ -6,18 +6,18 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.io as pio
 import joblib
-import os
 from datetime import datetime
 from core.database import SessionLocal
 from core.models import Registro, Metrica
 
 # ============================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACION GENERAL
 # ============================
 st.set_page_config(page_title="SmartEnergy Optimizer v3.5", layout="wide")
 
-# === Tema oscuro completo (idéntico a tu versión anterior) ===
+# === Tema oscuro ===
 dark_css = """<style>
 body, section.main, [data-testid="stAppViewContainer"] {
     background-color: #121212; color: #E0E0E0; font-family: 'Inter', sans-serif;
@@ -46,8 +46,6 @@ h1, h2, h3, h4, h5, label, span { color: #FFFFFF !important; }
 </style>"""
 st.markdown(dark_css, unsafe_allow_html=True)
 
-# === Plotly tema oscuro ===
-import plotly.io as pio
 pio.templates["dark_custom"] = pio.templates["plotly_dark"]
 pio.templates["dark_custom"].layout.update(
     paper_bgcolor="#121212", plot_bgcolor="#121212",
@@ -62,7 +60,6 @@ MODEL_PATH = "models/anomaly_detector.pkl"
 # FUNCIONES AUXILIARES
 # ============================
 def load_data_from_db():
-    """Carga los registros desde PostgreSQL."""
     session = SessionLocal()
     query = session.query(
         Registro.id, Registro.timestamp, Registro.corriente,
@@ -72,14 +69,13 @@ def load_data_from_db():
     df = pd.read_sql(query.statement, session.bind)
     session.close()
     if df.empty:
-        st.warning("⚠️ No hay datos en la base de datos.")
         return None
     df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df["label_anomalia"] = (df["estado"] == "Anómalo").astype(int)
+    df["estado"] = df["estado"].apply(lambda v: "Anomalo" if str(v).lower().startswith("an") else "Normal")
+    df["label_anomalia"] = (df["estado"] == "Anomalo").astype(int)
     return df
 
 def load_metrics_from_db():
-    """Obtiene las métricas más recientes."""
     session = SessionLocal()
     query = session.query(Metrica).order_by(Metrica.id.desc()).limit(1)
     metrica = query.first()
@@ -94,97 +90,87 @@ def load_metrics_from_db():
         "fecha": metrica.fecha
     }
 
+def get_data_count():
+    session = SessionLocal()
+    total = session.query(Registro).count()
+    session.close()
+    return total
+
 def load_model():
     if not os.path.exists(MODEL_PATH):
-        st.error("No se encontró el modelo. Entrénalo con train_model.py.")
         return None, None, None
     bundle = joblib.load(MODEL_PATH)
     return bundle["model"], bundle["scaler"], bundle["features"]
 
 # ============================
-# CARGA DE DATOS Y MODELO
+# LAYOUT PRINCIPAL
 # ============================
-df = load_data_from_db()
-model, scaler, features = load_model()
+st.title("SmartEnergy Optimizer v3.5")
+st.markdown("Panel de monitoreo y deteccion de anomalias")
+
+data_count = get_data_count()
+model_exists = os.path.exists(MODEL_PATH)
+latest_metrics = load_metrics_from_db()
+
+status_col1, status_col2, status_col3 = st.columns(3)
+status_col1.metric("Registros en BD", data_count)
+status_col2.metric("Modelo entrenado", "Si" if model_exists else "No")
+if latest_metrics:
+    status_col3.metric("Ultimo analisis (%)", latest_metrics["porcentaje"], help=f"{latest_metrics['estado']} @ {latest_metrics['fecha']}")
+else:
+    status_col3.metric("Ultimo analisis (%)", "N/A")
+
+st.subheader("Acciones rapidas")
+colA, colB, colC, colD = st.columns(4)
+
+with colA:
+    if st.button("Generar dataset"):
+        with st.spinner("Generando datos simulados..."):
+            os.system("python -m scripts.simulate_data")
+        st.success("Datos simulados agregados.")
+
+with colB:
+    if st.button("Entrenar modelo"):
+        with st.spinner("Entrenando modelo y registrando metricas..."):
+            os.system("python -m ml.train_model")
+            os.system("python -m ml.detect_anomalies")
+        st.success("Modelo entrenado y metricas guardadas.")
+
+with colC:
+    if st.button("Recalcular metricas"):
+        with st.spinner("Ejecutando analisis de anomalias..."):
+            os.system("python -m ml.detect_anomalies")
+        st.success("Metricas recalculadas.")
+
+with colD:
+    if st.button("Reiniciar base de datos"):
+        with st.spinner("Limpiando tablas y generando nuevo dataset..."):
+            os.system("python -m scripts.reset_db")
+        st.success("Base de datos reiniciada y repoblada.")
+
+df = load_data_from_db() if data_count > 0 else None
+model, scaler, features = load_model() if model_exists else (None, None, None)
 
 if df is not None and model is not None:
-    st.title("⚡ SmartEnergy Optimizer v3.5")
-    st.markdown("#### Plataforma avanzada de monitoreo energético y detección de anomalías")
-
-    # ============================
-    # MODO DESARROLLADOR
-    # ============================
-    if st.sidebar.checkbox("Modo desarrollador", value=True):
-        colA, colB, colC, colD = st.columns(4)
-
-        # === Estado general del último análisis ===
-        metrica = load_metrics_from_db()
-        if metrica:
-            estado_color = {
-                "Normal": "🟢",
-                "Precaución": "🟡",
-                "Crítico": "🔴"
-            }.get(metrica["estado"], "⚪")
-            st.markdown(
-                f"<div style='text-align:center; margin-bottom:10px; font-weight:600; color:#E0E0E0;'>"
-                f"📅 Último análisis: <b>{metrica['fecha'].strftime('%Y-%m-%d %H:%M:%S')}</b> — "
-                f"Estado global: {estado_color} <b>{metrica['estado']}</b> "
-                f"({metrica['porcentaje']}%)"
-                f"</div>",
-                unsafe_allow_html=True
-            )
-
-        with colA:
-            if st.button("🧩 Generar nuevo dataset"):
-                with st.spinner("Generando datos simulados..."):
-                    os.system("python -m scripts.simulate_data")
-                st.success("✅ Datos simulados agregados a la base.")
-
-        with colB:
-            if st.button("⚙️ Entrenar modelo"):
-                with st.spinner("Entrenando modelo y analizando resultados..."):
-                    os.system("python -m ml.train_model")
-                    os.system("python -m ml.detect_anomalies")
-                st.success("✅ Modelo entrenado y métricas actualizadas en la base de datos.")
-
-        with colC:
-            if st.button("🔁 Recalcular métricas"):
-                with st.spinner("Ejecutando análisis de anomalías..."):
-                    os.system("python -m ml.detect_anomalies")
-                st.success("✅ Métricas recalculadas correctamente.")
-        
-        with colD:
-            if st.button("🧹 Reiniciar base de datos"):
-                with st.spinner("Limpiando tablas y generando nuevo dataset..."):
-                    os.system("python -m scripts.reset_db")
-                st.success("✅ Base de datos reiniciada y repoblada con 10 000 registros.")
-
-    # ============================
-    # FILTROS LATERALES
-    # ============================
-    st.sidebar.header("Filtros de análisis")
+    st.sidebar.header("Filtros de analisis")
     fecha_min, fecha_max = df["timestamp"].min(), df["timestamp"].max()
     rango_fecha = st.sidebar.date_input("Rango de fechas", [fecha_min, fecha_max])
     var_sel = st.sidebar.selectbox("Variable a visualizar", ["corriente", "voltaje", "potencia_activa", "temperatura_motor"])
-    estado_sel = st.sidebar.multiselect("Estado de anomalía", ["Normal", "Anómalo"], default=["Normal", "Anómalo"])
+    estado_sel = st.sidebar.multiselect("Estado de anomalia", ["Normal", "Anomalo"], default=["Normal", "Anomalo"])
 
     mask_fecha = (df["timestamp"].dt.date >= rango_fecha[0]) & (df["timestamp"].dt.date <= rango_fecha[1])
     df_f = df[mask_fecha].copy()
     if "Normal" not in estado_sel:
-        df_f = df_f[df_f["estado"] == "Anómalo"]
-    elif "Anómalo" not in estado_sel:
+        df_f = df_f[df_f["estado"] == "Anomalo"]
+    elif "Anomalo" not in estado_sel:
         df_f = df_f[df_f["estado"] == "Normal"]
 
-    # ============================
-    # TABS
-    # ============================
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📊 Análisis general", "⚡ Variables energéticas",
-        "📈 Comparativos", "🧠 Detección de anomalías",
-        "📋 Tabla de registros"
+        "Analisis general", "Variables energeticas",
+        "Comparativos", "Deteccion de anomalias",
+        "Tabla de registros"
     ])
 
-    # === TAB 1 ===
     with tab1:
         total = len(df_f)
         num_anom = int(df_f["label_anomalia"].sum())
@@ -192,31 +178,31 @@ if df is not None and model is not None:
 
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("Registros totales", total)
-        col2.metric("Anomalías detectadas", num_anom)
+        col2.metric("Anomalias detectadas", num_anom)
         col3.metric("Porcentaje", f"{ratio:.2f}%")
 
-        estado = "Crítico" if ratio > 4 else "Precaución" if ratio >= 1 else "Normal"
+        estado = "Critico" if ratio > 4 else "Precaucion" if ratio >= 1 else "Normal"
         if estado == "Normal":
-            col4.success("🟢 Estado: Normal")
-        elif estado == "Precaución":
-            col4.warning("🟡 Estado: Precaución")
+            col4.success("Estado: Normal")
+        elif estado == "Precaucion":
+            col4.warning("Estado: Precaucion")
         else:
-            col4.error("🔴 Estado: Crítico")
+            col4.error("Estado: Critico")
 
-        st.markdown(f"### Distribución temporal de {var_sel}")
+        st.markdown(f"### Distribucion temporal de {var_sel}")
         if len(df_f) > 0:
             fig_line = px.line(
                 df_f, x="timestamp", y=var_sel,
-                color=df_f["estado"], color_discrete_map={"Normal": "blue", "Anómalo": "red"},
+                color=df_f["estado"], color_discrete_map={"Normal": "blue", "Anomalo": "red"},
                 labels={"timestamp": "Tiempo", var_sel: var_sel.replace("_", " ")}
             )
-            st.plotly_chart(fig_line, width="stretch")
+            st.plotly_chart(fig_line, use_container_width=True)
 
         st.markdown("### Indicador general de salud del sistema")
         fig_gauge = go.Figure(go.Indicator(
             mode="gauge+number",
             value=ratio,
-            title={'text': "Porcentaje de anomalías"},
+            title={'text': "Porcentaje de anomalias"},
             gauge={
                 'axis': {'range': [0, 10]},
                 'bar': {'color': "#0078D4"},
@@ -229,53 +215,50 @@ if df is not None and model is not None:
             number={'suffix': "%"}
         ))
         fig_gauge.update_layout(height=250)
-        st.plotly_chart(fig_gauge, width="stretch")
+        st.plotly_chart(fig_gauge, use_container_width=True)
 
         metrica = load_metrics_from_db()
         if metrica:
-            st.caption(f"📅 Último análisis: {metrica['fecha']} — Estado global: **{metrica['estado']}**")
+            st.caption(f"Ultimo analisis: {metrica['fecha']} - Estado global: **{metrica['estado']}**")
 
-    # === TAB 2 — Variables energéticas ===
     with tab2:
-        st.subheader(f"Evolución de {var_sel}")
+        st.subheader(f"Evolucion de {var_sel}")
         fig = px.line(df_f, x="timestamp", y=var_sel, color=df_f["estado"],
-                      color_discrete_map={"Normal": "green", "Anómalo": "red"})
-        st.plotly_chart(fig, width="stretch")
+                      color_discrete_map={"Normal": "green", "Anomalo": "red"})
+        st.plotly_chart(fig, use_container_width=True)
         st.markdown("#### Histograma comparativo")
         fig_hist = px.histogram(df_f, x=var_sel, color=df_f["estado"],
-                                color_discrete_map={"Normal": "green", "Anómalo": "red"},
+                                color_discrete_map={"Normal": "green", "Anomalo": "red"},
                                 barmode="overlay", nbins=40)
-        st.plotly_chart(fig_hist, width="stretch")
+        st.plotly_chart(fig_hist, use_container_width=True)
 
-    # === TAB 3 — Comparativos ===
     with tab3:
         st.subheader("Relaciones entre variables")
         fig_scatter = px.scatter_matrix(df_f,
                                         dimensions=["corriente", "voltaje", "potencia_activa", "temperatura_motor"],
                                         color=df_f["estado"],
-                                        color_discrete_map={"Normal": "blue", "Anómalo": "red"})
-        st.plotly_chart(fig_scatter, width="stretch")
+                                        color_discrete_map={"Normal": "blue", "Anomalo": "red"})
+        st.plotly_chart(fig_scatter, use_container_width=True)
 
-    # === TAB 4 — Detección con modelo ===
     with tab4:
-        st.subheader("Análisis y detección con IsolationForest")
+        st.subheader("Analisis y deteccion con IsolationForest")
         if len(df_f) > 0:
             X = df_f[features].values
             preds = model.predict(scaler.transform(X))
             df_f["pred_anomalia"] = (preds == -1).astype(int)
             fig_pred = px.line(df_f, x="timestamp", y=var_sel,
-                               color=df_f["pred_anomalia"].map({0: "Normal", 1: "Anómalo"}),
-                               color_discrete_map={"Normal": "blue", "Anómalo": "red"})
-            st.plotly_chart(fig_pred, width="stretch")
-            st.metric("Anomalías detectadas por modelo", int(df_f["pred_anomalia"].sum()))
+                               color=df_f["pred_anomalia"].map({0: "Normal", 1: "Anomalo"}),
+                               color_discrete_map={"Normal": "blue", "Anomalo": "red"})
+            st.plotly_chart(fig_pred, use_container_width=True)
+            st.metric("Anomalias detectadas por modelo", int(df_f["pred_anomalia"].sum()))
 
-    # === TAB 5 — Tabla de registros ===
     with tab5:
-        st.subheader("Registros recientes (máx 1000)")
-        st.dataframe(df_f.tail(1000), width="stretch")
-        st.download_button("⬇️ Descargar datos filtrados (CSV)",
+        st.subheader("Registros recientes (max 1000)")
+        st.dataframe(df_f.tail(1000), use_container_width=True)
+        st.download_button("Descargar datos filtrados (CSV)",
                            df_f.to_csv(index=False).encode("utf-8"),
                            file_name="smartenergy_filtered.csv", mime="text/csv")
-
 else:
-    st.warning("⚠️ Genera datos y entrena el modelo antes de iniciar el análisis.")
+    st.info("Necesitas datos y modelo entrenado. Usa las acciones rapidas y luego recarga la pagina.")
+    if st.button("Recargar ahora"):
+        st.experimental_rerun()

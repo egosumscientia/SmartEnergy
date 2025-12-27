@@ -12,7 +12,7 @@ from core.models import Registro
 import os
 
 # ============================
-# CONFIGURACIÓN
+# CONFIGURACION
 # ============================
 MODEL_FILE = "models/anomaly_detector.pkl"
 os.makedirs("models", exist_ok=True)
@@ -36,7 +36,7 @@ if df.empty:
     raise ValueError("No hay datos disponibles en la tabla 'registros' para entrenar el modelo.")
 
 # ============================
-# PREPARACIÓN DE DATOS
+# PREPARACION DE DATOS
 # ============================
 features = ["corriente", "voltaje", "potencia_activa", "temperatura_motor"]
 X = df[features].values
@@ -60,21 +60,27 @@ y_pred = model.predict(X_scaled)
 df["pred_anomalia"] = (y_pred == -1).astype(int)
 
 # ============================
-# EVALUACIÓN SIMPLE
+# EVALUACION SIMPLE
 # ============================
 total = len(df)
 detected = df["pred_anomalia"].sum()
-true_anomalies = (df["estado"] == "Anómalo").sum()
-true_positives = ((df["pred_anomalia"] == 1) & (df["estado"] == "Anómalo")).sum()
+true_anomalias = (df["estado"] == "Anomalo").sum()
+true_positives = ((df["pred_anomalia"] == 1) & (df["estado"] == "Anomalo")).sum()
 
 print(f"Registros totales: {total}")
-print(f"Anomalías reales: {true_anomalies}")
-print(f"Anomalías detectadas: {detected}")
+print(f"Anomalias reales: {true_anomalias}")
+print(f"Anomalias detectadas: {detected}")
 print(f"Verdaderos positivos: {true_positives}")
-print(f"Precisión aproximada: {100 * true_positives / max(detected,1):.2f}%")
+print(f"Precision aproximada: {100 * true_positives / max(detected,1):.2f}%")
 
 # ============================
 # GUARDADO DEL MODELO
 # ============================
 joblib.dump({"model": model, "scaler": scaler, "features": features}, MODEL_FILE)
 print(f"[OK] Modelo guardado en: {MODEL_FILE}")
+
+
+
+
+
+

@@ -69,7 +69,7 @@ registros = [
         voltaje=float(voltaje[i]),
         potencia_activa=float(potencia[i]),
         temperatura_motor=float(temperatura[i]),
-        estado="Anómalo" if labels[i] == 1 else "Normal"
+        estado="Anomalo" if labels[i] == 1 else "Normal"
     )
     for i in range(NUM_SAMPLES)
 ]
@@ -97,3 +97,4 @@ session.close()
 print(f"✅ {NUM_SAMPLES} registros insertados en la base de datos.")
 print(f"Nivel de anomalías: {ANOMALY_RATIO * 100:.1f}% ({num_anom} de {NUM_SAMPLES})")
 print(f"Total actual en base: {min(total, MAX_REGISTROS)} registros.")
+
