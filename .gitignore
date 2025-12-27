@@ -1,0 +1,70 @@
+# === Python general ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+*.log
+*.tmp
+*.bak
+*.swp
+
+# === Entornos virtuales ===
+venv/
+env/
+ENV/
+.venv/
+.pyenv/
+pip-wheel-metadata/
+
+# === Archivos del sistema operativo ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Datos y modelos ===
+data/
+models/
+*.db
+*.sqlite3
+*.h5
+*.pkl
+*.joblib
+*.csv
+*.json
+
+# === Streamlit ===
+.streamlit/config.toml
+.streamlit/secrets.toml
+
+# === Archivos temporales o locales ===
+*.log
+*.cache
+*.bak
+*.tmp
+*.orig
+
+# === IDEs y editores ===
+.vscode/
+.idea/
+*.code-workspace
+
+# === Distribuciones / builds ===
+build/
+dist/
+*.spec
+
+# === Archivos personales o de despliegue local ===
+notes/
+backup/
+*.env
+.env.local
+.env.*
+
+# === Exportaciones o informes ===
+*.xlsx
+*.pdf
+*.zip
+*.tar
