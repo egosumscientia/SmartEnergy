@@ -365,9 +365,9 @@ with st.expander("Zona de Mantenimiento (Datos)", expanded=False):
                 st.toast("Base de datos reiniciada y repoblada.", icon="✅")
                 st.rerun()
 
-# Panel de ejecucion (stdout/stderr)
+# Panel de ejecución (stdout/stderr)
 with st.expander("Ver logs de ejecución (Técnico)", expanded=False):
-    st.subheader("Panel de ejecucion")
+    st.subheader("Panel de ejecución")
     logs = st.session_state.get("exec_logs", [])
     if logs:
         for i, log in enumerate(logs):
@@ -378,7 +378,7 @@ with st.expander("Ver logs de ejecución (Técnico)", expanded=False):
             if log["stderr"]:
                 st.text_area("stderr", log["stderr"], height=120, key=f"stderr_{i}_{log['cmd']}")
     else:
-        st.caption("Aun no hay ejecuciones registradas.")
+        st.caption("Aún no hay ejecuciones registradas.")
 
 df = load_data_from_db() if data_count > 0 else None
 model, scaler, features = load_model() if model_exists else (None, None, None)

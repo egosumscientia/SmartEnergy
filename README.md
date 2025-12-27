@@ -14,6 +14,7 @@ La aplicación aborda el monitoreo continuo de variables eléctricas en entornos
 - `scripts/`: bootstrap, reseteo y generación de datos.
   - `simulate_data`: genera ~10k registros batch (histórico).
   - `stream_realtime`: genera datos en tiempo real en ciclos pequeños.
+  - `auto_train_loop`: reentrena modelo y recalcula métricas en bucle.
   - `seed_db` / `reset_db`: crear tablas / limpiar y repoblar.
 - `ml/`: entrenamiento (`train_model.py`) y detección + registro de métricas (`detect_anomalies.py`).
 - `app/`: app Streamlit (`dashboard_app.py`) con panel de estado, filtros, gráficos y descargas.
@@ -35,11 +36,11 @@ La aplicación aborda el monitoreo continuo de variables eléctricas en entornos
    - `batch-size`: registros por ciclo.
    - `anomaly-ratio`: probabilidad de anomalía por variable (puede afectar varias variables a la vez).
    - `max-registros`: límite duro; se borran los más antiguos si se excede.
-2) Entrena y calcula métricas cuando quieras refrescar el modelo:
+2) Reentrena y recalcula métricas de forma automática (en otra terminal):
    ```bash
-   python -m ml.train_model
-   python -m ml.detect_anomalies
+   python -m scripts.auto_train_loop --interval 300
    ```
+   - `interval`: segundos entre ciclos (default 300s). Evita correr más de un loop a la vez.
 3) Corre el dashboard:
    ```bash
    streamlit run app/dashboard_app.py
@@ -84,6 +85,7 @@ La aplicación aborda el monitoreo continuo de variables eléctricas en entornos
 - Resetear tablas y regenerar 10k registros: `python -m scripts.reset_db`
 - Regenerar solo datos (batch): `python -m scripts.simulate_data`
 - Generación continua: `python -m scripts.stream_realtime ...`
+- Reentrenar en loop: `python -m scripts.auto_train_loop ...`
 
 ## Notas
 - El dashboard funciona sin modelo inicial; usa los botones para generarlo si falta.
