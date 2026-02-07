@@ -27,6 +27,39 @@ Alcance: demo/MVP con datos mock. Los valores provienen de generadores estadisti
   DATABASE_URL=postgresql://smartuser:smartpwd@127.0.0.1:5432/smartenergy
   ```
 
+## Docker (todo en contenedores + PostgreSQL)
+1) Levantar todo el stack:
+   ```bash
+   docker compose up -d --build
+   ```
+2) Abrir dashboard:
+   - `http://127.0.0.1:8501`
+3) Ver estado de servicios:
+   ```bash
+   docker compose ps
+   ```
+4) Ver logs:
+   ```bash
+   docker compose logs -f dashboard
+   docker compose logs -f realtime
+   docker compose logs -f trainer
+   ```
+5) Detener stack:
+   ```bash
+   docker compose down
+   ```
+6) Borrado total (incluye base de datos y modelo persistido):
+   ```bash
+   docker compose down -v
+   ```
+
+Servicios definidos en `docker-compose.yml`:
+- `db`: PostgreSQL 16 con volumen persistente (`postgres_data`).
+- `init`: crea tablas, carga dataset inicial, entrena modelo y registra metricas iniciales.
+- `realtime`: inserta datos continuamente.
+- `trainer`: reentrena modelo y recalcula metricas cada 300s.
+- `dashboard`: Streamlit (puerto `8501`).
+
 ## Flujo en tiempo real (recomendado)
 1) Generador continuo:
    ```bash

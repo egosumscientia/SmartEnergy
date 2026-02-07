@@ -1,0 +1,111 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: smartenergy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: smartenergy
+      POSTGRES_USER: smartuser
+      POSTGRES_PASSWORD: smartpwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartuser -d smartenergy"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartenergy-init
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://smartuser:smartpwd@db:5432/smartenergy
+      PYTHONPATH: /app
+    command: >
+      sh -lc "
+      python -m scripts.wait_for_db &&
+      python -m scripts.seed_db &&
+      python -m scripts.simulate_data &&
+      python -m ml.train_model &&
+      python -m ml.detect_anomalies
+      "
+    volumes:
+      - models_data:/app/models
+
+  realtime:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartenergy-realtime
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://smartuser:smartpwd@db:5432/smartenergy
+      PYTHONPATH: /app
+    command: >
+      sh -lc "
+      python -m scripts.wait_for_db &&
+      python -m scripts.stream_realtime --interval 1 --batch-size 5 --anomaly-ratio 0.12 --max-registros 20000
+      "
+
+  trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartenergy-trainer
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://smartuser:smartpwd@db:5432/smartenergy
+      PYTHONPATH: /app
+    command: >
+      sh -lc "
+      python -m scripts.wait_for_db &&
+      python -m scripts.auto_train_loop --interval 300
+      "
+    volumes:
+      - models_data:/app/models
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartenergy-dashboard
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://smartuser:smartpwd@db:5432/smartenergy
+      PYTHONPATH: /app
+    command: >
+      sh -lc "
+      python -m scripts.wait_for_db &&
+      streamlit run app/dashboard_app.py --server.headless true --server.address 0.0.0.0 --server.port 8501
+      "
+    ports:
+      - "8501:8501"
+    volumes:
+      - models_data:/app/models
+
+volumes:
+  postgres_data:
+  models_data:
