@@ -104,6 +104,9 @@ def main():
             total = session.query(Registro).count()
             if total > args.max_registros:
                 exceso = total - args.max_registros
+                print(
+                    f"[{datetime.now().isoformat()}] Limite de {args.max_registros} superado. Eliminando {exceso} registros antiguos."
+                )
                 session.execute(
                     text(
                         "DELETE FROM registros WHERE id IN (SELECT id FROM registros ORDER BY id ASC LIMIT :lim)"

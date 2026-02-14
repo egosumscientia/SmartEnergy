@@ -61,7 +61,7 @@ contamination = min(0.2, max(0.01, anom_rate + 0.01))
 model = IsolationForest(
     n_estimators=200,
     contamination=contamination,
-    random_state=None,
+    random_state=42,
     n_jobs=-1
 )
 

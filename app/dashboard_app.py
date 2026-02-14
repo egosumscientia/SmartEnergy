@@ -17,15 +17,7 @@ from core.models import Registro, Metrica
 # ============================
 # CONFIGURACION GENERAL
 # ============================
-from streamlit_autorefresh import st_autorefresh
-
-# ============================
-# CONFIGURACION GENERAL
-# ============================
 st.set_page_config(page_title="SmartEnergy", layout="wide")
-
-# Auto-refresco real para simulacion en vivo (4000ms = 4s)
-st_autorefresh(interval=4000, key="auto_refresh_counter")
 
 # === Tema oscuro ===
 dark_css = """<style>
@@ -148,25 +140,30 @@ def load_metrics_history(n=2):
     if SessionLocal is None:
         return []
     session = SessionLocal()
-    metricas = (
-        session.query(Metrica)
-        .order_by(Metrica.id.desc())
-        .limit(n)
-        .all()
-    )
-    session.close()
-    return list(metricas)
+    try:
+        metricas = (
+            session.query(Metrica)
+            .order_by(Metrica.id.desc())
+            .limit(n)
+            .all()
+        )
+        return list(metricas)
+    except Exception:
+        return []
+    finally:
+        session.close()
 
 def get_data_count():
     if SessionLocal is None:
         return 0
+    session = SessionLocal()
     try:
-        session = SessionLocal()
         total = session.query(Registro).count()
-        session.close()
         return total
     except Exception:
         return 0
+    finally:
+        session.close()
 
 def load_model():
     if not os.path.exists(MODEL_PATH):
@@ -321,7 +318,8 @@ if not db_ok:
     st.error(db_msg or "Problema de conexion a la base de datos.")
 
 st.subheader("Acciones rapidas")
-colA, colB, colC, colD = st.columns(4)
+if st.button("Refrescar dashboard", help="Recarga datos, metricas y graficas"):
+    st.rerun()
 
 st.subheader("Acciones de Modelo")
 col_model_1, col_model_2 = st.columns(2)
@@ -563,4 +561,4 @@ if df is not None and model is not None:
 else:
     st.info("Necesitas datos y modelo entrenado. Usa las acciones rapidas y luego recarga la pagina.")
     if st.button("Recargar ahora"):
-        st.experimental_rerun()
+        st.rerun()

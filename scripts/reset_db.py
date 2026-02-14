@@ -1,5 +1,6 @@
 # scripts/reset_db.py
-import os
+import subprocess
+import sys
 from sqlalchemy import text
 from core.database import engine
 
@@ -12,7 +13,6 @@ with engine.connect() as conn:
 print("Tablas limpiadas correctamente.")
 print("Generando dataset inicial de 10 000 registros...")
 
-# Ejecuta el generador de datos automaticamente
-os.system("python -m scripts.simulate_data")
+subprocess.run([sys.executable, "-m", "scripts.simulate_data"], check=True)
 
 print("Base de datos reiniciada y repoblada.")

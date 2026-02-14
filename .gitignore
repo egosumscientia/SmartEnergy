@@ -59,6 +59,7 @@ dist/
 # === Archivos personales o de despliegue local ===
 notes/
 backup/
+.env
 *.env
 .env.local
 .env.*
