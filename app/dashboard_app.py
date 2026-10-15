@@ -7,13 +7,12 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
-from filelock import Timeout
 from datetime import datetime
 from sqlalchemy import text
 from core.database import SessionLocal, engine
 from core.models import Registro, Metrica
 from core.model_artifact import load_model_bundle
-from app.dashboard_data import filter_records, sample_records, recent_records
+from app.dashboard_data import ENERGY_COLUMNS, prepare_records, filter_records, sample_records, recent_records
 
 # ============================
 # CONFIGURACION GENERAL
@@ -98,10 +97,7 @@ def load_data_from_db():
         return None
     if df.empty:
         return None
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df["estado"] = df["estado"].apply(lambda v: "Anomalo" if str(v).lower().startswith("an") else "Normal")
-    df["label_anomalia"] = (df["estado"] == "Anomalo").astype(int)
-    return df
+    return prepare_records(df)
 
 
 def get_last_data_timestamp():
@@ -172,10 +168,15 @@ def load_model():
         return None, None, None
     try:
         bundle = load_model_bundle(MODEL_PATH)
-    except (OSError, Timeout) as exc:
-        st.error(f"No se pudo cargar el modelo de forma segura: {exc}")
+        model, scaler, features = bundle["model"], bundle["scaler"], bundle["features"]
+        if not callable(getattr(model, "predict", None)) or not callable(getattr(scaler, "transform", None)):
+            raise ValueError("Modelo o scaler inválido")
+        if not isinstance(features, list) or not features or not set(features).issubset(ENERGY_COLUMNS):
+            raise ValueError("Variables del modelo incompatibles")
+    except Exception as exc:
+        st.warning(f"ML no disponible: no se pudo cargar el modelo ({type(exc).__name__}).")
         return None, None, None
-    return bundle["model"], bundle["scaler"], bundle["features"]
+    return model, scaler, features
 
 
 def compute_model_metrics(df_src: pd.DataFrame, model, scaler, features: list[str]):
@@ -265,6 +266,8 @@ st.markdown("Panel de monitoreo y deteccion de anomalias")
 
 data_count = get_data_count()
 model_exists = os.path.exists(MODEL_PATH)
+model, scaler, features = load_model() if model_exists else (None, None, None)
+ml_available = model is not None and scaler is not None and bool(features)
 latest_metrics = load_metrics_from_db()
 last_data_ts = get_last_data_timestamp()
 db_ok, db_msg = check_db_connection()
@@ -279,12 +282,12 @@ model_help = "No se encontro el archivo de modelo."
 if model_exists:
     model_mtime = datetime.fromtimestamp(os.path.getmtime(MODEL_PATH))
     metric_ts = latest_metrics.get("fecha") if latest_metrics else None
-    if latest_metrics:
+    if ml_available:
         model_label = "Si"
         model_help = f"Modelo: {model_mtime} | Ultima metrica: {metric_ts}"
     else:
-        model_label = "Desactualizado"
-        model_help = f"Modelo guardado: {model_mtime} | Sin metricas registradas."
+        model_label = "No disponible"
+        model_help = "El archivo existe, pero no se pudo cargar un modelo válido."
 status_col2.metric("Modelo entrenado", model_label, help=model_help)
 # Mostrar solo la última métrica persistida
 if latest_metrics:
@@ -365,9 +368,14 @@ with st.expander("Ver logs de ejecución (Técnico)", expanded=False):
         st.caption("Aún no hay ejecuciones registradas.")
 
 df = load_data_from_db() if data_count > 0 else None
-model, scaler, features = load_model() if model_exists else (None, None, None)
 
-if df is not None and model is not None:
+has_data = df is not None and not df.empty
+df_f = pd.DataFrame()
+df_plot = pd.DataFrame()
+var_sel = "corriente"
+table_limit = 1000
+
+if has_data:
     if "sample_seed" not in st.session_state:
         st.session_state["sample_seed"] = 42
     if "sample_plots" not in st.session_state:
@@ -383,10 +391,15 @@ if df is not None and model is not None:
 
     with st.sidebar.form("filters_form"):
         st.sidebar.header("Filtros de analisis")
-        fecha_min, fecha_max = df["timestamp"].min(), df["timestamp"].max()
-        rango_fecha = st.sidebar.date_input("Rango de fechas", [fecha_min, fecha_max])
+        valid_dates = df["timestamp"].dropna()
+        if valid_dates.empty:
+            rango_fecha = None
+            st.sidebar.info("Sin fechas válidas: se muestran los registros sin filtro temporal.")
+        else:
+            rango_fecha = st.sidebar.date_input("Rango de fechas", [valid_dates.min(), valid_dates.max()])
         var_sel = st.sidebar.selectbox("Variable a visualizar", ["corriente", "voltaje", "potencia_activa", "temperatura_motor"])
-        estado_sel = st.sidebar.multiselect("Estado de anomalia", ["Normal", "Anomalo"], default=["Normal", "Anomalo"])
+        states = ["Normal", "Anomalo"] + (["Sin estado"] if df["estado"].eq("Sin estado").any() else [])
+        estado_sel = st.sidebar.multiselect("Estado de anomalia", states, default=states)
         sample_plots = st.sidebar.checkbox("Muestrear graficos (max 5000 filas)", value=st.session_state["sample_plots"])
         table_limit = st.sidebar.number_input("Filas max en tabla", min_value=100, max_value=20000, step=100, value=int(st.session_state["table_limit"]))
         smoothing_method = st.sidebar.selectbox("Reduccion de ruido", ["Ninguno", "Media movil", "Downsample por ventana"], index=["Ninguno", "Media movil", "Downsample por ventana"].index(st.session_state["smoothing_method"]))
@@ -411,7 +424,7 @@ if df is not None and model is not None:
     df_f = filter_records(df, rango_fecha, estado_sel)
 
     # Muestreo para acelerar graficos (mantener orden temporal y representativo)
-    df_plot = df_f.sort_values("timestamp")
+    df_plot = df_f.dropna(subset=["timestamp"]).sort_values("timestamp").copy()
     if sample_plots and len(df_plot) > 5000:
         df_plot = sample_records(df_plot, 5000)
 
@@ -437,109 +450,139 @@ if df is not None and model is not None:
 
     df_plot = apply_smoothing(df_plot, var_sel, smoothing_method, int(rolling_window), int(resample_minutes))
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Analisis general", "Variables energeticas",
-        "Comparativos", "Deteccion de anomalias",
-        "Tabla de registros"
-    ])
+has_filtered_data = has_data and not df_f.empty
+empty_message = (
+    "No hay mediciones disponibles. Las vistas se habilitan al disponer de registros."
+    if not has_data else "No hay registros para los filtros seleccionados."
+)
+metrics_model = None
+ml_message = "No hay un modelo ML disponible. Las otras vistas funcionan sin modelo."
+if ml_available and has_filtered_data:
+    if df_f[features].isna().any().any():
+        ml_message = "No se calcula ML: hay variables incompletas en los registros filtrados."
+    else:
+        try:
+            metrics_model = compute_model_metrics(df_f, model, scaler, features)
+        except Exception as exc:
+            ml_message = f"ML no disponible para estos registros ({type(exc).__name__})."
 
-    with tab1:
-        metrics_model = compute_model_metrics(df_f, model, scaler, features)
-        if metrics_model:
-            total = metrics_model["total"]
-            num_anom = metrics_model["detectadas"]
-            ratio = metrics_model["coverage"]
-            estado = metrics_model["estado"]
-        else:
-            total = len(df_f)
-            num_anom = int(df_f["label_anomalia"].sum())
-            ratio = (num_anom / max(total, 1)) * 100
-            estado = None if df_f.empty else "Critico" if ratio > 4 else "Precaucion" if ratio >= 1 else "Normal"
+# Las pestañas pertenecen al monitoreo; ni el modelo ni las métricas las habilitan.
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Analisis general", "Variables energeticas",
+    "Comparativos", "Deteccion de anomalias",
+    "Tabla de registros"
+])
 
+with tab1:
+    if not has_filtered_data:
+        st.info(empty_message)
+    else:
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Registros originales filtrados", total)
-        col2.metric("Anomalías en registros originales", num_anom)
-        col3.metric("Registros originales detectados (%)", f"{ratio:.2f}%" if total else "N/A")
-
-        if estado is None:
-            col4.info("Sin registros para los filtros seleccionados")
-        elif estado == "Normal":
-            col4.success("Estado del análisis: Normal")
-        elif estado == "Precaucion":
-            col4.warning("Estado del análisis: Precaucion")
+        col1.metric("Registros originales filtrados", len(df_f))
+        col2.metric("Anomalías en registros originales", metrics_model["detectadas"] if metrics_model else "N/A")
+        col3.metric("Registros originales detectados (%)", f"{metrics_model['coverage']:.2f}%" if metrics_model else "N/A")
+        if metrics_model:
+            estado = metrics_model["estado"]
+            if estado == "Normal":
+                col4.success("Estado del análisis: Normal")
+            elif estado == "Precaucion":
+                col4.warning("Estado del análisis: Precaucion")
+            else:
+                col4.error("Estado del análisis: Critico")
+            st.caption("El estado evalúa precisión y recall frente a etiquetas sintéticas; no certifica salud eléctrica.")
         else:
-            col4.error("Estado del análisis: Critico")
-        st.caption("El estado evalúa precisión y recall frente a etiquetas sintéticas; no certifica salud eléctrica.")
+            col4.info("Análisis ML opcional: no disponible")
 
         st.markdown(f"### Distribucion temporal de {var_sel}")
-        if len(df_plot) > 0:
+        line_data = df_plot.dropna(subset=[var_sel])
+        if line_data.empty:
+            st.info("No hay valores y fechas válidos para representar esta variable.")
+        else:
             fig_line = px.line(
-                df_plot, x="timestamp", y=var_sel,
-                color=df_plot["estado"], color_discrete_map={"Normal": "blue", "Anomalo": "red"},
+                line_data, x="timestamp", y=var_sel,
+                color="estado", color_discrete_map={"Normal": "blue", "Anomalo": "red"},
                 labels={"timestamp": "Tiempo", var_sel: var_sel.replace("_", " ")}
             )
             st.plotly_chart(fig_line, use_container_width=True)
 
-        st.markdown("### Proporción de registros originales detectados")
-        fig_gauge = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=ratio,
-            title={'text': "Porcentaje de anomalias"},
-            gauge={
-                'axis': {'range': [0, 100]},
-                'bar': {'color': "#0078D4"},
-            },
-            number={'suffix': "%"}
-        ))
-        fig_gauge.update_layout(height=250)
-        st.plotly_chart(fig_gauge, use_container_width=True)
+        if metrics_model:
+            st.markdown("### Proporción de registros originales detectados")
+            fig_gauge = go.Figure(go.Indicator(
+                mode="gauge+number", value=metrics_model["coverage"],
+                title={"text": "Porcentaje de anomalias"},
+                gauge={"axis": {"range": [0, 100]}, "bar": {"color": "#0078D4"}},
+                number={"suffix": "%"}
+            ))
+            fig_gauge.update_layout(height=250)
+            st.plotly_chart(fig_gauge, use_container_width=True)
+    if latest_metrics:
+        st.caption(f"Último análisis persistido: {latest_metrics['fecha']} — estado: {latest_metrics['estado']}")
 
-        metrica = load_metrics_from_db()
-        if metrica:
-            st.caption(f"Ultimo analisis: {metrica['fecha']} - Estado global: **{metrica['estado']}**")
+with tab2:
+    st.subheader(f"Evolucion de {var_sel}")
+    if not has_filtered_data:
+        st.info(empty_message)
+    else:
+        variable_data = df_plot.dropna(subset=[var_sel])
+        if variable_data.empty:
+            st.info("No hay valores y fechas válidos para representar esta variable.")
+        else:
+            fig = px.line(variable_data, x="timestamp", y=var_sel, color="estado",
+                          color_discrete_map={"Normal": "green", "Anomalo": "red"})
+            st.plotly_chart(fig, use_container_width=True)
+            st.markdown("#### Histograma comparativo")
+            fig_hist = px.histogram(variable_data, x=var_sel, color="estado",
+                                    color_discrete_map={"Normal": "green", "Anomalo": "red"},
+                                    barmode="overlay", nbins=40)
+            st.plotly_chart(fig_hist, use_container_width=True)
 
-    with tab2:
-        st.subheader(f"Evolucion de {var_sel}")
-        fig = px.line(df_plot, x="timestamp", y=var_sel, color=df_plot["estado"],
-                      color_discrete_map={"Normal": "green", "Anomalo": "red"})
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown("#### Histograma comparativo")
-        fig_hist = px.histogram(df_plot, x=var_sel, color=df_plot["estado"],
-                                color_discrete_map={"Normal": "green", "Anomalo": "red"},
-                                barmode="overlay", nbins=40)
-        st.plotly_chart(fig_hist, use_container_width=True)
-
-    with tab3:
-        st.subheader("Relaciones entre variables")
-        if len(df_plot) > 0:
-            fig_scatter = px.scatter_matrix(df_plot,
-                                        dimensions=["corriente", "voltaje", "potencia_activa", "temperatura_motor"],
-                                        color=df_plot["estado"],
-                                        color_discrete_map={"Normal": "blue", "Anomalo": "red"})
+with tab3:
+    st.subheader("Relaciones entre variables")
+    if not has_filtered_data:
+        st.info(empty_message)
+    else:
+        comparison_data = df_plot.dropna(subset=ENERGY_COLUMNS)
+        if comparison_data.empty:
+            st.info("No hay valores completos para comparar las variables energéticas.")
+        else:
+            fig_scatter = px.scatter_matrix(comparison_data, dimensions=ENERGY_COLUMNS,
+                                            color="estado",
+                                            color_discrete_map={"Normal": "blue", "Anomalo": "red"})
             st.plotly_chart(fig_scatter, use_container_width=True)
 
-    with tab4:
-        st.subheader("Analisis y deteccion con IsolationForest")
-        st.metric("Anomalías en registros originales filtrados", metrics_model["detectadas"] if metrics_model else 0)
+with tab4:
+    st.subheader("Analisis y deteccion con IsolationForest")
+    if not ml_available:
+        st.info(ml_message)
+    elif not has_filtered_data:
+        st.info(empty_message)
+    elif metrics_model is None:
+        st.info(ml_message)
+    else:
+        st.metric("Anomalías en registros originales filtrados", metrics_model["detectadas"])
         st.caption(f"Población original: {len(df_f)} registros. La gráfica usa {len(df_plot)} puntos muestreados, agregados o suavizados; su contador no equivale al total original.")
-        if len(df_plot) > 0:
-            X = df_plot[features].values
-            preds = model.predict(scaler.transform(X))
-            df_plot["pred_anomalia"] = (preds == -1).astype(int)
-            fig_pred = px.line(df_plot, x="timestamp", y=var_sel,
-                               color=df_plot["pred_anomalia"].map({0: "Normal", 1: "Anomalo"}),
-                               color_discrete_map={"Normal": "blue", "Anomalo": "red"})
-            st.plotly_chart(fig_pred, use_container_width=True)
-            st.metric("Puntos de la gráfica clasificados como anómalos", int(df_plot["pred_anomalia"].sum()))
+        if df_plot.empty or df_plot[features].isna().any().any():
+            st.info("No hay puntos gráficos completos para la predicción ML.")
+        else:
+            try:
+                X = df_plot[features].values
+                preds = model.predict(scaler.transform(X))
+                df_plot["pred_anomalia"] = (preds == -1).astype(int)
+                fig_pred = px.line(df_plot, x="timestamp", y=var_sel,
+                                   color=df_plot["pred_anomalia"].map({0: "Normal", 1: "Anomalo"}),
+                                   color_discrete_map={"Normal": "blue", "Anomalo": "red"})
+                st.plotly_chart(fig_pred, use_container_width=True)
+                st.metric("Puntos de la gráfica clasificados como anómalos", int(df_plot["pred_anomalia"].sum()))
+            except Exception as exc:
+                st.warning(f"No se pudo representar la predicción ML ({type(exc).__name__}).")
 
-    with tab5:
-        st.subheader(f"Registros recientes (máximo {int(table_limit)}, más nuevos primero)")
+with tab5:
+    st.subheader(f"Registros recientes (máximo {int(table_limit)}, más nuevos primero)")
+    if not has_filtered_data:
+        st.info(empty_message)
+    else:
         st.dataframe(recent_records(df_f, table_limit), use_container_width=True)
         st.caption(f"El CSV contiene los {len(df_f)} registros originales filtrados; el límite de la tabla no limita la descarga.")
         st.download_button(f"Descargar todos los registros filtrados (CSV: {len(df_f)} filas)",
                            df_f.to_csv(index=False).encode("utf-8"),
                            file_name="smartenergy_filtered.csv", mime="text/csv")
-else:
-    st.info("Necesitas datos y modelo entrenado. Solicita su preparación al operador y recarga la página.")
-    if st.button("Recargar ahora"):
-        st.rerun()
