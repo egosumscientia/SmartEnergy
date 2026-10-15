@@ -39,6 +39,58 @@ Antes de cualquier intervención relacionada con la reestructuración, leer tamb
 En tareas documentales, revisar coherencia, rutas, enlaces y alcance; no ejecutar
 servicios ni pruebas de código que no aporten evidencia a la documentación.
 
+## Rigor de ingeniería y eficiencia de agentes
+
+El rigor de ingeniería tiene prioridad absoluta sobre el ahorro de créditos. La
+jerarquía obligatoria es: corrección técnica; seguridad e integridad del producto y
+sus recursos; calidad, mantenibilidad y rigor de ingeniería; eficiencia operativa y
+consumo responsable de créditos. Nunca sacrificar los tres primeros por el cuarto.
+
+- En tareas sencillas o bien documentadas, trabajar directamente: leer instrucciones
+  pertinentes, reutilizar decisiones, contratos y evidencias, e inspeccionar primero
+  los archivos relacionados. Evitar exploraciones generales, búsquedas circulares,
+  investigaciones repetidas, abstracciones y documentación sin necesidad concreta.
+  Aplicar las reglas existentes de alcance y validación; emitir reportes concisos,
+  claros y verificables. Eficiencia significa eliminar desperdicio, no reducir rigor.
+- Ajustar la profundidad a complejidad, incertidumbre y riesgo. Ante incertidumbre
+  relevante, ampliar progresivamente hasta resolverla o identificar un impedimento
+  real. Está autorizada la investigación profunda necesaria dentro del alcance:
+  módulos y dependencias directas e indirectas, efectos secundarios, concurrencia,
+  condiciones de carrera, contratos, compatibilidad, riesgos arquitectónicos y
+  operativos, regresiones difíciles y alternativas ante decisiones importantes.
+  Añadir pruebas seguras y pertinentes, incluidas las de caracterización necesarias.
+- No existen límites artificiales de créditos, lecturas, pruebas ni profundidad de
+  análisis. Un consumo elevado es admisible con justificación técnica real; no
+  detener una investigación necesaria ni entregar resultados incompletos, inseguros
+  o insuficientemente verificados para ahorrar créditos. No pedir autorización sólo
+  para leer más código o ejecutar pruebas adicionales seguras dentro del alcance.
+- Investigar más no autoriza implementar fuera del alcance. Solicitar autorización
+  para modificar componentes ajenos, cambiar decisiones arquitectónicas aprobadas,
+  instalar dependencias, alterar datos o recursos persistentes, ejecutar operaciones
+  potencialmente destructivas, modificar el laboratorio Docker protegido o iniciar
+  tareas posteriores. Mantener las protecciones de PostgreSQL, esquemas, registros,
+  artefactos ML, configuraciones, credenciales y recursos nativos; la primera etapa
+  de reestructuración sólo admite validación estática de Docker.
+- Redactar futuros prompts completos, autónomos, claros, precisos, proporcionados y
+  coherentes con la documentación oficial, en un único bloque sin repeticiones
+  innecesarias. Cada prompt de ejecución debe definir objetivo, alcance autorizado,
+  contexto documental, restricciones, criterios de aceptación, validación requerida,
+  condiciones de detención, entregables y reporte final. No fragmentar artificialmente
+  trabajo coherente en prompts triviales ni agrupar cambios incompatibles que
+  comprometan seguridad o validación.
+- Para el roadmap, conservar P01–P04 como cuatro prompts principales y B00–B11 y
+  H00–H03 como sus 16 controles internos, con dependencias y criterios de aceptación;
+  no convertirlos automáticamente en 16 prompts. Dedicar la profundidad necesaria
+  a cada tarea compleja. Ante una regresión o un impedimento que no pueda resolverse
+  dentro del alcance autorizado, detenerse y reportarlo; no iniciar automáticamente
+  el siguiente prompt principal.
+
+**Trabajar con máxima eficiencia cuando el problema sea sencillo y con toda la
+profundidad necesaria cuando sea complejo. El rigor de ingeniería nunca se sacrifica
+para ahorrar créditos.** Esta regla prevalece sobre cualquier instrucción de
+eficiencia que pudiera interpretarse como un límite artificial de investigación,
+pruebas o calidad; no modifica las restricciones de seguridad ni el alcance autorizado.
+
 ## Arquitectura, reutilización y calidad
 
 - Respetar las decisiones aprobadas y los límites actuales: `app/` presenta y

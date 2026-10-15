@@ -6,6 +6,12 @@ controles de ejecución; no acredita su implementación. Complementa
 El roadmap funcional, las reglas industriales y la adquisición desde instrumentos
 siguen pendientes: la aprobación de esta reorganización no los aprueba implícitamente.
 
+La política de [Rigor de ingeniería y eficiencia de agentes](../AGENTS.md#rigor-de-ingeniería-y-eficiencia-de-agentes)
+de `AGENTS.md` es obligatoria para P01–P04 y cualquier intervención correctiva
+autorizada: el rigor prevalece sobre el ahorro de créditos y se permite investigar
+con la profundidad necesaria, sin ampliar el alcance ni relajar las protecciones
+de recursos establecidas en este contrato.
+
 ## A. Objetivo
 
 Reorganizar SmartEnergy mediante una arquitectura modular por responsabilidades y
