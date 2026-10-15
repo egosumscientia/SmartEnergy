@@ -5,6 +5,9 @@ El repositorio contiene un prototipo funcional; no implica una plataforma valida
 con instrumentos reales. Estas reglas aplican a tareas de código y documentación.
 La guía complementaria está en [docs/guia-de-ingenieria.md](docs/guia-de-ingenieria.md).
 
+Antes de cualquier intervención relacionada con la reestructuración, leer también
+[docs/roadmap-tecnico.md](docs/roadmap-tecnico.md) y respetar el prompt principal y el alcance autorizados.
+
 ## Decisiones vigentes y límites
 
 - El stack principal es Python, PostgreSQL, SQLAlchemy y Streamlit. El desarrollo

@@ -4,6 +4,10 @@ Aplicacion Streamlit para monitoreo energetico casi en tiempo real sobre Postgre
 
 Alcance: demo/MVP con datos mock. Los valores provienen de generadores estadisticos (gaussianas con perturbaciones). No modelan fisica real; los KPIs reflejan ese set sintetico.
 
+## Documentación
+
+- [Contrato de reestructuración técnica](docs/roadmap-tecnico.md).
+
 ## Stack
 - Python 3.11+ (pandas, numpy, scikit-learn, plotly, streamlit)
 - SQLAlchemy + psycopg2 (PostgreSQL)
