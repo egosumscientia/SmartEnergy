@@ -7,12 +7,13 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
-import joblib
-import subprocess
+from filelock import Timeout
 from datetime import datetime
 from sqlalchemy import text
 from core.database import SessionLocal, engine
 from core.models import Registro, Metrica
+from core.model_artifact import load_model_bundle
+from app.dashboard_data import filter_records, sample_records, recent_records
 
 # ============================
 # CONFIGURACION GENERAL
@@ -89,6 +90,7 @@ def load_data_from_db():
             Registro.voltaje, Registro.potencia_activa,
             Registro.temperatura_motor, Registro.estado
         )
+        query = query.order_by(Registro.timestamp.asc(), Registro.id.asc())
         df = pd.read_sql(query.statement, session.bind)
         session.close()
     except Exception as exc:
@@ -168,7 +170,11 @@ def get_data_count():
 def load_model():
     if not os.path.exists(MODEL_PATH):
         return None, None, None
-    bundle = joblib.load(MODEL_PATH)
+    try:
+        bundle = load_model_bundle(MODEL_PATH)
+    except (OSError, Timeout) as exc:
+        st.error(f"No se pudo cargar el modelo de forma segura: {exc}")
+        return None, None, None
     return bundle["model"], bundle["scaler"], bundle["features"]
 
 
@@ -231,29 +237,13 @@ def apply_smoothing(df: pd.DataFrame, var: str, method: str, window_samples: int
 
 
 def run_script(cmd: list[str]):
-    """Ejecuta un comando mostrando errores en UI y guardando stdout/stderr."""
-    if "exec_logs" not in st.session_state:
-        st.session_state["exec_logs"] = []
-    try:
-        res = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        st.session_state["exec_logs"].insert(0, {
-            "cmd": " ".join(cmd),
-            "ok": True,
-            "stdout": (res.stdout or "").strip(),
-            "stderr": (res.stderr or "").strip()
-        })
-        st.session_state["exec_logs"] = st.session_state["exec_logs"][:10]
-        return None
-    except subprocess.CalledProcessError as exc:
-        st.session_state["exec_logs"].insert(0, {
-            "cmd": " ".join(cmd),
-            "ok": False,
-            "stdout": (exc.stdout or "").strip(),
-            "stderr": (exc.stderr or str(exc)).strip()
-        })
-        st.session_state["exec_logs"] = st.session_state["exec_logs"][:10]
-        st.error(f"Fallo al ejecutar {' '.join(cmd)}:\n{exc.stderr}")
-        return exc
+    """Rechaza acciones administrativas incluso si se fuerza un evento de UI.
+
+    Los módulos CLI siguen disponibles para contenedores administrativos finitos.
+    """
+    error = PermissionError("Dashboard de solo consulta: ejecuta la administración por separado.")
+    st.error(str(error))
+    return error
 
 
 def check_db_connection():
@@ -279,9 +269,8 @@ latest_metrics = load_metrics_from_db()
 last_data_ts = get_last_data_timestamp()
 db_ok, db_msg = check_db_connection()
 
-can_train = data_count > 0 and db_ok
-can_recalc = model_exists and data_count > 0 and db_ok
-can_db_actions = db_ok
+# El monitor nunca concede permisos administrativos por disponibilidad de datos.
+can_train = can_recalc = can_db_actions = False
 
 status_col1, status_col2, status_col3 = st.columns(3)
 status_col1.metric("Registros en BD", data_count)
@@ -322,6 +311,7 @@ if st.button("Refrescar dashboard", help="Recarga datos, metricas y graficas"):
     st.rerun()
 
 st.subheader("Acciones de Modelo")
+st.info("Modo de solo consulta. Entrenamiento, métricas y mantenimiento se ejecutan por separado.")
 col_model_1, col_model_2 = st.columns(2)
 
 with col_model_1:
@@ -333,8 +323,6 @@ with col_model_1:
         if not err1 and not err2:
             st.toast("Modelo entrenado y metricas guardadas.", icon="✅")
             st.rerun()
-    elif not can_train:
-        st.toast("Necesitas datos para entrenar.", icon="⚠️")
 
 with col_model_2:
     if st.button("Recalcular metricas", disabled=not can_recalc, help="Evalua el rendimiento del modelo actual"):
@@ -343,8 +331,6 @@ with col_model_2:
         if not err:
             st.toast("Metricas recalculadas.", icon="✅")
             st.rerun()
-    elif not can_recalc:
-        st.toast("Necesitas datos y modelo entrenado.", icon="⚠️")
 
 with st.expander("Zona de Mantenimiento (Datos)", expanded=False):
     col_maint_1, col_maint_2 = st.columns(2)
@@ -422,19 +408,12 @@ if df is not None and model is not None:
         rolling_window = st.session_state["rolling_window"]
         resample_minutes = st.session_state["resample_minutes"]
 
-    mask_fecha = (df["timestamp"].dt.date >= rango_fecha[0]) & (df["timestamp"].dt.date <= rango_fecha[1])
-    df_f = df[mask_fecha].copy()
-    if "Normal" not in estado_sel:
-        df_f = df_f[df_f["estado"] == "Anomalo"]
-    elif "Anomalo" not in estado_sel:
-        df_f = df_f[df_f["estado"] == "Normal"]
+    df_f = filter_records(df, rango_fecha, estado_sel)
 
     # Muestreo para acelerar graficos (mantener orden temporal y representativo)
     df_plot = df_f.sort_values("timestamp")
     if sample_plots and len(df_plot) > 5000:
-        # Tomar indices equidistantes para no concentrar puntos al final
-        step = max(len(df_plot) // 5000, 1)
-        df_plot = df_plot.iloc[::step]
+        df_plot = sample_records(df_plot, 5000)
 
     # Downsample temporal automatico para evitar bloques densos en graficos
     if sample_plots and len(df_plot) > 1500:
@@ -442,7 +421,7 @@ if df is not None and model is not None:
         if time_span > 0:
             target_points = 800
             seconds_per_bin = max(int(time_span / target_points), 1)
-            freq = f"{seconds_per_bin}S"
+            freq = f"{seconds_per_bin}s"
             df_plot = df_plot.set_index("timestamp")
             estado_mode = df_plot["estado"].resample(freq).agg(lambda x: x.value_counts().idxmax() if len(x) else None)
             label_mean = df_plot["label_anomalia"].resample(freq).mean()
@@ -475,19 +454,22 @@ if df is not None and model is not None:
             total = len(df_f)
             num_anom = int(df_f["label_anomalia"].sum())
             ratio = (num_anom / max(total, 1)) * 100
-            estado = "Critico" if ratio > 4 else "Precaucion" if ratio >= 1 else "Normal"
+            estado = None if df_f.empty else "Critico" if ratio > 4 else "Precaucion" if ratio >= 1 else "Normal"
 
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Registros totales", total)
-        col2.metric("Anomalias detectadas", num_anom)
-        col3.metric("Porcentaje", f"{ratio:.2f}%")
+        col1.metric("Registros originales filtrados", total)
+        col2.metric("Anomalías en registros originales", num_anom)
+        col3.metric("Registros originales detectados (%)", f"{ratio:.2f}%" if total else "N/A")
 
-        if estado == "Normal":
-            col4.success("Estado: Normal")
+        if estado is None:
+            col4.info("Sin registros para los filtros seleccionados")
+        elif estado == "Normal":
+            col4.success("Estado del análisis: Normal")
         elif estado == "Precaucion":
-            col4.warning("Estado: Precaucion")
+            col4.warning("Estado del análisis: Precaucion")
         else:
-            col4.error("Estado: Critico")
+            col4.error("Estado del análisis: Critico")
+        st.caption("El estado evalúa precisión y recall frente a etiquetas sintéticas; no certifica salud eléctrica.")
 
         st.markdown(f"### Distribucion temporal de {var_sel}")
         if len(df_plot) > 0:
@@ -498,19 +480,14 @@ if df is not None and model is not None:
             )
             st.plotly_chart(fig_line, use_container_width=True)
 
-        st.markdown("### Indicador general de salud del sistema")
+        st.markdown("### Proporción de registros originales detectados")
         fig_gauge = go.Figure(go.Indicator(
             mode="gauge+number",
             value=ratio,
             title={'text': "Porcentaje de anomalias"},
             gauge={
-                'axis': {'range': [0, 10]},
+                'axis': {'range': [0, 100]},
                 'bar': {'color': "#0078D4"},
-                'steps': [
-                    {'range': [0, 1], 'color': "#0f3d0f"},
-                    {'range': [1, 4], 'color': "#b38f00"},
-                    {'range': [4, 10], 'color': "#5c0000"}
-                ]
             },
             number={'suffix': "%"}
         ))
@@ -534,14 +511,17 @@ if df is not None and model is not None:
 
     with tab3:
         st.subheader("Relaciones entre variables")
-        fig_scatter = px.scatter_matrix(df_plot,
+        if len(df_plot) > 0:
+            fig_scatter = px.scatter_matrix(df_plot,
                                         dimensions=["corriente", "voltaje", "potencia_activa", "temperatura_motor"],
                                         color=df_plot["estado"],
                                         color_discrete_map={"Normal": "blue", "Anomalo": "red"})
-        st.plotly_chart(fig_scatter, use_container_width=True)
+            st.plotly_chart(fig_scatter, use_container_width=True)
 
     with tab4:
         st.subheader("Analisis y deteccion con IsolationForest")
+        st.metric("Anomalías en registros originales filtrados", metrics_model["detectadas"] if metrics_model else 0)
+        st.caption(f"Población original: {len(df_f)} registros. La gráfica usa {len(df_plot)} puntos muestreados, agregados o suavizados; su contador no equivale al total original.")
         if len(df_plot) > 0:
             X = df_plot[features].values
             preds = model.predict(scaler.transform(X))
@@ -550,15 +530,16 @@ if df is not None and model is not None:
                                color=df_plot["pred_anomalia"].map({0: "Normal", 1: "Anomalo"}),
                                color_discrete_map={"Normal": "blue", "Anomalo": "red"})
             st.plotly_chart(fig_pred, use_container_width=True)
-            st.metric("Anomalias detectadas por modelo", int(df_plot["pred_anomalia"].sum()))
+            st.metric("Puntos de la gráfica clasificados como anómalos", int(df_plot["pred_anomalia"].sum()))
 
     with tab5:
-        st.subheader("Registros recientes (max 1000)")
-        st.dataframe(df_f.tail(int(table_limit)), use_container_width=True)
-        st.download_button("Descargar datos filtrados (CSV)",
+        st.subheader(f"Registros recientes (máximo {int(table_limit)}, más nuevos primero)")
+        st.dataframe(recent_records(df_f, table_limit), use_container_width=True)
+        st.caption(f"El CSV contiene los {len(df_f)} registros originales filtrados; el límite de la tabla no limita la descarga.")
+        st.download_button(f"Descargar todos los registros filtrados (CSV: {len(df_f)} filas)",
                            df_f.to_csv(index=False).encode("utf-8"),
                            file_name="smartenergy_filtered.csv", mime="text/csv")
 else:
-    st.info("Necesitas datos y modelo entrenado. Usa las acciones rapidas y luego recarga la pagina.")
+    st.info("Necesitas datos y modelo entrenado. Solicita su preparación al operador y recarga la página.")
     if st.button("Recargar ahora"):
         st.rerun()

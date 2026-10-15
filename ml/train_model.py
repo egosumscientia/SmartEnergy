@@ -5,9 +5,9 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))  # asegura acceso al
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
-import joblib
 import random
-from filelock import FileLock, Timeout
+from filelock import Timeout
+from core.model_artifact import save_model_bundle
 from core.database import SessionLocal
 from core.models import Registro
 
@@ -15,7 +15,6 @@ from core.models import Registro
 # CONFIGURACION
 # ============================
 MODEL_FILE = "models/anomaly_detector.pkl"
-LOCK_FILE = MODEL_FILE + ".lock"
 os.makedirs("models", exist_ok=True)
 
 # ============================
@@ -87,8 +86,7 @@ print(f"Precision aproximada: {100 * true_positives / max(detected,1):.2f}%")
 # GUARDADO DEL MODELO
 # ============================
 try:
-    with FileLock(LOCK_FILE, timeout=60):
-        joblib.dump({"model": model, "scaler": scaler, "features": features}, MODEL_FILE)
+    save_model_bundle({"model": model, "scaler": scaler, "features": features}, MODEL_FILE)
     print(f"[OK] Modelo guardado en: {MODEL_FILE}")
 except Timeout:
     raise RuntimeError("No se pudo obtener el lock del modelo (otro proceso esta escribiendo).")

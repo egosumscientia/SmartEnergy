@@ -94,8 +94,9 @@ services:
       init:
         condition: service_completed_successfully
     environment:
-      DATABASE_URL: postgresql://smartuser:smartpwd@db:5432/smartenergy
+      DATABASE_URL: ${SMARTENERGY_MONITOR_DATABASE_URL:?Configura la URL del rol SQL de consulta}
       PYTHONPATH: /app
+      PGOPTIONS: -c default_transaction_read_only=on
     command: >
       sh -lc "
       python -m scripts.wait_for_db &&
@@ -104,7 +105,7 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - models_data:/app/models
+      - models_data:/app/models:ro
 
 volumes:
   postgres_data:
