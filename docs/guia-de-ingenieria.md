@@ -20,12 +20,12 @@ metrológica, predictiva ni industrial.
 | Componente | Responsabilidad existente | Límite que conservar |
 |---|---|---|
 | `app/dashboard_app.py` | Entrada Streamlit, consultas actuales, cinco vistas y analítica en memoria | Consulta; no ejecutar administración desde la UI |
-| `app/dashboard_data.py` | Preparación, filtros, muestreo y orden de DataFrames | Sin persistencia ni dependencia de ML |
-| `core/config.py` | Configuración de entorno y carga de `.env` | Sin secretos rastreados |
-| `core/database.py`, `core/models.py` | Engine, sesiones y modelos `Registro` y `Metrica` | No inicializar ni reiniciar datos automáticamente |
-| `core/model_artifact.py` | Carga bloqueada y publicación atómica del bundle | Preservar formato y coordinación entre lectores y escritor |
-| `ml/` | Entrenamiento opcional y detección que registra métricas | No convertirlos en requisitos de visualización |
-| `scripts/` | Inicialización, espera de base, generación y mantenimiento | Examinar efectos y autorizar las escrituras |
+| `app/dashboard_data.py` | Wrapper de `smartenergy/analysis/measurements.py` (preparación, filtros, muestreo y orden de DataFrames) | Sin persistencia ni dependencia de ML |
+| `smartenergy/config.py` | Configuración de entorno y carga de `.env` | Sin secretos rastreados |
+| `smartenergy/infrastructure/database.py`, `smartenergy/infrastructure/models.py` | Engine, sesiones y modelos `Registro` y `Metrica` | No inicializar ni reiniciar datos automáticamente |
+| `smartenergy/infrastructure/model_artifact.py` | Carga bloqueada y publicación atómica del bundle | Preservar formato y coordinación entre lectores y escritor |
+| `smartenergy/analysis/`, `smartenergy/application/` | Entrenamiento opcional, detección y consultas de monitoreo | No convertirlos en requisitos de visualización |
+| `smartenergy/operations/` (wrappers en `ml/` y `scripts/`) | Inicialización, espera de base, generación y mantenimiento | Examinar efectos y autorizar las escrituras |
 | `tests/` | Pruebas de objetos, muestras, seguridad, renderizado y artefactos | Aislamiento y alcance explícitos |
 | `requirements.txt`, Dockerfile y Compose | Dependencias e integración de referencia | No confundir definición con autorización de ejecución |
 

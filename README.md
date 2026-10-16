@@ -1,136 +1,79 @@
-# SmartEnergy Optimizer (MVP)
+# SmartEnergy
 
-Aplicacion Streamlit para monitoreo energetico casi en tiempo real sobre PostgreSQL: genera datos simulados, entrena un IsolationForest para deteccion de anomalias y calcula metricas (totales, anomalias detectadas, porcentaje y estado Normal/Precaucion/Critico) que se persisten en la tabla `metricas`.
-
-Alcance: demo/MVP con datos mock. Los valores provienen de generadores estadisticos (gaussianas con perturbaciones). No modelan fisica real; los KPIs reflejan ese set sintetico.
+Prototipo de monitoreo de mediciones energéticas con PostgreSQL y Streamlit. Los
+datos de ejemplo son simulados: el producto no está validado con instrumentos ni
+representa una plataforma industrial lista para operación.
 
 ## Documentación
 
-- [Contrato de reestructuración técnica](docs/roadmap-tecnico.md).
+- [Arquitectura implementada](docs/arquitectura.md)
+- [Desarrollo y comandos](docs/desarrollo.md)
+- [Alcance del producto](docs/producto.md)
+- [Pruebas y evidencia](docs/pruebas.md)
+- [Roadmap técnico](docs/roadmap-tecnico.md)
+- [Guía de ingeniería](docs/guia-de-ingenieria.md)
 
-## Stack
-- Python 3.11+ (pandas, numpy, scikit-learn, plotly, streamlit)
-- SQLAlchemy + psycopg2 (PostgreSQL)
-- IsolationForest para deteccion de anomalias
+## Backend y presentación
 
-## Estructura clave
-- `core/`: configuracion, motor SQLAlchemy, modelos ORM.
-- `scripts/`: bootstrap, reseteo y generacion de datos.
-  - `simulate_data`: genera ~10k registros batch (historico).
-  - `stream_realtime`: genera datos en tiempo real en ciclos pequenos.
-  - `auto_train_loop`: reentrena modelo y recalcula metricas en bucle.
-  - `seed_db` / `reset_db`: crear tablas / limpiar y repoblar.
-- `ml/`: entrenamiento (`train_model.py`) y deteccion + registro de metricas (`detect_anomalies.py`).
-- `app/`: app Streamlit (`dashboard_app.py`) con panel de estado, filtros, graficos y descargas.
-- `tests/`: esqueletos de pruebas.
+- `smartenergy/`: configuración, aplicación, análisis, infraestructura y operaciones.
+- `app/dashboard_app.py`: las cinco vistas Streamlit de consulta.
+- `app/dashboard_data.py`, `ml/` y `scripts/`: wrappers temporales de compatibilidad;
+  las implementaciones canónicas están en `smartenergy/`.
+- `tests/`: pruebas de contratos, disponibilidad, transformación, importación y UI.
 
-## Requisitos
-- Python 3.11+ y PostgreSQL accesible.
-- Variable `DATABASE_URL` en un `.env` en la raiz, ejemplo:
-  ```
-  DATABASE_URL=postgresql://smartuser:smartpwd@127.0.0.1:5432/smartenergy
-  ```
+ML es opcional para consultar mediciones. La ausencia o invalidez del modelo no
+bloquea las demás vistas. El dashboard no habilita entrenamiento, detección
+persistente ni mantenimiento.
 
-## Docker (todo en contenedores + PostgreSQL)
-1) Levantar todo el stack:
-   ```bash
-   docker compose up -d --build
-   ```
-2) Abrir dashboard:
-   - `http://127.0.0.1:8501`
-3) Ver estado de servicios:
-   ```bash
-   docker compose ps
-   ```
-4) Ver logs:
-   ```bash
-   docker compose logs -f dashboard
-   docker compose logs -f realtime
-   docker compose logs -f trainer
-   ```
-5) Detener stack:
-   ```bash
-   docker compose down
-   ```
-6) Borrado total (incluye base de datos y modelo persistido):
-   ```bash
-   docker compose down -v
-   ```
+## Configuración y ejecución local
 
-Servicios definidos en `docker-compose.yml`:
-- `db`: PostgreSQL 16 con volumen persistente (`postgres_data`).
-- `init`: crea tablas, carga dataset inicial, entrena modelo y registra metricas iniciales.
-- `realtime`: inserta datos continuamente.
-- `trainer`: reentrena modelo y recalcula metricas cada 300s.
-- `dashboard`: Streamlit (puerto `8501`).
+El desarrollo se orienta al entorno nativo Debian y `.venv`. Consulta
+[desarrollo](docs/desarrollo.md) antes de configurar una instancia. No se crean
+tablas ni se generan datos al importar o abrir el dashboard.
 
-## Flujo en tiempo real (recomendado)
-1) Generador continuo:
-   ```bash
-   python -m scripts.stream_realtime --interval 1 --batch-size 5 --anomaly-ratio 0.12 --max-registros 20000
-   ```
-   - `interval`: segundos entre ciclos.
-   - `batch-size`: registros por ciclo.
-   - `anomaly-ratio`: probabilidad de anomalia por variable (puede afectar varias variables a la vez).
-   - `max-registros`: limite duro; se borran los mas antiguos si se excede.
-2) Reentrenar y recalcular en loop (otra terminal):
-   ```bash
-   python -m scripts.auto_train_loop --interval 300
-   ```
-   - `interval`: segundos entre ciclos (default 300s). No corras mas de un loop a la vez.
-3) Dashboard:
-   ```bash
-   streamlit run app/dashboard_app.py
-   ```
-   Auto-actualiza cada pocos segundos sin recargar completa, leyendo la BD.
+La configuración de ejemplo está en [`config/env.example`](config/env.example).
+Las credenciales se mantienen únicamente en un `.env` local, excluido de Git.
 
-## Flujo batch (historico)
-1) Generar datos simulados (10k, respeta max 20k):
-   ```bash
-   python -m scripts.simulate_data
-   ```
-2) Entrenar modelo:
-   ```bash
-   python -m ml.train_model
-   ```
-3) Calcular metricas:
-   ```bash
-   python -m ml.detect_anomalies
-   ```
-4) Dashboard:
-   ```bash
-   streamlit run app/dashboard_app.py
-   ```
+Para abrir la interfaz de consulta con una base configurada:
 
-## Flujo GUI
-1) Levanta el dashboard: `streamlit run app/dashboard_app.py`.
-2) Acciones principales:
-   - Entrenar modelo: usa los datos actuales y recalcula metricas.
-   - Recalcular metricas: reevalua el modelo entrenado.
-3) Zona de mantenimiento (expander):
-   - Generar dataset historico (batch 10k).
-   - Reiniciar base de datos (limpia `registros` y `metricas` y repuebla 10k).
-4) Filtros: rango de fechas, variable, estado Normal/Anomalo, muestreo para graficos (max 5k filas) y limite de tabla.
-5) Tabs:
-   - Analisis general: KPIs y gauge de salud.
-   - Variables energeticas: series e histogramas.
-   - Comparativos: scatter matrix.
-   - Deteccion de anomalias: predicciones del modelo.
-   - Tabla de registros: vista y descarga CSV.
+```bash
+streamlit run app/dashboard_app.py
+```
 
-## Datos y supuestos
-- Datos 100% simulados, con distribuciones gaussianas y perturbaciones programadas (no fisica real).
-- Tasas de anomalias y patrones cambian en cada corrida; los KPIs reflejan ese set sintetico.
-- Timestamps en tiempo actual; se recorta la tabla cuando se supera `max-registros`.
-- El modelo usa aislamiento con contamination ajustada a la tasa observada en los datos mock.
+El comando no inicializa ni pobla la base. Comprueba antes que `DATABASE_URL`
+identifique el destino y rol autorizados para consulta.
 
-## Comandos utiles
-- Resetear tablas y regenerar 10k registros: `python -m scripts.reset_db`
-- Regenerar solo datos (batch): `python -m scripts.simulate_data`
-- Generacion continua: `python -m scripts.stream_realtime ...`
-- Reentrenar en loop: `python -m scripts.auto_train_loop ...`
+## Operaciones administrativas
 
-## Notas
-- Dashboard funciona sin modelo inicial; usa los botones para generarlo si falta.
-- No productivo; orientado a demo/MVP con datos sinteticamente plausibles.
-- Directorios `data/` y `models/` estan ignorados en git por defecto.
+Las operaciones se invocan por separado, explícitamente, con los módulos canónicos:
+
+```text
+python -m smartenergy.operations.seed_db
+python -m smartenergy.operations.wait_for_db
+python -m smartenergy.operations.simulate_data
+python -m smartenergy.operations.stream_realtime [argumentos]
+python -m smartenergy.operations.reset_db
+python -m smartenergy.operations.train_model
+python -m smartenergy.operations.detect_anomalies
+python -m smartenergy.operations.auto_train_loop [--interval SEGUNDOS]
+```
+
+`reset_db` trunca tablas y repuebla; los generadores escriben registros; el
+entrenamiento publica un artefacto y la detección persiste métricas. No los ejecutes
+sin verificar el destino y la autorización. Los comandos históricos `python -m
+scripts...` y `python -m ml...` siguen disponibles como wrappers temporales.
+
+Docker Compose se conserva como referencia de integración estática; esta etapa no
+autoriza levantar, detener, reconstruir ni modificar el laboratorio protegido.
+
+## Pruebas
+
+Con el entorno de dependencias ya preparado, ejecuta la suite segura:
+
+```bash
+.venv/bin/python -B -m unittest discover -v
+```
+
+Las pruebas usan fixtures, mocks y temporales; no requieren PostgreSQL ni escriben
+datos o modelos persistentes. Ver los límites y comandos focalizados en
+[pruebas](docs/pruebas.md).

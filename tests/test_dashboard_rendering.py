@@ -1,15 +1,15 @@
 """UI con consultas y bundles aislados; no conecta a PostgreSQL ni crea modelos."""
 from contextlib import ExitStack
+from datetime import datetime
 import logging
-import os
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pandas as pd
 from streamlit.testing.v1 import AppTest
 
-from app.dashboard_data import ENERGY_COLUMNS
+from smartenergy.analysis.measurements import ENERGY_COLUMNS, prepare_records
 
 
 class DashboardRenderingTests(unittest.TestCase):
@@ -33,26 +33,38 @@ class DashboardRenderingTests(unittest.TestCase):
 
     def render(self, data=False, model=False, rows=None, broken_model=False):
         rows = self.rows.copy() if rows is None else rows.copy()
-        query = MagicMock()
-        query.order_by.return_value = query
-        query.limit.return_value = query
-        query.count.return_value = len(rows) if data else 0
-        query.scalar.return_value = None
-        query.first.return_value = None  # Métricas históricas siempre ausentes.
-        query.all.return_value = []
-        session = MagicMock()
-        session.query.return_value = query
-        self.stack.enter_context(patch("core.database.SessionLocal", return_value=session))
-        self.stack.enter_context(patch("core.database.engine", MagicMock()))
-        self.read_sql = self.stack.enter_context(patch("pandas.read_sql", return_value=rows))
-        exists, mtime = os.path.exists, os.path.getmtime
-        self.stack.enter_context(patch("os.path.exists", side_effect=lambda p: model if str(p) == "models/anomaly_detector.pkl" else exists(p)))
-        self.stack.enter_context(patch("os.path.getmtime", side_effect=lambda p: 0 if str(p) == "models/anomaly_detector.pkl" else mtime(p)))
-        self.load = self.stack.enter_context(patch("core.model_artifact.load_model_bundle", return_value={
-            "model": self.model, "scaler": self.scaler, "features": ENERGY_COLUMNS.copy(),
-        }))
+        self.stack.enter_context(
+            patch("smartenergy.application.monitoring.get_data_count", return_value=len(rows) if data else 0)
+        )
+        self.stack.enter_context(
+            patch("smartenergy.application.monitoring.get_model_artifact_status", return_value=(model, datetime.fromtimestamp(0) if model else None))
+        )
+        self.stack.enter_context(
+            patch("smartenergy.application.monitoring.get_last_data_timestamp", return_value=None)
+        )
+        self.stack.enter_context(
+            patch("smartenergy.application.monitoring.check_database_connection", return_value=(True, None))
+        )
+        self.stack.enter_context(
+            patch("smartenergy.application.monitoring.load_latest_metrics", return_value=None)
+        )
+        self.stack.enter_context(
+            patch("smartenergy.application.monitoring.load_metrics_history", return_value=[])
+        )
+        self.read_records = self.stack.enter_context(
+            patch(
+                "smartenergy.application.monitoring.load_records",
+                return_value=prepare_records(rows) if data else None,
+            )
+        )
+        self.load = self.stack.enter_context(
+            patch(
+                "smartenergy.application.monitoring.load_model",
+                return_value=(self.model, self.scaler, ENERGY_COLUMNS.copy(), None),
+            )
+        )
         if broken_model:
-            self.load.side_effect = ValueError("Bundle inválido de prueba")
+            self.load.return_value = (None, None, None, ValueError("Bundle inválido de prueba"))
         self.at = AppTest.from_file("app/dashboard_app.py", default_timeout=25).run()
         self.assert_ui()
         return self.at
@@ -77,7 +89,7 @@ class DashboardRenderingTests(unittest.TestCase):
     def test_no_data_no_model(self):
         self.render()
         self.assert_empty_views()
-        self.read_sql.assert_not_called()
+        self.read_records.assert_not_called()
         self.load.assert_not_called()
 
     def test_data_without_model_keeps_energy_views(self):

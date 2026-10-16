@@ -37,13 +37,13 @@ presentación sin otra reorganización general del backend.
 13. No introducir microservicios ni frameworks frontend adicionales, como React o Angular, sin justificación y aprobación.
 14. No crear directorios vacíos, interfaces abstractas, capas o generalizaciones prematuras.
 
-## C. Arquitectura objetivo (prevista, no implementada)
+## C. Arquitectura por etapas
 
-Actualmente el código está organizado en `app/`, `core/`, `ml/` y `scripts/`.
-Los siguientes árboles son destinos previstos, no un inventario de archivos ya creados.
-Sólo se crearán módulos con una responsabilidad efectiva durante la tarea autorizada.
+La primera etapa describe la arquitectura implementada por P02. El árbol refleja
+los módulos reales y wrappers de compatibilidad; no se crean módulos vacíos para
+completarlo. La segunda etapa permanece prevista y requiere su autorización propia.
 
-### Primera etapa: backend modular y Streamlit temporal
+### Primera etapa: backend modular y Streamlit temporal (P02)
 
 ```text
 SmartEnergy/
@@ -85,7 +85,8 @@ SmartEnergy/
 │       └── auto_train_loop.py
 ├── app/
 │   ├── __init__.py
-│   └── dashboard_app.py
+│   ├── dashboard_app.py
+│   └── dashboard_data.py     # wrapper temporal de transformaciones
 ├── ml/                         # wrappers temporales de las dos entradas ML
 ├── scripts/                    # wrappers temporales de las seis entradas existentes
 ├── tests/
@@ -96,20 +97,19 @@ SmartEnergy/
 │   ├── test_dashboard_safety.py
 │   ├── test_dashboard_rendering.py
 │   ├── test_import_safety.py
-│   ├── test_monitoring.py
+│   ├── test_measurements.py
 │   ├── test_anomalies.py
-│   └── test_operation_entrypoints.py
+│   ├── test_monitoring.py
+│   ├── test_model_jobs.py
+│   ├── test_operation_entrypoints.py
+│   └── test_infrastructure.py
 └── docs/
     ├── guia-de-ingenieria.md
     ├── roadmap-tecnico.md
     ├── arquitectura.md
     ├── desarrollo.md
     ├── producto.md
-    ├── pruebas.md
-    └── decisiones/
-        ├── README.md
-        ├── 0001-organizacion-modular.md
-        └── 0002-sustitucion-de-streamlit.md
+    └── pruebas.md
 ```
 
 `application/` coordina casos de uso y recursos, sin Streamlit ni SQL directo.
@@ -249,7 +249,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** una única `Base` y metadatos ORM; mismos contratos de `Registro`, `Metrica`, modelo, scaler y características.
 - **Validación requerida:** pruebas de modelos y artefactos, bloqueo compartido/exclusivo, publicación atómica y fallos; revisar referencias antiguas y rutas sin tocar el modelo original.
 - **Condición de reversión:** metadatos duplicados, incompatibilidad del artefacto o pérdida del bloqueo; revertir traslados y referencias del control.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B03 — Transformaciones de mediciones
 
@@ -259,7 +259,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** mismos filtros, nulos, muestreo y distinción entre registros originales y puntos representados.
 - **Validación requerida:** fixtures de filtros vacíos, fechas y límites, conjuntos vacíos y agregaciones; comprobar valores por defecto de interfaz.
 - **Condición de reversión:** diferencia de resultados o semántica; restaurar la extracción afectada antes de avanzar.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B04 — Evaluación ML compartida
 
@@ -269,7 +269,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** resultados y significado iguales para cada población; sin fusionar cálculos que sólo parecen equivalentes.
 - **Validación requerida:** modelo/scaler falsos, positivos y negativos, ausencia de anomalías e entradas inválidas; comparación con referencia B00.
 - **Condición de reversión:** diferencias estadísticas o semánticas; retirar la consolidación incorrecta.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B05 — Consulta independiente de presentación
 
@@ -279,7 +279,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** presentación sin SQL ni propiedad de sesiones; contenido, orden, errores y estados vacíos preservados; monitoreo sin ML.
 - **Validación requerida:** sesiones simuladas y resultados de consulta; AppTest con frontera de aplicación simulada para cinco pestañas, CSV y bloqueo administrativo.
 - **Condición de reversión:** cambios de contenido, orden, vacíos o permisos; recuperar consulta y coordinación anteriores.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B06 — Trabajos ML independientes
 
@@ -289,7 +289,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** cálculo recibe datos explícitos; coordinación publica el artefacto; detección persistente escribe una métrica por invocación, sin dependencia de UI ni supuesta atomicidad conjunta entre archivo y PostgreSQL.
 - **Validación requerida:** mocks de ajuste, carga, publicación y escritura; comprobar resultados, orden y efectos únicos.
 - **Condición de reversión:** efectos duplicados o contratos de modelo/métricas alterados; restaurar límites previos verificados.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B07 — Operaciones de esquema y disponibilidad
 
@@ -299,7 +299,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** entradas equivalentes y una sola implementación; importación sin inicialización operativa.
 - **Validación requerida:** mocks de metadatos, conexión y espera; verificar delegación de ambos comandos.
 - **Condición de reversión:** efectos al importar o ruptura de compatibilidad; recuperar entradas anteriores.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B08 — Generación y mantenimiento
 
@@ -309,7 +309,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** mismas operaciones sólo mediante entradas explícitas; mantenimiento inaccesible desde monitoreo.
 - **Validación requerida:** mocks finitos de generador aleatorio, sesiones y subprocesos; sin generar registros persistentes ni ejecutar limpieza.
 - **Condición de reversión:** cambio de distribución, retención o efectos; recuperar las entradas y lógica anteriores.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B09 — Entradas ML y bucle existente
 
@@ -319,7 +319,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** cada entrada delega una vez; monitoreo no invoca operaciones; bucle conserva comportamiento explícito.
 - **Validación requerida:** invocaciones simuladas y un ciclo controlado con espera simulada e interrupción; revisar comandos de subprocesos.
 - **Condición de reversión:** bucles inesperados, llamadas duplicadas o comandos rotos; restaurar entradas anteriores.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B10 — Configuración y ciclo de vida explícitos
 
@@ -329,7 +329,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** importar no carga configuración del entorno, conecta, carga modelos ni escribe; motor reutilizado por proceso y cierre definido; rutas y configuración efectiva conservadas.
 - **Validación requerida:** inicialización y recursos simulados; comprobaciones de importación sin efectos y de selección explícita de configuración.
 - **Condición de reversión:** destino incorrecto, configuración incompatible o fugas de recursos; restaurar composición previa verificada.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### B11 — Cierre de primera etapa
 
@@ -339,7 +339,7 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** backend modular y Streamlit operativo; comandos canónicos y wrappers documentados; deuda y consumidores pendientes explícitos.
 - **Validación requerida:** pruebas nativas pertinentes, cinco pestañas y cuatro escenarios, `git diff --check`, revisión textual de Dockerfile/Compose, contexto, rutas y comandos. Comprobación funcional nativa sólo dentro de la autorización vigente.
 - **Condición de reversión:** referencias rotas o regresión funcional; recuperar el último control aceptado sin tocar recursos persistentes.
-- **Estado:** PENDIENTE.
+- **Estado:** COMPLETADO.
 
 ### H00 — Contrato HTTP y de presentación
 
@@ -386,13 +386,31 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 | Prompt principal | Estado |
 |---|---|
 | P01 | COMPLETADO |
-| P02 | PENDIENTE |
+| P02 | COMPLETADO |
 | P03 | PENDIENTE |
 | P04 | PENDIENTE |
 
-B00 y B01 están **COMPLETADAS** con la evidencia registrada; B02–B11 y H00–H03
-permanecen **PENDIENTES**. P02 no se ha iniciado. La aprobación del roadmap no
-equivale a implementar las tareas futuras.
+B00–B11 están **COMPLETADAS** con la evidencia registrada. H00–H03 y P03–P04
+permanecen **PENDIENTES**; esta intervención no los inicia.
+
+| Control | Estado | Evidencia P02 (2026-10-15) |
+|---|---|---|
+| B00–B01 | COMPLETADOS | Evidencia P01 conservada. |
+| B02 | COMPLETADO | Paquete raíz, una `Base`, modelos y artefacto trasladados; pruebas ORM y de bloqueo/publicación. |
+| B03 | COMPLETADO | Transformaciones y agregaciones extraídas; fixtures de filtros, nulos, muestreo y suavizado; AppTest conserva poblaciones. |
+| B04 | COMPLETADO | Predicción/evaluación compartida; positivos, negativos, denominadores y estados probados. |
+| B05 | COMPLETADO | SQL y sesiones en infraestructura; monitoreo independiente de Streamlit; cinco pestañas y estados vacíos verificados con AppTest. |
+| B06 | COMPLETADO | Entrenamiento/detección coordinados en aplicación; bundle y una métrica verificados con mocks. |
+| B07 | COMPLETADO | Entradas de esquema/espera trasladadas; conexión, `create_all` y comandos probados sin DDL real. |
+| B08 | COMPLETADO | Generación/reset/stream separados; operaciones y retención probadas con mocks, sin escrituras persistentes. |
+| B09 | COMPLETADO | Comandos canónicos y wrappers históricos; parámetros y un ciclo ML controlado probados. |
+| B10 | COMPLETADO | Configuración explícita, motor reutilizable y cierre; importaciones comprobadas sin leer `.env`, conectar ni cargar ML. |
+| B11 | COMPLETADO | README, arquitectura, desarrollo, producto, pruebas y plantilla actualizados; enlaces, diff y Docker revisados estáticamente. |
+
+Regresión final: `.venv/bin/python -B -m unittest discover -q` — 54 pruebas
+aprobadas. `git diff --check` y enlaces Markdown sin destinos rotos. Docker/Compose
+se inspeccionaron sin ejecutarlos; PostgreSQL, datos, credenciales y artefactos
+persistentes no se usaron ni modificaron.
 
 ## G. Contrato de validación
 

@@ -3,7 +3,11 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from filelock import FileLock, Timeout
-from core.model_artifact import load_model_bundle, model_read_lock, save_model_bundle
+from smartenergy.infrastructure.model_artifact import (
+    load_model_bundle,
+    model_read_lock,
+    save_model_bundle,
+)
 
 
 class ModelArtifactTests(unittest.TestCase):
@@ -25,7 +29,10 @@ class ModelArtifactTests(unittest.TestCase):
 
     def test_failed_write_preserves_original_and_cleans_temporary(self):
         before = self.path.read_bytes()
-        with patch("core.model_artifact.joblib.dump", side_effect=RuntimeError("interrupted write")):
+        with patch(
+            "smartenergy.infrastructure.model_artifact.joblib.dump",
+            side_effect=RuntimeError("interrupted write"),
+        ):
             with self.assertRaises(RuntimeError):
                 save_model_bundle({"model": "broken"}, self.path)
         self.assertEqual(self.path.read_bytes(), before)

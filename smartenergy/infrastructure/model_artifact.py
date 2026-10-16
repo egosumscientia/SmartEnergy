@@ -1,7 +1,7 @@
-"""Publicación atómica y bloqueo compartido del bundle joblib en Linux/Docker.
+"""Publicacion atomica y bloqueo compartido del bundle joblib en Linux/Docker.
 
-El archivo .lock es estable: no se reemplaza ni elimina. Los lectores pueden
-abrirlo en un volumen de solo lectura; FileLock lo abre en exclusiva al publicar.
+El archivo .lock es estable y no se reemplaza ni elimina. Los monitores con montaje
+de solo lectura requieren que ese archivo se aprovisione junto al artefacto.
 """
 from contextlib import contextmanager
 import fcntl
@@ -20,8 +20,6 @@ def model_read_lock(model_path, timeout=60):
     try:
         fd = os.open(lock_path, os.O_RDONLY)
     except FileNotFoundError:
-        # Primer uso en un directorio escribible. En un monitor RO, el operador
-        # debe provisionar este archivo junto al artefacto, antes del montaje.
         fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o644)
     deadline = time.monotonic() + timeout
     try:
@@ -50,7 +48,9 @@ def save_model_bundle(bundle, model_path, timeout=60):
     with FileLock(str(path) + ".lock", timeout=timeout):
         temporary = None
         try:
-            with tempfile.NamedTemporaryFile(dir=path.parent, prefix=path.name + ".", suffix=".tmp", delete=False) as handle:
+            with tempfile.NamedTemporaryFile(
+                dir=path.parent, prefix=path.name + ".", suffix=".tmp", delete=False
+            ) as handle:
                 temporary = Path(handle.name)
                 joblib.dump(bundle, handle)
                 handle.flush()

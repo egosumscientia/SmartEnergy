@@ -93,10 +93,11 @@ pruebas o calidad; no modifica las restricciones de seguridad ni el alcance auto
 
 ## Arquitectura, reutilización y calidad
 
-- Respetar las decisiones aprobadas y los límites actuales: `app/` presenta y
-  transforma datos para la UI; `core/` contiene configuración, ORM y artefactos;
-  `ml/` implementa ML opcional; `scripts/` contiene operaciones; `tests/` verifica.
-  El dashboard aún contiene consultas existentes: no inventar una separación ya hecha.
+- Respetar las decisiones aprobadas y los límites actuales: `app/` presenta la UI
+  Streamlit; `smartenergy/` contiene el backend (`config`, `infrastructure`,
+  `analysis`, `application`, `operations`); `ml/` y `scripts/` son wrappers de
+  compatibilidad de los comandos históricos; `tests/` verifica.
+  Ver [docs/arquitectura.md](docs/arquitectura.md).
 - Mantener alta cohesión, bajo acoplamiento y responsabilidades concretas. Evitar
   código espagueti, dependencias circulares y lógica administrativa en la presentación.
 - No reorganizar módulos sin justificación y autorización. No añadir capas, clases,
@@ -109,7 +110,7 @@ pruebas o calidad; no modifica las restricciones de seguridad ni el alcance auto
   persistencia, presentación e integración en los cambios que realmente lo requieran.
 - Gestionar errores explícitamente. No ocultar fallos relevantes ni inventar ceros,
   mediciones o predicciones para aparentar disponibilidad. Evitar efectos inesperados.
-- Reutilizar `core/model_artifact.py` para carga y publicación del modelo; conservar
+- Reutilizar `smartenergy/infrastructure/model_artifact.py` para carga y publicación del modelo; conservar
   el bloqueo coherente, el reemplazo atómico y el formato compatible del bundle.
 
 ## Seguridad y protección del entorno

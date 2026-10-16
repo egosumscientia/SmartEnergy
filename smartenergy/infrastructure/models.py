@@ -1,0 +1,29 @@
+"""Modelos ORM persistidos por SmartEnergy."""
+from datetime import datetime, timezone
+
+from sqlalchemy import Column, DateTime, Float, Integer, String
+
+from smartenergy.infrastructure.database import Base
+
+
+class Registro(Base):
+    __tablename__ = "registros"
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    corriente = Column(Float)
+    voltaje = Column(Float)
+    potencia_activa = Column(Float)
+    temperatura_motor = Column(Float)
+    estado = Column(String)
+
+
+class Metrica(Base):
+    __tablename__ = "metricas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    total = Column(Integer)
+    anomalias = Column(Integer)
+    porcentaje = Column(Float)
+    estado = Column(String)
+    fecha = Column(DateTime, default=lambda: datetime.now(timezone.utc))

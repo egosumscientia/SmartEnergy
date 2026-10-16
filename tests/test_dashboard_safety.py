@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 import pandas as pd
-from app.dashboard_data import filter_records, recent_records, sample_records
+from smartenergy.analysis.measurements import filter_records, recent_records, sample_records
 
 
 class DashboardSafetyTests(unittest.TestCase):

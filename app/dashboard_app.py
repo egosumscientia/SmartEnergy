@@ -1,18 +1,26 @@
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 from datetime import datetime
-from sqlalchemy import text
-from core.database import SessionLocal, engine
-from core.models import Registro, Metrica
-from core.model_artifact import load_model_bundle
-from app.dashboard_data import ENERGY_COLUMNS, prepare_records, filter_records, sample_records, recent_records
+from sqlalchemy.exc import SQLAlchemyError
+
+from smartenergy.analysis.anomalies import evaluate_model, predict_anomalies
+from smartenergy.analysis.measurements import (
+    ENERGY_COLUMNS,
+    filter_records,
+    prepare_plot_records,
+    recent_records,
+)
+from smartenergy.application import monitoring
 
 # ============================
 # CONFIGURACION GENERAL
@@ -63,169 +71,6 @@ h1, h2, h3, h4, h5, label, span { color: #FFFFFF !important; }
 }
 </style>"""
 
-MODEL_PATH = "models/anomaly_detector.pkl"
-
-# ============================
-# FUNCIONES AUXILIARES
-# ============================
-def load_data_from_db():
-    if SessionLocal is None:
-        return None
-    try:
-        session = SessionLocal()
-        query = session.query(
-            Registro.id, Registro.timestamp, Registro.corriente,
-            Registro.voltaje, Registro.potencia_activa,
-            Registro.temperatura_motor, Registro.estado
-        )
-        query = query.order_by(Registro.timestamp.asc(), Registro.id.asc())
-        df = pd.read_sql(query.statement, session.bind)
-        session.close()
-    except Exception as exc:
-        st.error(f"No se pudo leer datos: {exc}")
-        return None
-    if df.empty:
-        return None
-    return prepare_records(df)
-
-
-def get_last_data_timestamp():
-    """Devuelve el timestamp mas reciente en registros, o None si no hay datos/BD."""
-    if SessionLocal is None:
-        return None
-    try:
-        session = SessionLocal()
-        last_ts = session.query(Registro.timestamp).order_by(Registro.timestamp.desc()).limit(1).scalar()
-        session.close()
-        return last_ts
-    except Exception:
-        return None
-
-def load_metrics_from_db():
-    if SessionLocal is None:
-        return None
-    try:
-        session = SessionLocal()
-        query = session.query(Metrica).order_by(Metrica.id.desc()).limit(1)
-        metrica = query.first()
-        session.close()
-    except Exception as exc:
-        st.error(f"No se pudo leer metricas: {exc}")
-        return None
-    if not metrica:
-        return None
-    return {
-        "total": metrica.total,
-        "anomalias": metrica.anomalias,
-        "porcentaje": metrica.porcentaje,
-        "estado": metrica.estado,
-        "fecha": metrica.fecha
-    }
-
-def load_metrics_history(n=2):
-    """Retorna las ultimas n metricas para mostrar tendencia."""
-    if SessionLocal is None:
-        return []
-    session = SessionLocal()
-    try:
-        metricas = (
-            session.query(Metrica)
-            .order_by(Metrica.id.desc())
-            .limit(n)
-            .all()
-        )
-        return list(metricas)
-    except Exception:
-        return []
-    finally:
-        session.close()
-
-def get_data_count():
-    if SessionLocal is None:
-        return 0
-    session = SessionLocal()
-    try:
-        total = session.query(Registro).count()
-        return total
-    except Exception:
-        return 0
-    finally:
-        session.close()
-
-def load_model():
-    if not os.path.exists(MODEL_PATH):
-        return None, None, None
-    try:
-        bundle = load_model_bundle(MODEL_PATH)
-        model, scaler, features = bundle["model"], bundle["scaler"], bundle["features"]
-        if not callable(getattr(model, "predict", None)) or not callable(getattr(scaler, "transform", None)):
-            raise ValueError("Modelo o scaler inválido")
-        if not isinstance(features, list) or not features or not set(features).issubset(ENERGY_COLUMNS):
-            raise ValueError("Variables del modelo incompatibles")
-    except Exception as exc:
-        st.warning(f"ML no disponible: no se pudo cargar el modelo ({type(exc).__name__}).")
-        return None, None, None
-    return model, scaler, features
-
-
-def compute_model_metrics(df_src: pd.DataFrame, model, scaler, features: list[str]):
-    """Calcula cobertura, precision y estado usando las mismas reglas que detect_anomalies.py."""
-    if model is None or scaler is None or not features or df_src is None or df_src.empty:
-        return None
-    X = df_src[features].values
-    preds = model.predict(scaler.transform(X))
-    df_eval = df_src.copy()
-    df_eval["pred_anomalia"] = (preds == -1).astype(int)
-    total = len(df_eval)
-    detectadas = int(df_eval["pred_anomalia"].sum())
-    anomalias_reales = int((df_eval["estado"] == "Anomalo").sum())
-    verdaderos_positivos = int(((df_eval["estado"] == "Anomalo") & (df_eval["pred_anomalia"] == 1)).sum())
-    recall = float(100 * verdaderos_positivos / max(anomalias_reales, 1))
-    precision = float(100 * verdaderos_positivos / max(detectadas, 1))
-    coverage = float(100 * detectadas / max(total, 1))
-    if precision >= 80 and recall >= 70:
-        estado = "Normal"
-    elif precision >= 60 and recall >= 40:
-        estado = "Precaucion"
-    else:
-        estado = "Critico"
-    return {
-        "total": total,
-        "detectadas": detectadas,
-        "recall": recall,
-        "precision": precision,
-        "coverage": coverage,
-        "estado": estado,
-    }
-
-
-def apply_smoothing(df: pd.DataFrame, var: str, method: str, window_samples: int, resample_minutes: int) -> pd.DataFrame:
-    """Aplica suavizado o downsampling para reducir ruido en series largas."""
-    if df is None or df.empty:
-        return df
-    df_sorted = df.sort_values("timestamp").copy()
-    if method == "Media movil":
-        df_sorted[var] = df_sorted[var].rolling(window_samples, min_periods=1).mean()
-        return df_sorted
-    if method == "Downsample por ventana":
-        freq = f"{resample_minutes}min"
-        agg_numeric = {col: "mean" for col in ["corriente", "voltaje", "potencia_activa", "temperatura_motor"] if col in df_sorted}
-        agg_extra = {
-            "estado": lambda x: x.value_counts().idxmax() if len(x) else None,
-            "label_anomalia": "mean"
-        }
-        df_resampled = (
-            df_sorted.set_index("timestamp")
-            .resample(freq)
-            .agg({**agg_numeric, **agg_extra})
-            .dropna(subset=[var])
-            .reset_index()
-        )
-        df_resampled["label_anomalia"] = (df_resampled["label_anomalia"] > 0.5).astype(int)
-        return df_resampled
-    return df_sorted
-
-
 def run_script(cmd: list[str]):
     """Rechaza acciones administrativas incluso si se fuerza un evento de UI.
 
@@ -237,15 +82,7 @@ def run_script(cmd: list[str]):
 
 
 def check_db_connection():
-    """Verifica si hay URL y conexion disponible."""
-    if engine is None:
-        return False, "DATABASE_URL no configurada en .env"
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        return True, None
-    except Exception as exc:
-        return False, f"No se pudo conectar a la base de datos: {exc}"
+    return monitoring.check_database_connection()
 
 
 def main():
@@ -264,12 +101,22 @@ def main():
     st.title("SmartEnergy")
     st.markdown("Panel de monitoreo y deteccion de anomalias")
 
-    data_count = get_data_count()
-    model_exists = os.path.exists(MODEL_PATH)
-    model, scaler, features = load_model() if model_exists else (None, None, None)
+    data_count = monitoring.get_data_count()
+    model_exists, model_mtime = monitoring.get_model_artifact_status()
+    model, scaler, features, model_error = (
+        monitoring.load_model() if model_exists else (None, None, None, None)
+    )
+    if model_error is not None:
+        st.warning(
+            f"ML no disponible: no se pudo cargar el modelo ({type(model_error).__name__})."
+        )
     ml_available = model is not None and scaler is not None and bool(features)
-    latest_metrics = load_metrics_from_db()
-    last_data_ts = get_last_data_timestamp()
+    try:
+        latest_metrics = monitoring.load_latest_metrics()
+    except SQLAlchemyError as exc:
+        st.error(f"No se pudo leer metricas: {exc}")
+        latest_metrics = None
+    last_data_ts = monitoring.get_last_data_timestamp()
     db_ok, db_msg = check_db_connection()
 
     # El monitor nunca concede permisos administrativos por disponibilidad de datos.
@@ -280,7 +127,6 @@ def main():
     model_label = "No"
     model_help = "No se encontro el archivo de modelo."
     if model_exists:
-        model_mtime = datetime.fromtimestamp(os.path.getmtime(MODEL_PATH))
         metric_ts = latest_metrics.get("fecha") if latest_metrics else None
         if ml_available:
             model_label = "Si"
@@ -291,7 +137,7 @@ def main():
     status_col2.metric("Modelo entrenado", model_label, help=model_help)
     # Mostrar solo la última métrica persistida
     if latest_metrics:
-        history_metrics = load_metrics_history(2)
+        history_metrics = monitoring.load_metrics_history(2)
         prev_metric = history_metrics[1] if len(history_metrics) > 1 else None
         delta = None
         if prev_metric:
@@ -367,7 +213,14 @@ def main():
         else:
             st.caption("Aún no hay ejecuciones registradas.")
 
-    df = load_data_from_db() if data_count > 0 else None
+    if data_count > 0:
+        try:
+            df = monitoring.load_records()
+        except SQLAlchemyError as exc:
+            st.error(f"No se pudo leer datos: {exc}")
+            df = None
+    else:
+        df = None
 
     has_data = df is not None and not df.empty
     df_f = pd.DataFrame()
@@ -423,32 +276,14 @@ def main():
 
         df_f = filter_records(df, rango_fecha, estado_sel)
 
-        # Muestreo para acelerar graficos (mantener orden temporal y representativo)
-        df_plot = df_f.dropna(subset=["timestamp"]).sort_values("timestamp").copy()
-        if sample_plots and len(df_plot) > 5000:
-            df_plot = sample_records(df_plot, 5000)
-
-        # Downsample temporal automatico para evitar bloques densos en graficos
-        if sample_plots and len(df_plot) > 1500:
-            time_span = (df_plot["timestamp"].max() - df_plot["timestamp"].min()).total_seconds()
-            if time_span > 0:
-                target_points = 800
-                seconds_per_bin = max(int(time_span / target_points), 1)
-                freq = f"{seconds_per_bin}s"
-                df_plot = df_plot.set_index("timestamp")
-                estado_mode = df_plot["estado"].resample(freq).agg(lambda x: x.value_counts().idxmax() if len(x) else None)
-                label_mean = df_plot["label_anomalia"].resample(freq).mean()
-                df_plot = (
-                    df_plot.resample(freq).mean(numeric_only=True)
-                    .assign(
-                        estado=estado_mode.values,
-                        label_anomalia=(label_mean > 0.5).astype(int).values,
-                    )
-                    .dropna(subset=[var_sel])
-                    .reset_index()
-                )
-
-        df_plot = apply_smoothing(df_plot, var_sel, smoothing_method, int(rolling_window), int(resample_minutes))
+        df_plot = prepare_plot_records(
+            df_f,
+            var_sel,
+            sample_plots,
+            smoothing_method,
+            rolling_window,
+            resample_minutes,
+        )
 
     has_filtered_data = has_data and not df_f.empty
     empty_message = (
@@ -462,7 +297,7 @@ def main():
             ml_message = "No se calcula ML: hay variables incompletas en los registros filtrados."
         else:
             try:
-                metrics_model = compute_model_metrics(df_f, model, scaler, features)
+                metrics_model = evaluate_model(df_f, model, scaler, features)
             except Exception as exc:
                 ml_message = f"ML no disponible para estos registros ({type(exc).__name__})."
 
@@ -565,9 +400,9 @@ def main():
                 st.info("No hay puntos gráficos completos para la predicción ML.")
             else:
                 try:
-                    X = df_plot[features].values
-                    preds = model.predict(scaler.transform(X))
-                    df_plot["pred_anomalia"] = (preds == -1).astype(int)
+                    df_plot["pred_anomalia"] = predict_anomalies(
+                        df_plot, model, scaler, features
+                    )
                     fig_pred = px.line(df_plot, x="timestamp", y=var_sel,
                                        color=df_plot["pred_anomalia"].map({0: "Normal", 1: "Anomalo"}),
                                        color_discrete_map={"Normal": "blue", "Anomalo": "red"})
