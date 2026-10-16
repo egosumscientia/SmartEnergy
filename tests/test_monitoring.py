@@ -51,11 +51,14 @@ class MonitoringApplicationTests(unittest.TestCase):
                 (False, "DATABASE_URL no configurada en .env"),
             )
         with patch.object(monitoring, "get_session_factory", return_value=None):
-            self.assertEqual(monitoring.get_data_count(), 0)
-            self.assertIsNone(monitoring.load_records())
-            self.assertIsNone(monitoring.load_latest_metrics())
+            with self.assertRaises(monitoring.MonitoringUnavailableError):
+                monitoring.get_data_count()
+            with self.assertRaises(monitoring.MonitoringUnavailableError):
+                monitoring.load_records()
+            with self.assertRaises(monitoring.MonitoringUnavailableError):
+                monitoring.load_latest_metrics()
 
-    def test_count_failure_keeps_legacy_empty_count_while_connection_reports_failure(self):
+    def test_count_query_failure_is_not_collapsed_into_empty_data(self):
         factory = MagicMock()
         with (
             patch.object(monitoring, "get_session_factory", return_value=factory),
@@ -65,7 +68,21 @@ class MonitoringApplicationTests(unittest.TestCase):
                 side_effect=OperationalError("count", {}, RuntimeError("offline")),
             ),
         ):
-            self.assertEqual(monitoring.get_data_count(), 0)
+            with self.assertRaises(OperationalError):
+                monitoring.get_data_count()
+
+    def test_optional_metrics_history_query_failure_remains_explicit(self):
+        factory = MagicMock()
+        with (
+            patch.object(monitoring, "get_session_factory", return_value=factory),
+            patch.object(
+                monitoring.persistence,
+                "load_metrics_history",
+                side_effect=OperationalError("metrics", {}, RuntimeError("offline")),
+            ),
+        ):
+            with self.assertRaises(OperationalError):
+                monitoring.load_metrics_history()
 
 
 if __name__ == "__main__":

@@ -101,7 +101,11 @@ def main():
     st.title("SmartEnergy")
     st.markdown("Panel de monitoreo y deteccion de anomalias")
 
-    data_count = monitoring.get_data_count()
+    try:
+        data_count = monitoring.get_data_count()
+    except (monitoring.MonitoringUnavailableError, SQLAlchemyError):
+        data_count = None
+        st.error("No se pudo consultar el número de registros.")
     model_exists, model_mtime = monitoring.get_model_artifact_status()
     model, scaler, features, model_error = (
         monitoring.load_model() if model_exists else (None, None, None, None)
@@ -113,17 +117,16 @@ def main():
     ml_available = model is not None and scaler is not None and bool(features)
     try:
         latest_metrics = monitoring.load_latest_metrics()
-    except SQLAlchemyError as exc:
-        st.error(f"No se pudo leer metricas: {exc}")
+    except (monitoring.MonitoringUnavailableError, SQLAlchemyError):
+        st.error("No se pudieron consultar las métricas persistidas.")
         latest_metrics = None
-    last_data_ts = monitoring.get_last_data_timestamp()
     db_ok, db_msg = check_db_connection()
 
     # El monitor nunca concede permisos administrativos por disponibilidad de datos.
     can_train = can_recalc = can_db_actions = False
 
     status_col1, status_col2, status_col3 = st.columns(3)
-    status_col1.metric("Registros en BD", data_count)
+    status_col1.metric("Registros en BD", data_count if data_count is not None else "N/A")
     model_label = "No"
     model_help = "No se encontro el archivo de modelo."
     if model_exists:
@@ -137,7 +140,11 @@ def main():
     status_col2.metric("Modelo entrenado", model_label, help=model_help)
     # Mostrar solo la última métrica persistida
     if latest_metrics:
-        history_metrics = monitoring.load_metrics_history(2)
+        try:
+            history_metrics = monitoring.load_metrics_history(2)
+        except (monitoring.MonitoringUnavailableError, SQLAlchemyError):
+            history_metrics = []
+            st.warning("No se pudo consultar el historial de métricas.")
         prev_metric = history_metrics[1] if len(history_metrics) > 1 else None
         delta = None
         if prev_metric:
@@ -213,11 +220,11 @@ def main():
         else:
             st.caption("Aún no hay ejecuciones registradas.")
 
-    if data_count > 0:
+    if data_count is not None and data_count > 0:
         try:
             df = monitoring.load_records()
-        except SQLAlchemyError as exc:
-            st.error(f"No se pudo leer datos: {exc}")
+        except (monitoring.MonitoringUnavailableError, SQLAlchemyError):
+            st.error("No se pudieron consultar las mediciones.")
             df = None
     else:
         df = None
@@ -286,10 +293,15 @@ def main():
         )
 
     has_filtered_data = has_data and not df_f.empty
-    empty_message = (
-        "No hay mediciones disponibles. Las vistas se habilitan al disponer de registros."
-        if not has_data else "No hay registros para los filtros seleccionados."
-    )
+    if data_count is None:
+        empty_message = "No se pudo determinar la disponibilidad de mediciones."
+    elif not has_data:
+        empty_message = (
+            "No hay mediciones disponibles. Las vistas se habilitan "
+            "al disponer de registros."
+        )
+    else:
+        empty_message = "No hay registros para los filtros seleccionados."
     metrics_model = None
     ml_message = "No hay un modelo ML disponible. Las otras vistas funcionan sin modelo."
     if ml_available and has_filtered_data:

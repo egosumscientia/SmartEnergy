@@ -1,8 +1,9 @@
 # Desarrollo
 
 El desarrollo cotidiano está orientado a Debian nativo y al `.venv` del repositorio.
-Las dependencias permanecen fijadas en `requirements.txt`; esta reorganización no
-añade ni instala paquetes.
+Las dependencias directas están fijadas en `requirements.txt`; FastAPI, Uvicorn y
+HTTPX se añadieron para P03. ECharts 6.1.0 se distribuye desde
+`frontend/vendor/`, junto con su licencia y aviso Apache, sin CDN.
 
 ## Configuración
 
@@ -26,6 +27,19 @@ El dashboard es de consulta. No inicializa esquema ni genera datos, y mantiene
 deshabilitadas las acciones administrativas también en sus manejadores. Necesita
 una base existente y autorizada para lectura; sus estados vacíos no se rellenan con
 mediciones ficticias. La carga del modelo es opcional.
+
+## Interfaz web de consulta
+
+```bash
+.venv/bin/uvicorn smartenergy.interfaces.api.main:app --host 127.0.0.1 --port 8000
+```
+
+Abre `http://127.0.0.1:8000/`. La API lee la base sólo al recibir solicitudes y
+expone únicamente rutas GET; no inicializa esquema, escribe registros, entrena ni
+persiste detecciones. Mantén el host en loopback: no hay autenticación ni
+autorización para exposición en red. Antes de consultar, verifica `DATABASE_URL`,
+destino y rol de sólo lectura. La ausencia de la base se informa como error de
+servicio, no como datos vacíos. Streamlit permanece operativo durante P03.
 
 ## Operaciones canónicas
 

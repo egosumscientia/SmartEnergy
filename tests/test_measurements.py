@@ -6,6 +6,7 @@ import pandas as pd
 from smartenergy.analysis.measurements import (
     apply_smoothing,
     filter_records,
+    histogram_records,
     ordered_records,
     prepare_plot_records,
     prepare_records,
@@ -81,6 +82,20 @@ class MeasurementAnalysisTests(unittest.TestCase):
         self.assertLessEqual(len(plotted), 1500)
         self.assertEqual(len(source), count)
         self.assertEqual(plotted.timestamp.is_monotonic_increasing, True)
+
+    def test_histograms_use_common_backend_bins_and_keep_state_populations(self):
+        records = prepare_records(self.rows)
+        histograms = histogram_records(records, "corriente")
+        self.assertEqual([series["state"] for series in histograms], ["Normal", "Anomalo"])
+        self.assertTrue(all(len(series["bins"]) == 40 for series in histograms))
+        self.assertEqual(
+            [sum(item["count"] for item in series["bins"]) for series in histograms],
+            [1, 1],
+        )
+        self.assertEqual(
+            histograms[0]["bins"][0]["lower"],
+            histograms[1]["bins"][0]["lower"],
+        )
 
 
 if __name__ == "__main__":

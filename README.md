@@ -1,8 +1,16 @@
-# SmartEnergy
+# SmartEnergy by makeAutomatic
 
-Prototipo de monitoreo de mediciones energéticas con PostgreSQL y Streamlit. Los
-datos de ejemplo son simulados: el producto no está validado con instrumentos ni
-representa una plataforma industrial lista para operación.
+Plataforma de monitoreo y análisis del consumo eléctrico concebida para instalaciones
+industriales, comerciales e inmobiliarias. Su finalidad es registrar y analizar
+mediciones de equipos y circuitos para conocer el consumo y orientar decisiones de
+eficiencia energética. El alcance inicial es de consulta, sin control activo de cargas.
+
+El repositorio contiene un prototipo con PostgreSQL, Streamlit y una interfaz web
+FastAPI/ECharts local. Los ejemplos son sintéticos; la adquisición física y la
+validación industrial están pendientes. El Acrel ADW210 es la referencia inicial
+para el futuro contrato de mediciones, sin driver implementado. Consulta la
+[definición del producto](docs/producto.md) y la [arquitectura](docs/arquitectura.md)
+para distinguir capacidades previstas, implementadas y pendientes de validación.
 
 ## Documentación
 
@@ -11,12 +19,15 @@ representa una plataforma industrial lista para operación.
 - [Alcance del producto](docs/producto.md)
 - [Pruebas y evidencia](docs/pruebas.md)
 - [Roadmap técnico](docs/roadmap-tecnico.md)
+- [Contrato HTTP y de presentación](docs/contrato-http.md)
 - [Guía de ingeniería](docs/guia-de-ingenieria.md)
 
 ## Backend y presentación
 
 - `smartenergy/`: configuración, aplicación, análisis, infraestructura y operaciones.
-- `app/dashboard_app.py`: las cinco vistas Streamlit de consulta.
+- `smartenergy/interfaces/api/`: API HTTP de monitoreo de sólo lectura.
+- `frontend/`: cinco vistas web servidas por la API; ECharts se distribuye localmente.
+- `app/dashboard_app.py`: las cinco vistas Streamlit de consulta, que siguen disponibles.
 - `app/dashboard_data.py`, `ml/` y `scripts/`: wrappers temporales de compatibilidad;
   las implementaciones canónicas están en `smartenergy/`.
 - `tests/`: pruebas de contratos, disponibilidad, transformación, importación y UI.
@@ -42,6 +53,16 @@ streamlit run app/dashboard_app.py
 
 El comando no inicializa ni pobla la base. Comprueba antes que `DATABASE_URL`
 identifique el destino y rol autorizados para consulta.
+
+Para iniciar la interfaz web FastAPI en el equipo local:
+
+```bash
+.venv/bin/uvicorn smartenergy.interfaces.api.main:app --host 127.0.0.1 --port 8000
+```
+
+La API consulta la base al recibir solicitudes; no crea tablas ni ejecuta
+operaciones administrativas. No cambies el host a una dirección pública: esta
+etapa no añade autenticación ni autoriza exponer el servicio en una red.
 
 ## Operaciones administrativas
 

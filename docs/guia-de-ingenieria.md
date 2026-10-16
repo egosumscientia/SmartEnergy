@@ -21,6 +21,7 @@ metrológica, predictiva ni industrial.
 |---|---|---|
 | `app/dashboard_app.py` | Entrada Streamlit, consultas actuales, cinco vistas y analítica en memoria | Consulta; no ejecutar administración desde la UI |
 | `app/dashboard_data.py` | Wrapper de `smartenergy/analysis/measurements.py` (preparación, filtros, muestreo y orden de DataFrames) | Sin persistencia ni dependencia de ML |
+| `smartenergy/interfaces/api/` y `frontend/` | Adaptador HTTP de monitoreo y cinco vistas web locales | Sólo lectura; sin duplicar SQL o cálculos de negocio en JavaScript |
 | `smartenergy/config.py` | Configuración de entorno y carga de `.env` | Sin secretos rastreados |
 | `smartenergy/infrastructure/database.py`, `smartenergy/infrastructure/models.py` | Engine, sesiones y modelos `Registro` y `Metrica` | No inicializar ni reiniciar datos automáticamente |
 | `smartenergy/infrastructure/model_artifact.py` | Carga bloqueada y publicación atómica del bundle | Preservar formato y coordinación entre lectores y escritor |
@@ -29,8 +30,10 @@ metrológica, predictiva ni industrial.
 | `tests/` | Pruebas de objetos, muestras, seguridad, renderizado y artefactos | Aislamiento y alcance explícitos |
 | `requirements.txt`, Dockerfile y Compose | Dependencias e integración de referencia | No confundir definición con autorización de ejecución |
 
-Hay consultas y cálculos en el dashboard; no existe una capa de servicios separada.
-No crear esa capa, mover módulos o proponer servicios nuevos sólo por uniformidad.
+Las consultas se coordinan en aplicación y los cálculos se comparten en análisis.
+No mover módulos ni proponer servicios nuevos sólo por uniformidad.
+La API reutiliza los servicios y transformaciones ya existentes. Streamlit sigue
+disponible; no retirarlo fuera de una etapa explícitamente aprobada.
 
 ## 3. SOLID aplicado con pragmatismo
 
@@ -175,14 +178,12 @@ explica su aplicación; el README debe orientar al uso. Documentar contratos, de
 limitaciones y riesgos con rutas reales. Evitar copiar implementaciones o informes
 transitorios que se desactualicen. Diferenciar estado comprobado de propuesta.
 
-**Desactualización conocida del README:** aún describe administración desde botones,
-arranque centrado en Docker y pruebas como esqueletos. El código vigente deshabilita
-administración en la UI, mantiene cinco pestañas sin ML y tiene pruebas de renderizado.
-Sus comandos de mantenimiento y arranque no autorizan su ejecución. Actualizar el
-README en una tarea acotada; esta guía no modifica sus instrucciones históricas.
-
-Roadmap, arquitectura industrial, protocolos, criterios metrológicos y despliegue
-productivo necesitan aprobación humana antes de tratarse como requisitos aceptados.
+El README orienta a los comandos y documentos vigentes. Los ejemplos de
+mantenimiento y arranque no autorizan su ejecución. La definición del producto y
+la referencia inicial ADW210 aprobadas en el cierre P03 se documentan en
+[producto](producto.md) y [arquitectura](arquitectura.md). Su implementación de
+adquisición, los criterios metrológicos y el despliegue productivo requieren una
+tarea y aprobación posteriores.
 
 ## 13. Eficiencia de agentes de IA
 

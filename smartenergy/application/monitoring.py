@@ -11,6 +11,17 @@ from smartenergy.infrastructure import persistence
 from smartenergy.infrastructure.database import get_engine, get_session_factory
 
 
+class MonitoringUnavailableError(RuntimeError):
+    """Raised when a monitoring query cannot obtain its database session."""
+
+
+def _require_session_factory():
+    session_factory = get_session_factory()
+    if session_factory is None:
+        raise MonitoringUnavailableError("Monitoring database is unavailable")
+    return session_factory
+
+
 def check_database_connection():
     engine = get_engine()
     if engine is None:
@@ -19,24 +30,16 @@ def check_database_connection():
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
         return True, None
-    except SQLAlchemyError as exc:
-        return False, f"No se pudo conectar a la base de datos: {exc}"
+    except SQLAlchemyError:
+        return False, "No se pudo conectar a la base de datos."
 
 
 def get_data_count():
-    session_factory = get_session_factory()
-    if session_factory is None:
-        return 0
-    try:
-        return persistence.get_record_count(session_factory)
-    except SQLAlchemyError:
-        return 0
+    return persistence.get_record_count(_require_session_factory())
 
 
 def load_records():
-    session_factory = get_session_factory()
-    if session_factory is None:
-        return None
+    session_factory = _require_session_factory()
     df = persistence.load_records(session_factory)
     if df.empty:
         return None
@@ -44,19 +47,11 @@ def load_records():
 
 
 def get_last_data_timestamp():
-    session_factory = get_session_factory()
-    if session_factory is None:
-        return None
-    try:
-        return persistence.get_last_data_timestamp(session_factory)
-    except SQLAlchemyError:
-        return None
+    return persistence.get_last_data_timestamp(_require_session_factory())
 
 
 def load_latest_metrics():
-    session_factory = get_session_factory()
-    if session_factory is None:
-        return None
+    session_factory = _require_session_factory()
     metric = persistence.load_latest_metric(session_factory)
     if metric is None:
         return None
@@ -70,13 +65,7 @@ def load_latest_metrics():
 
 
 def load_metrics_history(limit=2):
-    session_factory = get_session_factory()
-    if session_factory is None:
-        return []
-    try:
-        return persistence.load_metrics_history(session_factory, limit)
-    except SQLAlchemyError:
-        return []
+    return persistence.load_metrics_history(_require_session_factory(), limit)
 
 
 def get_model_artifact_status():

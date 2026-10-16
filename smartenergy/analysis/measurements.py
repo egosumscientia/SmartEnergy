@@ -1,6 +1,7 @@
 """Transformaciones de mediciones sin persistencia ni dependencias de presentacion."""
 import math
 
+import numpy as np
 import pandas as pd
 
 
@@ -119,3 +120,36 @@ def prepare_plot_records(
     return apply_smoothing(
         df_plot, variable, smoothing_method, int(rolling_window), int(resample_minutes)
     )
+
+
+def histogram_records(df, variable, bins=40):
+    result = []
+    if df is None or df.empty:
+        return result
+
+    numeric_values = pd.to_numeric(df[variable], errors="coerce").dropna()
+    if numeric_values.empty:
+        return result
+    _, edges = np.histogram(numeric_values.to_numpy(), bins=bins)
+
+    for state in ("Normal", "Anomalo", "Sin estado"):
+        values = pd.to_numeric(
+            df.loc[df["estado"].eq(state), variable], errors="coerce"
+        ).dropna()
+        if values.empty:
+            continue
+        counts, _ = np.histogram(values.to_numpy(), bins=edges)
+        result.append(
+            {
+                "state": state,
+                "bins": [
+                    {
+                        "lower": float(edges[index]),
+                        "upper": float(edges[index + 1]),
+                        "count": int(count),
+                    }
+                    for index, count in enumerate(counts)
+                ],
+            }
+        )
+    return result

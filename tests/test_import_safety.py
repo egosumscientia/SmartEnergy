@@ -87,6 +87,7 @@ with ExitStack() as stack:
         "ml.train_model",
         "ml.detect_anomalies",
         "app.dashboard_app",
+        "smartenergy.interfaces.api.main",
     ):
         importlib.import_module(module)
 

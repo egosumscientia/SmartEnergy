@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="Consulta de mediciones y disponibilidad del monitoreo SmartEnergy.">
+    <title>SmartEnergy by makeAutomatic</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script defer src="/vendor/echarts.min.js"></script>
+    <script defer src="/js/api.js"></script>
+    <script defer src="/js/charts.js"></script>
+    <script defer src="/js/dashboard.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">SE</span>
+        <div>
+          <p class="eyebrow">makeAutomatic</p>
+          <h1>SmartEnergy</h1>
+        </div>
+      </div>
+      <div id="connection-status" class="status-pill status-waiting" role="status" aria-live="polite">
+        Conectando
+      </div>
+    </header>
+
+    <main>
+      <section class="page-intro">
+        <div>
+          <p class="eyebrow">MONITOREO ENERGÉTICO</p>
+          <h2>Vista operativa</h2>
+          <p>Consulta mediciones, tendencias y disponibilidad analítica.</p>
+        </div>
+        <button id="refresh-button" class="button button-secondary" type="button">Actualizar</button>
+      </section>
+
+      <div id="request-message" class="notice" role="status" aria-live="polite" hidden></div>
+
+      <section class="filter-panel" aria-labelledby="filters-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">CONSULTA</p>
+            <h2 id="filters-title">Filtros de monitoreo</h2>
+          </div>
+          <span class="read-only-tag">Solo lectura</span>
+        </div>
+        <form id="filters-form">
+          <div class="filter-grid">
+            <label>
+              Desde
+              <input id="date-from" name="date_from" type="date">
+            </label>
+            <label>
+              Hasta
+              <input id="date-to" name="date_to" type="date">
+            </label>
+            <label>
+              Variable
+              <select id="variable" name="variable">
+                <option value="corriente">Corriente</option>
+                <option value="voltaje">Voltaje</option>
+                <option value="potencia_activa">Potencia activa</option>
+                <option value="temperatura_motor">Temperatura del motor</option>
+              </select>
+            </label>
+            <label>
+              Filas recientes
+              <input id="table-limit" name="table_limit" type="number" min="100" max="20000" step="100" value="1000">
+            </label>
+            <label>
+              Tratamiento de gráfica
+              <select id="smoothing-method" name="smoothing_method">
+                <option value="Ninguno">Ninguno</option>
+                <option value="Media movil">Media móvil</option>
+                <option value="Downsample por ventana">Downsample por ventana</option>
+              </select>
+            </label>
+            <label>
+              Ventana móvil (muestras)
+              <input id="rolling-window" name="rolling_window" type="number" min="1" max="5000" step="1" value="60">
+            </label>
+            <label>
+              Ventana de downsample (minutos)
+              <input id="resample-minutes" name="resample_minutes" type="number" min="1" max="240" step="1" value="5">
+            </label>
+            <label class="checkbox-label">
+              <input id="sample-plots" name="sample_plots" type="checkbox" checked>
+              Muestrear gráficas (máximo 5000 filas)
+            </label>
+          </div>
+          <fieldset class="state-filter">
+            <legend>Estado de anomalía</legend>
+            <div id="state-options" class="state-options">
+              <span class="muted">Los estados aparecerán al consultar.</span>
+            </div>
+          </fieldset>
+          <div class="form-actions">
+            <button class="button button-primary" type="submit">Aplicar filtros</button>
+            <a id="csv-download" class="button button-secondary button-link" href="/api/v1/monitoring/records.csv">Descargar CSV filtrado</a>
+          </div>
+        </form>
+      </section>
+
+      <section class="summary-grid" aria-label="Estado del monitoreo">
+        <article class="summary-card">
+          <span class="summary-label">Registros en base de datos</span>
+          <strong id="record-count">—</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Modelo ML</span>
+          <strong id="model-status">—</strong>
+          <span id="model-detail" class="summary-detail">Estado no consultado</span>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Último análisis persistido</span>
+          <strong id="latest-metric">—</strong>
+          <span id="latest-metric-detail" class="summary-detail">Historial opcional</span>
+        </article>
+      </section>
+
+      <nav class="view-tabs" role="tablist" aria-label="Vistas de monitoreo">
+        <button id="tab-overview" type="button" role="tab" aria-selected="true" aria-controls="panel-overview" data-panel="panel-overview">Análisis general</button>
+        <button id="tab-energy" type="button" role="tab" aria-selected="false" aria-controls="panel-energy" data-panel="panel-energy">Variables energéticas</button>
+        <button id="tab-comparisons" type="button" role="tab" aria-selected="false" aria-controls="panel-comparisons" data-panel="panel-comparisons">Comparativos</button>
+        <button id="tab-anomalies" type="button" role="tab" aria-selected="false" aria-controls="panel-anomalies" data-panel="panel-anomalies">Detección de anomalías</button>
+        <button id="tab-records" type="button" role="tab" aria-selected="false" aria-controls="panel-records" data-panel="panel-records">Tabla de registros</button>
+      </nav>
+
+      <section id="panel-overview" class="view-panel" role="tabpanel" aria-labelledby="tab-overview" tabindex="-1">
+        <div class="metric-grid">
+          <article class="metric-card"><span>Registros originales filtrados</span><strong id="filtered-count">—</strong></article>
+          <article class="metric-card"><span>Anomalías detectadas en población original</span><strong id="anomaly-count">N/A</strong></article>
+          <article class="metric-card"><span>Cobertura de población original</span><strong id="coverage-value">N/A</strong></article>
+          <article class="metric-card"><span>Estado del análisis</span><strong id="evaluation-state">ML no disponible</strong></article>
+        </div>
+        <div class="chart-grid">
+          <article class="chart-card chart-card-wide">
+            <div class="chart-heading"><div><h3>Distribución temporal</h3><p id="overview-chart-caption">Corriente · unidad no especificada</p></div></div>
+            <div id="overview-chart" class="chart" role="img" aria-label="Serie temporal de mediciones"></div>
+            <p id="overview-empty" class="empty-state" hidden></p>
+          </article>
+          <article class="chart-card">
+            <div class="chart-heading"><div><h3>Proporción detectada</h3><p>Denominador: registros originales filtrados</p></div></div>
+            <div id="coverage-chart" class="chart chart-compact" role="img" aria-label="Cobertura de anomalías detectadas"></div>
+            <p id="coverage-empty" class="empty-state" hidden></p>
+          </article>
+        </div>
+        <p id="last-analysis-note" class="footnote"></p>
+      </section>
+
+      <section id="panel-energy" class="view-panel" role="tabpanel" aria-labelledby="tab-energy" tabindex="-1" hidden>
+        <div class="chart-grid">
+          <article class="chart-card chart-card-wide">
+            <div class="chart-heading"><div><h3>Evolución de la variable</h3><p id="energy-chart-caption"></p></div></div>
+            <div id="energy-chart" class="chart" role="img" aria-label="Evolución temporal de la variable seleccionada"></div>
+            <p id="energy-empty" class="empty-state" hidden></p>
+          </article>
+          <article class="chart-card chart-card-wide">
+            <div class="chart-heading"><div><h3>Histograma comparativo</h3><p>Bins calculados en backend sobre los puntos representados</p></div></div>
+            <div id="histogram-chart" class="chart" role="img" aria-label="Histograma comparativo por estado"></div>
+            <p id="histogram-empty" class="empty-state" hidden></p>
+          </article>
+        </div>
+      </section>
+
+      <section id="panel-comparisons" class="view-panel" role="tabpanel" aria-labelledby="tab-comparisons" tabindex="-1" hidden>
+        <article class="chart-card">
+          <div class="chart-heading"><div><h3>Relaciones entre variables</h3><p>Matriz comparativa; se representan puntos de gráfica, no la población completa.</p></div></div>
+          <div id="comparison-chart" class="chart chart-matrix" role="img" aria-label="Matriz de dispersión entre variables energéticas"></div>
+          <p id="comparison-empty" class="empty-state" hidden></p>
+        </article>
+      </section>
+
+      <section id="panel-anomalies" class="view-panel" role="tabpanel" aria-labelledby="tab-anomalies" tabindex="-1" hidden>
+        <article class="chart-card">
+          <div class="chart-heading"><div><h3>Análisis y detección con IsolationForest</h3><p id="anomaly-chart-caption">ML es complementario; no acredita diagnóstico industrial.</p></div></div>
+          <div class="metric-grid metric-grid-anomaly">
+            <article class="metric-card"><span>Anomalías en registros originales</span><strong id="anomaly-original-count">N/A</strong></article>
+            <article class="metric-card"><span>Puntos representados clasificados como anómalos</span><strong id="anomaly-point-count">N/A</strong></article>
+          </div>
+          <div id="anomaly-chart" class="chart" role="img" aria-label="Predicción de anomalías en los puntos representados"></div>
+          <p id="anomaly-empty" class="empty-state" hidden></p>
+        </article>
+      </section>
+
+      <section id="panel-records" class="view-panel" role="tabpanel" aria-labelledby="tab-records" tabindex="-1" hidden>
+        <article class="chart-card">
+          <div class="chart-heading">
+            <div><h3>Registros recientes</h3><p id="table-caption">Ordenados del más reciente al más antiguo.</p></div>
+            <span id="csv-count" class="read-only-tag">CSV: — registros filtrados</span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>ID</th><th>Timestamp</th><th>Corriente</th><th>Voltaje</th><th>Potencia activa</th><th>Temperatura motor</th><th>Estado</th><th>Etiqueta</th></tr></thead>
+              <tbody id="records-body"></tbody>
+            </table>
+          </div>
+          <p id="records-empty" class="empty-state" hidden></p>
+        </article>
+      </section>
+    </main>
+
+    <footer>SmartEnergy by makeAutomatic <span>·</span> Prototipo de monitoreo, no validado con instrumentos reales</footer>
+  </body>
+</html>

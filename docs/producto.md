@@ -1,22 +1,58 @@
-# Alcance actual del producto
+# SmartEnergy by makeAutomatic
 
-La firma oficial del producto es **SmartEnergy by makeAutomatic**. Su incorporación
-a la interfaz corresponde a P03; P02 no modifica la presentación.
+**SmartEnergy by makeAutomatic** es una plataforma de monitoreo y análisis del
+consumo eléctrico concebida para instalaciones industriales, comerciales e
+inmobiliarias. Su alcance comercial previsto abarca máquinas, motores, líneas de
+producción, tableros y circuitos de esas instalaciones.
 
-SmartEnergy es un prototipo de monitoreo de mediciones energéticas. Los datos de
-demostración son sintéticos y no acreditan exactitud metrológica, predictiva,
-eléctrica ni industrial. La adquisición desde instrumentos, el roadmap funcional
-y la arquitectura industrial siguen pendientes de aprobación.
+El funcionamiento previsto consiste en medir variables mediante analizadores de
+energía conectados a una infraestructura de adquisición, normalizar y registrar
+las mediciones, y ofrecer su visualización y análisis a través de servicios y una
+interfaz web. Está orientado inicialmente al **monitoreo, registro, visualización
+y análisis**, sin control activo de cargas eléctricas.
+
+## Finalidad y capacidades previstas
+
+El producto busca permitir que las organizaciones:
+
+- Conozcan el consumo por equipo, circuito, área o proceso.
+- Consulten voltajes, corrientes, potencias, energía y otras variables disponibles.
+- Analicen históricos, demanda y comportamiento de las cargas.
+- Identifiquen consumos elevados, desperdicios y oportunidades de eficiencia.
+- Comparen períodos operativos y estimen costos energéticos.
+- Tomen decisiones basadas en mediciones reales.
+
+Estas capacidades definen la orientación del producto; no implican que estén
+implementadas o validadas en su totalidad. El estado actual es un prototipo con
+PostgreSQL, servicios de consulta, API FastAPI y cinco vistas web con ECharts.
+Streamlit se conserva mientras P04 siga pendiente. Las funciones concretas
+implementadas y sus límites se detallan a continuación.
+
+La adquisición física, la trazabilidad multicanal, el análisis de demanda y consumo
+acumulado por activo, las comparaciones entre períodos operativos y la estimación
+de costos siguen pendientes de implementación y validación. La vista Comparativos
+actual muestra relaciones entre variables; no acredita esas capacidades futuras.
+El Acrel ADW210 es la referencia inicial aprobada para diseñar datos sintéticos y
+el futuro contrato común de adquisición, según la [arquitectura](arquitectura.md).
+No existe todavía un adaptador Modbus ni validación con instrumentos reales.
+Los datos de demostración son sintéticos y no acreditan exactitud metrológica,
+predictiva, eléctrica ni industrial. El resto del roadmap funcional, las reglas
+industriales y el despliegue productivo requieren aprobación posterior.
 
 ## Consulta
 
-El dashboard Streamlit conserva cinco vistas:
+Streamlit y la nueva interfaz web mantienen cinco vistas de consulta:
 
 1. Análisis general.
 2. Variables energéticas.
 3. Comparativos.
 4. Detección de anomalías.
 5. Tabla y descarga CSV.
+
+La interfaz web se sirve desde la misma aplicación FastAPI que ofrece la API de
+monitoreo. ECharts se carga desde un bundle local con licencia y aviso incluidos.
+Las agregaciones de negocio se producen en backend; JavaScript sólo presenta los
+datos y permite ajustar filtros.
 
 Filtros, muestras, agregaciones y suavizado trabajan sobre los registros consultados.
 Los indicadores de población original no se sustituyen por el conteo de puntos
@@ -38,6 +74,10 @@ conservan los cuatro escenarios de monitoreo:
 Un modelo inválido, no cargable o incompatible se informa como indisponibilidad de
 ML; no oculta las demás vistas. Las métricas persistidas son un historial opcional y
 distinto de la evaluación en memoria de la población filtrada.
+
+La API diferencia fallo de consulta primaria (`503`) de una población realmente
+vacía (`200` con estado vacío). Un fallo al consultar métricas persistidas es
+opcional y no bloquea las mediciones.
 
 ## Operaciones y límites
 

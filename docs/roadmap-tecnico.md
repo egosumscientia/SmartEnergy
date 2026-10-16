@@ -3,8 +3,10 @@
 Proyecto de makeAutomatic. Este documento conserva las decisiones aprobadas y los
 controles de ejecución; no acredita su implementación. Complementa
 [AGENTS.md](../AGENTS.md) y la [guía de ingeniería](guia-de-ingenieria.md).
-El roadmap funcional, las reglas industriales y la adquisición desde instrumentos
-siguen pendientes: la aprobación de esta reorganización no los aprueba implícitamente.
+La identidad y finalidad del producto y la referencia inicial ADW210 se aprobaron
+en el cierre documental de P03; ver [producto](producto.md) y
+[arquitectura](arquitectura.md). La implementación de adquisición, las reglas
+industriales y el resto del roadmap funcional requieren autorización posterior.
 
 La política de [Rigor de ingeniería y eficiencia de agentes](../AGENTS.md#rigor-de-ingeniería-y-eficiencia-de-agentes)
 de `AGENTS.md` es obligatoria para P01–P04 y cualquier intervención correctiva
@@ -349,27 +351,40 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** contrato revisado, ejemplos de los cuatro escenarios y correspondencia con aplicación; dependencias HTTP y versiones justificadas antes de H01.
 - **Validación requerida:** contrastar contratos con resultados caracterizados y aclarar fechas, límites y errores sin depender de detalles de Streamlit.
 - **Condición de reversión:** ambigüedad o pérdida de comportamiento; corregir el contrato antes de comenzar H01.
-- **Estado:** PENDIENTE.
+- **Evidencia P03 (2026-10-16):** se documentaron y luego cotejaron con la implementación las rutas, parámetros, límites, orden, nulabilidad, fechas, unidades no especificadas, errores y estados en [docs/contrato-http.md](contrato-http.md). La autorización del usuario permitió añadir FastAPI 0.143.2, Uvicorn 0.54.0 y HTTPX 0.28.1; el requisito de `typing_extensions` se fijó en 4.16.0 para satisfacer el entorno resuelto. Los servicios ahora distinguen indisponibilidad SQL de datos vacíos y Streamlit conserva mensajes seguros.
+- **Estado:** COMPLETADO.
 
 ### H01 — API FastAPI de consulta
 
 - **Objetivo y alcance:** implementar `interfaces/api/`, adaptación HTTP/JSON, ciclo de vida y pruebas con dependencias previamente aprobadas.
 - **Dependencias:** H00.
 - **Restricciones:** sin SQL en rutas, algoritmos duplicados ni endpoints administrativos; Streamlit sigue disponible.
-- **Criterios de aceptación:** respuestas y errores conforme al contrato, mismos resultados del backend y permisos de consulta.
-- **Validación requerida:** cliente HTTP en memoria, aplicación simulada y casos de seguridad y disponibilidad; sin modificar datos.
+- **Criterios de aceptación:** respuestas y errores conforme al contrato, resultados de transformaciones compartidas y sólo rutas GET.
+- **Validación requerida:** cliente HTTP en memoria, aplicación simulada, errores de entrada/consulta, estados de disponibilidad y ciclo de vida; sin modificar datos.
 - **Condición de reversión:** regresión o contrato incumplido; retirar el adaptador afectado conservando Streamlit y backend verificados.
-- **Estado:** PENDIENTE.
+- **Evidencia P03 (2026-10-16):** API implementada con consultas de sólo lectura, CSV, respuestas tipadas, errores 422/503/500 sanitizados y cierre del engine. La suite completa pasó (67 pruebas); HTTPX `ASGITransport` cubre las cuatro combinaciones de datos/modelo, filtros, CSV, fallo primario, fallo de métricas opcionales, rutas GET, frontend estático e importación/cierre. Los casos de API usan mocks y no acceden a PostgreSQL.
+- **Estado:** COMPLETADO.
 
 ### H02 — Frontend y gráficas
 
 - **Objetivo y alcance:** implementar HTML/CSS/JavaScript y ECharts consumiendo la API; recursos y licencia verificables.
 - **Dependencias:** H01.
 - **Restricciones:** sin frameworks adicionales, ML ni agregaciones de negocio duplicadas en JavaScript; sin retirar Streamlit.
-- **Criterios de aceptación:** equivalencia de las cinco funcionalidades, filtros, vacíos, CSV y contadores; aprobación visual funcional, sin exigir igualdad de píxeles.
-- **Validación requerida:** pruebas del contrato y comprobaciones de navegador acordadas, incluidos cuatro escenarios y ausencia de acciones administrativas.
+- **Criterios de aceptación:** equivalencia de las cinco funcionalidades, filtros, vacíos, CSV y contadores; bundle local con licencia verificable; aprobación visual funcional, sin exigir igualdad de píxeles.
+- **Validación requerida:** pruebas del contrato y comprobaciones de navegador, incluidos cuatro escenarios y ausencia de acciones administrativas.
 - **Condición de reversión:** falta de equivalencia; conservar Streamlit como interfaz vigente y detener el avance.
-- **Estado:** PENDIENTE.
+- **Evidencia P03 (2026-10-16):** interfaz HTML/CSS/JavaScript responsive con cinco pestañas, filtros, tabla/CSV, estados vacíos y gráficas ECharts. ECharts 6.1.0 se incorporó desde el paquete npm oficial tras verificar su integridad SHA-512; `LICENSE` y `NOTICE` Apache-2.0 están junto al bundle y no hay CDN. La verificación en navegador con fixtures cubrió las cuatro combinaciones de disponibilidad, filtros sin coincidencias, error 503, tabla/CSV, navegación por pestañas y viewport de 390 px (sin desbordamiento horizontal ni errores JavaScript).
+- **Corrección y cierre (2026-10-15):** la revisión final detectó que Tabla de
+  registros no mostraba su estado vacío. Se corrigió únicamente `populateTable`
+  para mostrar un mensaje sin filas y ocultarlo con datos. La nueva regresión en
+  Chrome falló antes de la corrección tanto sin registros como con filtros vacíos;
+  después pasó las transiciones vacío → datos → filtros sin resultados → datos.
+  La suite completa pasó: 68 pruebas, incluida la regresión en navegador y la
+  cobertura Streamlit. Se revisaron visualmente la tabla con datos y sin resultados.
+  `pip check`, sintaxis de los tres módulos JavaScript, enlaces locales y
+  `git diff --check` sin fallos. Fixtures y temporales aislados; sin PostgreSQL,
+  generación persistente, entrenamiento ni operaciones Docker.
+- **Estado:** COMPLETADO.
 
 ### H03 — Sustitución y retirada
 
@@ -387,11 +402,12 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 |---|---|
 | P01 | COMPLETADO |
 | P02 | COMPLETADO |
-| P03 | PENDIENTE |
+| P03 | COMPLETADO |
 | P04 | PENDIENTE |
 
-B00–B11 están **COMPLETADAS** con la evidencia registrada. H00–H03 y P03–P04
-permanecen **PENDIENTES**; esta intervención no los inicia.
+B00–B11 están **COMPLETADAS** con la evidencia registrada. H00–H02 y P03 están
+**COMPLETADOS**, incluida la corrección del estado vacío de Tabla de registros.
+H03 y P04 permanecen **PENDIENTES** y no han comenzado.
 
 | Control | Estado | Evidencia P02 (2026-10-15) |
 |---|---|---|
@@ -407,7 +423,7 @@ permanecen **PENDIENTES**; esta intervención no los inicia.
 | B10 | COMPLETADO | Configuración explícita, motor reutilizable y cierre; importaciones comprobadas sin leer `.env`, conectar ni cargar ML. |
 | B11 | COMPLETADO | README, arquitectura, desarrollo, producto, pruebas y plantilla actualizados; enlaces, diff y Docker revisados estáticamente. |
 
-Regresión final: `.venv/bin/python -B -m unittest discover -q` — 54 pruebas
+Regresión final de P02: `.venv/bin/python -B -m unittest discover -q` — 54 pruebas
 aprobadas. `git diff --check` y enlaces Markdown sin destinos rotos. Docker/Compose
 se inspeccionaron sin ejecutarlos; PostgreSQL, datos, credenciales y artefactos
 persistentes no se usaron ni modificaron.
@@ -476,3 +492,35 @@ En H00 se concretará el contrato HTTP; antes de implementar se verificarán ver
 y dependencias necesarias. La ventana de sustitución definitiva requiere aprobación.
 El acoplamiento operativo existente de Compose con inicialización/ML no se corrige
 silenciosamente como traslado de rutas: cualquier cambio de política exige autorización.
+
+## I. Pendiente técnico: adquisición y simulador
+
+Pendiente independiente de P04; no añade prompts principales ni altera los 16
+controles B00–B11 y H00–H03. Requiere una tarea posterior expresamente autorizada.
+
+**Objetivo:** adaptar el simulador al contrato común de mediciones eléctricas,
+usando inicialmente el ADW210 como referencia y preservando independencia del
+fabricante. La decisión conceptual está en [arquitectura](arquitectura.md).
+
+**Dependencias y criterios de aceptación verificables:**
+
+- Seleccionar configuración y versión documental del ADW210; contrastar el mapa de
+  registros y documentar por variable su alcance real (dispositivo, circuito o fase),
+  unidades, escalas y disponibilidad. No inferir campos por circuito desde el catálogo.
+- Especificar una representación común con instalación, dispositivo, circuito, fase
+  o agregado, variable, valor, unidad y tiempo; definir calidad, ausencia, zona
+  horaria y procedencia sintética/real/calculada/estimada con trazabilidad.
+- Demostrar mediante fixtures y pruebas de contrato que simulador y un futuro
+  adaptador pueden entregar esa representación sin campos dependientes de la marca.
+- Probar coherencia física bajo hipótesis explícitas, continuidad temporal e
+  integración de potencia y energía, con tolerancias definidas y reinicios de
+  contadores documentados; no generar variables independientes sin relación física.
+- Cubrir normalidad, variación de carga, arranque/parada, inactividad, desbalance y
+  anomalías mediante escenarios reproducibles, incluyendo mediciones no disponibles.
+- Evaluar compatibilidad con el generador, ORM, API y consumidores actuales antes
+  de proponer cambios. Cualquier migración PostgreSQL, driver Modbus o intervención
+  persistente tendrá alcance, validación y reversión aprobados por separado.
+
+**Límites:** no implementado en P03; no autoriza cambiar el esquema, reemplazar el
+generador, generar datos persistentes ni iniciar adquisición física. Las pruebas
+sintéticas futuras no sustituirán el contraste con instrumentos reales.

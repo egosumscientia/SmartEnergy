@@ -27,10 +27,15 @@ tornado==6.5.2
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 
+# API HTTP y cliente de pruebas
+fastapi==0.143.2
+uvicorn==0.54.0
+httpx==0.28.1
+
 # Dependencias auxiliares de Streamlit
 blinker==1.9.0
 protobuf==6.33.0
 click==8.3.0
-typing_extensions==4.15.0
+typing_extensions==4.16.0
 toml==0.10.2
 tzdata==2025.2
