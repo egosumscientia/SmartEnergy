@@ -57,6 +57,24 @@ Para seleccionar componentes:
 - Contrato HTTP, validación, errores 503/422, CSV, sólo lectura, entrega de estáticos
   y cierre de ciclo de vida, con HTTPX ASGITransport y mocks.
 
+## Revisión manual posterior a P03
+
+Tras publicar P03 (`02e701b`), el responsable de la revisión confirmó una
+inspección visual y funcional satisfactoria en Chrome con 2.016 registros
+sintéticos exclusivamente en memoria:
+
+- Se inspeccionaron las cinco pestañas.
+- Las gráficas de evolución, histogramas y comparativos se visualizaron correctamente.
+- La tabla presentó los registros sintéticos.
+- La ausencia de Isolation Forest se comunicó como modelo no disponible; las
+  demás vistas permanecieron operativas sin modelo.
+
+La demostración no utilizó PostgreSQL ni mediciones industriales reales y no
+entrenó modelos. Esta evidencia manual no acredita exactitud industrial ni
+validación del modelo. Como ajuste posterior, el indicador pasa a denominarse
+«Registros disponibles», válido para fuentes reales o sintéticas, sin cambiar
+el valor ni los cálculos del contador.
+
 ## Límites de evidencia
 
 Las pruebas de API usan mocks y no demuestran conectividad o permisos contra una
