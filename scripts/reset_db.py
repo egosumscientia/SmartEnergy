@@ -4,15 +4,21 @@ import sys
 from sqlalchemy import text
 from core.database import engine
 
-print("=== Reiniciando base de datos ===")
 
-with engine.connect() as conn:
-    conn.execute(text("TRUNCATE TABLE registros, metricas RESTART IDENTITY CASCADE;"))
-    conn.commit()
+def main():
+    print("=== Reiniciando base de datos ===")
 
-print("Tablas limpiadas correctamente.")
-print("Generando dataset inicial de 10 000 registros...")
+    with engine.connect() as conn:
+        conn.execute(text("TRUNCATE TABLE registros, metricas RESTART IDENTITY CASCADE;"))
+        conn.commit()
 
-subprocess.run([sys.executable, "-m", "scripts.simulate_data"], check=True)
+    print("Tablas limpiadas correctamente.")
+    print("Generando dataset inicial de 10 000 registros...")
 
-print("Base de datos reiniciada y repoblada.")
+    subprocess.run([sys.executable, "-m", "scripts.simulate_data"], check=True)
+
+    print("Base de datos reiniciada y repoblada.")
+
+
+if __name__ == "__main__":
+    main()

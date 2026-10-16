@@ -15,78 +15,85 @@ from core.models import Registro
 # CONFIGURACION
 # ============================
 MODEL_FILE = "models/anomaly_detector.pkl"
-os.makedirs("models", exist_ok=True)
 
-# ============================
-# LECTURA DESDE POSTGRESQL
-# ============================
-if SessionLocal is None:
-    raise RuntimeError("DATABASE_URL no configurada o engine no inicializado. No se puede entrenar el modelo.")
 
-session = SessionLocal()
-try:
-    query = session.query(
-        Registro.corriente,
-        Registro.voltaje,
-        Registro.potencia_activa,
-        Registro.temperatura_motor,
-        Registro.estado
+def main():
+    os.makedirs("models", exist_ok=True)
+
+    # ============================
+    # LECTURA DESDE POSTGRESQL
+    # ============================
+    if SessionLocal is None:
+        raise RuntimeError("DATABASE_URL no configurada o engine no inicializado. No se puede entrenar el modelo.")
+
+    session = SessionLocal()
+    try:
+        query = session.query(
+            Registro.corriente,
+            Registro.voltaje,
+            Registro.potencia_activa,
+            Registro.temperatura_motor,
+            Registro.estado
+        )
+        df = pd.read_sql(query.statement, session.bind)
+    finally:
+        session.close()
+
+    if df.empty:
+        raise ValueError("No hay datos disponibles en la tabla 'registros' para entrenar el modelo.")
+
+    # ============================
+    # PREPARACION DE DATOS
+    # ============================
+    features = ["corriente", "voltaje", "potencia_activa", "temperatura_motor"]
+    X = df[features].values
+    labels_true = (df["estado"] == "Anomalo").astype(int)
+
+    # Escalado
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # ============================
+    # ENTRENAMIENTO DEL MODELO
+    # ============================
+    # Ajustamos contamination a la tasa observada de anomalias
+    anom_rate = float(labels_true.mean()) if len(labels_true) > 0 else 0.02
+    contamination = min(0.2, max(0.01, anom_rate + 0.01))
+
+    model = IsolationForest(
+        n_estimators=200,
+        contamination=contamination,
+        random_state=42,
+        n_jobs=-1
     )
-    df = pd.read_sql(query.statement, session.bind)
-finally:
-    session.close()
 
-if df.empty:
-    raise ValueError("No hay datos disponibles en la tabla 'registros' para entrenar el modelo.")
+    model.fit(X_scaled)
+    y_pred = model.predict(X_scaled)
+    df["pred_anomalia"] = (y_pred == -1).astype(int)
 
-# ============================
-# PREPARACION DE DATOS
-# ============================
-features = ["corriente", "voltaje", "potencia_activa", "temperatura_motor"]
-X = df[features].values
-labels_true = (df["estado"] == "Anomalo").astype(int)
+    # ============================
+    # EVALUACION SIMPLE
+    # ============================
+    total = len(df)
+    detected = df["pred_anomalia"].sum()
+    true_anomalias = (df["estado"] == "Anomalo").sum()
+    true_positives = ((df["pred_anomalia"] == 1) & (df["estado"] == "Anomalo")).sum()
 
-# Escalado
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+    print(f"Registros totales: {total}")
+    print(f"Anomalias reales: {true_anomalias}")
+    print(f"Anomalias detectadas: {detected}")
+    print(f"Verdaderos positivos: {true_positives}")
+    print(f"Precision aproximada: {100 * true_positives / max(detected,1):.2f}%")
 
-# ============================
-# ENTRENAMIENTO DEL MODELO
-# ============================
-# Ajustamos contamination a la tasa observada de anomalias
-anom_rate = float(labels_true.mean()) if len(labels_true) > 0 else 0.02
-contamination = min(0.2, max(0.01, anom_rate + 0.01))
+    # ============================
+    # GUARDADO DEL MODELO
+    # ============================
+    try:
+        save_model_bundle({"model": model, "scaler": scaler, "features": features}, MODEL_FILE)
+        print(f"[OK] Modelo guardado en: {MODEL_FILE}")
+    except Timeout:
+        raise RuntimeError("No se pudo obtener el lock del modelo (otro proceso esta escribiendo).")
 
-model = IsolationForest(
-    n_estimators=200,
-    contamination=contamination,
-    random_state=42,
-    n_jobs=-1
-)
 
-model.fit(X_scaled)
-y_pred = model.predict(X_scaled)
-df["pred_anomalia"] = (y_pred == -1).astype(int)
-
-# ============================
-# EVALUACION SIMPLE
-# ============================
-total = len(df)
-detected = df["pred_anomalia"].sum()
-true_anomalias = (df["estado"] == "Anomalo").sum()
-true_positives = ((df["pred_anomalia"] == 1) & (df["estado"] == "Anomalo")).sum()
-
-print(f"Registros totales: {total}")
-print(f"Anomalias reales: {true_anomalias}")
-print(f"Anomalias detectadas: {detected}")
-print(f"Verdaderos positivos: {true_positives}")
-print(f"Precision aproximada: {100 * true_positives / max(detected,1):.2f}%")
-
-# ============================
-# GUARDADO DEL MODELO
-# ============================
-try:
-    save_model_bundle({"model": model, "scaler": scaler, "features": features}, MODEL_FILE)
-    print(f"[OK] Modelo guardado en: {MODEL_FILE}")
-except Timeout:
-    raise RuntimeError("No se pudo obtener el lock del modelo (otro proceso esta escribiendo).")
+if __name__ == "__main__":
+    main()

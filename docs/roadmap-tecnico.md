@@ -227,7 +227,8 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** casos críticos, comandos y límites de evidencia identificados; referencia verificable sin confundir resultados históricos y nuevos.
 - **Validación requerida:** pruebas nativas pertinentes; contrastar las 18 pruebas unittest reportadas y las siete funciones de prueba de modelos/simulación que unittest no descubre automáticamente. No afirmar que 25 pruebas se ejecutaron sin evidencia. Verificar cinco pestañas y cuatro escenarios mediante pruebas aisladas y revisión funcional autorizada.
 - **Condición de reversión:** prueba dependiente de recursos persistentes o referencia no reproducible; retirar sólo el cambio de caracterización propio y resolver antes de avanzar.
-- **Estado:** PENDIENTE.
+- **Evidencia P01 (2026-10-15):** antes de B01 pasaron las 18 pruebas unittest existentes y se ejecutaron explícitamente las siete funciones no descubiertas. La referencia incluye cinco pestañas, cuatro escenarios de datos/ML, estados vacíos, filtros y poblaciones, contratos ORM y publicación/bloqueo de artefactos. Tras B01 pasaron las 23 pruebas unittest, incluidas las nuevas pruebas aisladas.
+- **Estado:** COMPLETADO.
 
 ### B01 — Entradas sin ejecución accidental
 
@@ -237,7 +238,8 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** importar no ejecuta trabajos, entrenamiento, escrituras ni renderizado; comandos existentes conservados. La eliminación de configuración implícita se completa en B10.
 - **Validación requerida:** mocks que detecten accesos operativos, publicación, subprocesos y ajuste del modelo; comprobar delegación de entradas sin ejecutar trabajos reales.
 - **Condición de reversión:** efectos operativos al importar o ruptura de entradas; detenerse y volver al punto B00 verificado.
-- **Estado:** PENDIENTE.
+- **Evidencia P01 (2026-10-15):** importación aislada de los cinco módulos prioritarios y de las entradas de flujo continuo, bootstrap y espera de BD, con bloqueos para DDL/SQL, publicación ML, ajuste, subprocesos, espera y renderizado; no se crearon archivos locales ni se modificó la configuración global de Plotly. Pruebas simuladas confirmaron que las entradas batch, reset y ML conservan sus operaciones. AppTest confirmó la ejecución normal del dashboard.
+- **Estado:** COMPLETADO.
 
 ### B02 — Paquete e infraestructura
 
@@ -379,18 +381,18 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Condición de reversión:** falla del cambio de interfaz; restaurar la entrada Streamlit en una ventana autorizada desde el punto previo, sin restauraciones destructivas de datos.
 - **Estado:** PENDIENTE.
 
-## F. Estado inicial
+## F. Estado actual
 
 | Prompt principal | Estado |
 |---|---|
-| P01 | PENDIENTE |
+| P01 | COMPLETADO |
 | P02 | PENDIENTE |
 | P03 | PENDIENTE |
 | P04 | PENDIENTE |
 
-Las 16 tareas B00–B11 y H00–H03 permanecen **PENDIENTES**.
-La aprobación del roadmap no equivale a implementación. Esta formalización sólo
-crea el contrato documental; no ejecuta B00 ni inicia P01.
+B00 y B01 están **COMPLETADAS** con la evidencia registrada; B02–B11 y H00–H03
+permanecen **PENDIENTES**. P02 no se ha iniciado. La aprobación del roadmap no
+equivale a implementar las tareas futuras.
 
 ## G. Contrato de validación
 
