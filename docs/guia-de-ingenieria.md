@@ -19,21 +19,20 @@ metrológica, predictiva ni industrial.
 
 | Componente | Responsabilidad existente | Límite que conservar |
 |---|---|---|
-| `app/dashboard_app.py` | Entrada Streamlit, consultas actuales, cinco vistas y analítica en memoria | Consulta; no ejecutar administración desde la UI |
-| `app/dashboard_data.py` | Wrapper de `smartenergy/analysis/measurements.py` (preparación, filtros, muestreo y orden de DataFrames) | Sin persistencia ni dependencia de ML |
+| `smartenergy/analysis/measurements.py` | Preparación, filtros, muestreo y orden de DataFrames | Sin persistencia ni dependencia de ML |
 | `smartenergy/interfaces/api/` y `frontend/` | Adaptador HTTP de monitoreo y cinco vistas web locales | Sólo lectura; sin duplicar SQL o cálculos de negocio en JavaScript |
 | `smartenergy/config.py` | Configuración de entorno y carga de `.env` | Sin secretos rastreados |
 | `smartenergy/infrastructure/database.py`, `smartenergy/infrastructure/models.py` | Engine, sesiones y modelos `Registro` y `Metrica` | No inicializar ni reiniciar datos automáticamente |
 | `smartenergy/infrastructure/model_artifact.py` | Carga bloqueada y publicación atómica del bundle | Preservar formato y coordinación entre lectores y escritor |
 | `smartenergy/analysis/`, `smartenergy/application/` | Entrenamiento opcional, detección y consultas de monitoreo | No convertirlos en requisitos de visualización |
-| `smartenergy/operations/` (wrappers en `ml/` y `scripts/`) | Inicialización, espera de base, generación y mantenimiento | Examinar efectos y autorizar las escrituras |
+| `smartenergy/operations/` | Inicialización, espera de base, generación y mantenimiento | Examinar efectos y autorizar las escrituras |
 | `tests/` | Pruebas de objetos, muestras, seguridad, renderizado y artefactos | Aislamiento y alcance explícitos |
 | `requirements.txt`, Dockerfile y Compose | Dependencias e integración de referencia | No confundir definición con autorización de ejecución |
 
 Las consultas se coordinan en aplicación y los cálculos se comparten en análisis.
 No mover módulos ni proponer servicios nuevos sólo por uniformidad.
-La API reutiliza los servicios y transformaciones ya existentes. Streamlit sigue
-disponible; no retirarlo fuera de una etapa explícitamente aprobada.
+La API reutiliza los servicios y transformaciones existentes. FastAPI/ECharts es
+la única interfaz oficial; Streamlit y los wrappers históricos se retiraron en P04.
 
 ## 3. SOLID aplicado con pragmatismo
 
@@ -61,8 +60,9 @@ creación de tablas o mantenimiento al abrir una vista, refrescar o aplicar filt
 ## 5. Reutilización de funciones, clases y componentes
 
 Buscar por comportamiento en los módulos afectados antes de implementar. Comprobar
-contrato y efectos: importar `simulate_data`, `reset_db` o los módulos ML puede ejecutar
-operaciones, por lo que no deben usarse como utilidades inocuas de importación.
+contrato y efectos: `simulate_data`, `reset_db` y las operaciones ML ejecutan
+trabajos sólo al invocarse explícitamente. Sus importaciones son inertes desde P01/P02;
+no confundir importar con autorizar su ejecución.
 
 Reutilizar `prepare_records`, `filter_records`, `sample_records`, `recent_records` y
 los helpers de artefactos cuando corresponda. Extraer una función sólo con una
@@ -92,7 +92,7 @@ Un fallo opcional de ML debe explicarse sin derribar las vistas de mediciones.
 Capturar errores donde pueda ofrecerse una recuperación concreta; no añadir `except`
 amplios que oculten el fallo. En límites opcionales de UI puede degradarse el servicio,
 pero debe quedar visible la indisponibilidad. No imprimir credenciales ni volcados de
-datos. Los logs de sesión Streamlit no equivalen a una auditoría persistente.
+datos. Los logs del servicio HTTP no equivalen a una auditoría persistente.
 
 ## 8. Persistencia, transacciones y acceso a datos
 
@@ -152,13 +152,12 @@ Comprobar que los controles de administración sigan bloqueados.
 Ejemplo acotado, desde la raíz y con `.venv` preparado, para esos componentes:
 
 ```bash
-.venv/bin/python -B -m unittest -v tests.test_dashboard_rendering tests.test_dashboard_safety tests.test_model_artifact
+.venv/bin/python -B -m unittest -v tests.test_frontend_monitoring tests.test_monitoring_safety tests.test_model_artifact
 git diff --check
 ```
 
 Seleccionar módulos según el cambio; no ejecutar siempre todo. `test_models.py` y
-`test_simulate.py` también contienen funciones de prueba libres que `unittest` no
-descubre como casos: no declarar cobertura de ellas usando sólo el comando anterior.
+`test_simulate.py` contienen casos `unittest` desde P02 y se descubren con la suite.
 No instalar otro runner sin necesidad. No repetir una prueba aprobada salvo nuevo
 cambio, fallo o incertidumbre que lo justifique. En documentación basta validación
 documental si no hay cambios ejecutables.

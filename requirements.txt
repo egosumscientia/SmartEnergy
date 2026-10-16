@@ -1,17 +1,10 @@
-# Librerias base de analisis y visualizacion
+# Analisis y artefactos ML
 pandas==2.3.3
 numpy==2.3.4
-matplotlib==3.10.7
-plotly==5.24.0
 scikit-learn==1.7.2
 scipy==1.16.3
 joblib==1.5.2
 
-# Interfaz Streamlit
-streamlit==1.51.0
-altair==5.5.0
-pydeck==0.9.1
-streamlit-autorefresh==1.0.1
 filelock==3.16.1
 
 # PostgreSQL + ORM + configuracion
@@ -19,23 +12,12 @@ sqlalchemy==2.0.36
 psycopg2-binary==2.9.10
 python-dotenv==1.0.1
 
-# Utilidades varias
-requests==2.32.5
-watchdog==6.0.0
-colorama==0.4.6
-tornado==6.5.2
-Jinja2==3.1.6
-MarkupSafe==3.0.3
-
 # API HTTP y cliente de pruebas
 fastapi==0.143.2
 uvicorn==0.54.0
 httpx==0.28.1
 
-# Dependencias auxiliares de Streamlit
-blinker==1.9.0
-protobuf==6.33.0
+# Dependencias compartidas de Uvicorn, FastAPI y pandas
 click==8.3.0
 typing_extensions==4.16.0
-toml==0.10.2
 tzdata==2025.2

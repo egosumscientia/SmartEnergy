@@ -1,14 +1,11 @@
-import ast
 from datetime import date
-from pathlib import Path
 import unittest
-from unittest.mock import Mock, patch
 
 import pandas as pd
 from smartenergy.analysis.measurements import filter_records, recent_records, sample_records
 
 
-class DashboardSafetyTests(unittest.TestCase):
+class MonitoringSafetyTests(unittest.TestCase):
     def setUp(self):
         self.df = pd.DataFrame({
             "id": [3, 1, 2],
@@ -39,16 +36,6 @@ class DashboardSafetyTests(unittest.TestCase):
         self.assertEqual(recent_records(filtered, 2).id.tolist(), [3, 2])
         self.assertEqual(len(filtered.to_csv(index=False).splitlines()), 4)
 
-    def test_actual_handler_rejects_all_admin_commands(self):
-        # Importar el dashboard ejecutaría la UI; se prueba su manejador real.
-        tree = ast.parse(Path("app/dashboard_app.py").read_text())
-        handler = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "run_script")
-        namespace = {"st": Mock()}
-        exec(compile(ast.Module(body=[handler], type_ignores=[]), "dashboard-handler", "exec"), namespace)
-        with patch("subprocess.run", side_effect=AssertionError("No debe ejecutarse ningún proceso")) as process:
-            for module in ("ml.train_model", "ml.detect_anomalies", "scripts.simulate_data", "scripts.reset_db"):
-                self.assertIsInstance(namespace["run_script"](["python", "-m", module]), PermissionError)
-            process.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CHROME = shutil.which("google-chrome") or shutil.which("chromium")
 
 
-def table_fixture_html():
+def table_fixture_html(extra_fixtures=None, browser_checks=None):
     rows = prepare_records(pd.DataFrame([{
         "id": 1, "timestamp": "2026-10-15 10:00:00", "corriente": 25.0,
         "voltaje": 220.0, "potencia_activa": 5.0, "temperatura_motor": 45.0,
@@ -41,6 +41,7 @@ def table_fixture_html():
             ).model_dump(mode="json")
 
     fixtures = {"empty": payload(0), "data": payload(1), "filtered": payload(1, [])}
+    fixtures.update(extra_fixtures or {})
     page = (ROOT / "frontend/index.html").read_text()
     for name in ("css/dashboard.css", "vendor/echarts.min.js", "js/api.js",
                  "js/charts.js", "js/dashboard.js"):
@@ -102,7 +103,7 @@ def table_fixture_html():
       document.body.append(pre);
     });
     </script>"""
-    return page.replace("<head>", "<head>" + setup).replace("</body>", checks + "</body>")
+    return page.replace("<head>", "<head>" + setup).replace("</body>", (browser_checks or checks) + "</body>")
 
 
 @unittest.skipUnless(CHROME, "Chrome/Chromium is required for the browser regression")

@@ -10,12 +10,12 @@ Antes de cualquier intervención relacionada con la reestructuración, leer tamb
 
 ## Decisiones vigentes y límites
 
-- El stack principal es Python, PostgreSQL, SQLAlchemy y Streamlit. El desarrollo
+- El stack principal es Python, PostgreSQL, SQLAlchemy, FastAPI y Apache ECharts. El desarrollo
   cotidiano es nativo en Debian, dentro de `.venv`; Docker es integración y referencia.
 - El monitoreo no depende de ML: las cinco pestañas deben existir sin modelo,
   datos ni métricas históricas, mostrando estados vacíos cuando corresponda.
-- El dashboard es de consulta. Mantener deshabilitadas sus acciones administrativas,
-  también en los manejadores. Entrenamiento, detección persistente y mantenimiento
+- El dashboard es de consulta. No añadir acciones administrativas ni
+  manejadores de escritura a la presentación o a la API. Entrenamiento, detección persistente y mantenimiento
   permanecen como operaciones independientes y controladas.
 - No modificar ni destruir el laboratorio Docker `smartenergy-f01-20261015-01`.
   No poblar automáticamente `smartenergy_dev` con datos sintéticos.
@@ -93,10 +93,11 @@ pruebas o calidad; no modifica las restricciones de seguridad ni el alcance auto
 
 ## Arquitectura, reutilización y calidad
 
-- Respetar las decisiones aprobadas y los límites actuales: `app/` presenta la UI
-  Streamlit; `smartenergy/` contiene el backend (`config`, `infrastructure`,
-  `analysis`, `application`, `operations`); `ml/` y `scripts/` son wrappers de
-  compatibilidad de los comandos históricos; `tests/` verifica.
+- Respetar las decisiones aprobadas y los límites actuales: `frontend/` presenta la
+  UI HTML/CSS/JavaScript con ECharts; `smartenergy/interfaces/api/` expone FastAPI;
+  `smartenergy/` contiene el backend (`config`, `infrastructure`, `analysis`,
+  `application`, `operations`); `tests/` verifica. Las entradas administrativas
+  canónicas son `python -m smartenergy.operations.<operación>`.
   Ver [docs/arquitectura.md](docs/arquitectura.md).
 - Mantener alta cohesión, bajo acoplamiento y responsabilidades concretas. Evitar
   código espagueti, dependencias circulares y lógica administrativa en la presentación.

@@ -27,7 +27,7 @@ presentación sin otra reorganización general del backend.
 1. Arquitectura modular pragmática por responsabilidades; no arquitectura hexagonal estricta.
 2. Paquete `smartenergy/` directamente en la raíz, sin `src/` ni empaquetado adicional innecesario.
 3. Separar aplicación, análisis, infraestructura y operaciones; configuración explícita y presentación delimitada.
-4. Conservar temporalmente Streamlit operativo y su entrada `app/dashboard_app.py`.
+4. Conservar temporalmente Streamlit operativo durante P02/P03; retirado en P04.
 5. Sustituirlo posteriormente por FastAPI, HTML, CSS, JavaScript y Apache ECharts.
 6. ML es complementario: monitoreo y visualización no requieren un modelo ni métricas históricas.
 7. Diferir `domain/` hasta aprobar entidades y reglas industriales; no crear un paquete vacío.
@@ -42,8 +42,9 @@ presentación sin otra reorganización general del backend.
 ## C. Arquitectura por etapas
 
 La primera etapa describe la arquitectura implementada por P02. El árbol refleja
-los módulos reales y wrappers de compatibilidad; no se crean módulos vacíos para
-completarlo. La segunda etapa permanece prevista y requiere su autorización propia.
+los módulos y wrappers existentes al cierre de P02; se conserva como referencia
+histórica. La segunda etapa se implementó en P03/P04, con la evidencia indicada
+en H00–H03. El árbol actual excluye `app/`, `ml/` y `scripts/`.
 
 ### Primera etapa: backend modular y Streamlit temporal (P02)
 
@@ -394,7 +395,23 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 - **Criterios de aceptación:** equivalencia funcional y seguridad aceptadas; cobertura sustituta antes de retirar pruebas Streamlit; comandos y documentación coherentes.
 - **Validación requerida:** pruebas de backend y HTTP, comprobación funcional de las cinco vistas y cuatro escenarios, revisión estática y aprobación manual del cierre.
 - **Condición de reversión:** falla del cambio de interfaz; restaurar la entrada Streamlit en una ventana autorizada desde el punto previo, sin restauraciones destructivas de datos.
-- **Estado:** PENDIENTE.
+- **Evidencia P04:** FastAPI/ECharts queda como única interfaz oficial. Se retiran
+  la presentación Streamlit, sus requisitos exclusivos y los wrappers `app`, `ml`
+  y `scripts`; se migran sus consumidores conocidos (UI, pruebas y Compose) a
+  entradas canónicas. Backend, contrato HTTP, operaciones y artefactos se conservan.
+  No se identifican consumidores externos en el contexto disponible; los no
+  inventariados deberán migrar sus rutas. Reversión selectiva desde `b0774ed`, sólo
+  si se autoriza y sin restaurar recursos persistentes.
+- **Validación:** 62 pruebas aprobadas sin omisiones tras retirar las dependencias
+  antiguas del entorno; cobertura sustituta HTTP/Chrome para las cinco vistas y
+  cuatro escenarios. `pip check`, sintaxis JS, enlaces y diff sin fallos; detalles
+  en [pruebas](pruebas.md#evidencia-p04).
+  Dockerfile/Compose actualizados y revisados estáticamente, sin operar Docker.
+  PostgreSQL y artefactos reales no se usan ni modifican.
+- **Aprobación manual:** el responsable confirmó expresamente una revisión
+  satisfactoria de la demostración local y autorizó el cierre definitivo de H03/P04,
+  el commit y el push a `origin/main`. Ver [pruebas](pruebas.md#cierre-manual-h03).
+- **Estado:** COMPLETADO.
 
 ## F. Estado actual
 
@@ -403,11 +420,15 @@ mediante cambios controlados, preservando trabajo ajeno; no autoriza resets dest
 | P01 | COMPLETADO |
 | P02 | COMPLETADO |
 | P03 | COMPLETADO |
-| P04 | PENDIENTE |
+| P04 | COMPLETADO |
 
 B00–B11 están **COMPLETADAS** con la evidencia registrada. H00–H02 y P03 están
 **COMPLETADOS**, incluida la corrección del estado vacío de Tabla de registros.
-H03 y P04 permanecen **PENDIENTES** y no han comenzado.
+H03 y P04 están **COMPLETADOS**, con validación automatizada, revisión visual del
+agente y revisión personal satisfactoria confirmada por el responsable. El cierre
+y la publicación en `origin/main` fueron autorizados expresamente. Se conserva
+la evidencia histórica de P01–P03 y los pendientes independientes de adquisición
+y automatizaciones externas.
 
 | Control | Estado | Evidencia P02 (2026-10-15) |
 |---|---|---|

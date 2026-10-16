@@ -4,15 +4,6 @@ from contextlib import redirect_stdout
 from io import StringIO
 from unittest.mock import MagicMock, patch
 
-from scripts import (
-    auto_train_loop,
-    reset_db,
-    seed_db,
-    simulate_data,
-    stream_realtime,
-    wait_for_db,
-)
-from ml import detect_anomalies, train_model
 from smartenergy.operations import (
     auto_train_loop as canonical_loop,
     detect_anomalies as canonical_detection,
@@ -26,18 +17,6 @@ from smartenergy.operations import (
 
 
 class OperationEntrypointTests(unittest.TestCase):
-    def test_historical_commands_are_thin_delegating_wrappers(self):
-        self.assertIs(simulate_data.main, canonical_batch.main)
-        self.assertIs(reset_db.main, canonical_reset.main)
-        self.assertIs(seed_db.main, canonical_seed.main)
-        self.assertIs(wait_for_db.main, canonical_wait.main)
-        self.assertIs(stream_realtime.main, canonical_stream.main)
-        self.assertIs(stream_realtime.build_sample, canonical_stream.build_sample)
-        self.assertIs(auto_train_loop.main, canonical_loop.main)
-        self.assertIs(auto_train_loop.run_cmd, canonical_loop.run_cmd)
-        self.assertIs(train_model.main, canonical_training.main)
-        self.assertIs(detect_anomalies.main, canonical_detection.main)
-
     def test_seed_entrypoint_creates_existing_metadata_only_when_invoked(self):
         engine = object()
         with (

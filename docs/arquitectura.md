@@ -1,8 +1,13 @@
 # Arquitectura implementada
 
-SmartEnergy organiza el backend en el paquete raíz `smartenergy/`. Streamlit sigue
-disponible y coexiste con una API FastAPI de monitoreo y un frontend web local. Esta
-etapa no retira Streamlit ni introduce `domain/` o microservicios.
+SmartEnergy organiza el backend en el paquete raíz `smartenergy/`. FastAPI y el
+frontend HTML/CSS/JavaScript con Apache ECharts son la única interfaz oficial de
+monitoreo. P04 retira Streamlit y los wrappers obsoletos; conserva el backend.
+
+```text
+Frontend HTML/CSS/JavaScript + Apache ECharts → FastAPI
+  → servicios de aplicación → análisis e infraestructura → PostgreSQL
+```
 
 `AGENTS.md` y la [guía de ingeniería](./guia-de-ingenieria.md) referencian esta
 estructura; el [roadmap](./roadmap-tecnico.md) registra el avance por prompt.
@@ -27,15 +32,13 @@ recursos estáticos locales de la interfaz.
 | `smartenergy/operations/` | Entradas explícitas de esquema, datos, mantenimiento y procesos ML |
 | `smartenergy/interfaces/api/` | Adaptación HTTP de sólo lectura, validación, errores y entrega de frontend |
 | `frontend/` | Cinco vistas de consulta HTML/CSS/JavaScript con ECharts local |
-| `app/dashboard_app.py` | Interacción, estado visual, gráficas y descargas Streamlit |
 
 La presentación consume aplicación y análisis; no contiene SQL ni administra
 sesiones. Aplicación coordina infraestructura y análisis. Análisis no importa UI,
 SQLAlchemy ni persistencia. Las operaciones no se ejecutan desde el monitoreo.
 La API reutiliza los servicios de monitoreo y transformaciones existentes. El
 frontend sólo representa la respuesta: histogramas y comparaciones agregadas se
-calculan en backend. Ambos caminos de presentación permanecen disponibles; P04,
-que podría sustituir Streamlit, sigue pendiente.
+calculan en backend. Streamlit se retiró sin cambiar el contrato HTTP.
 
 ## Persistencia y recursos
 
@@ -53,20 +56,24 @@ El bundle conserva `model`, `scaler` y `features`. Lectores y escritores mantien
 el mismo archivo de bloqueo; la publicación sigue escribiendo un archivo temporal y
 reemplazando atómicamente el artefacto.
 
-## Compatibilidad temporal
+## Retirada de compatibilidad en P04
 
-- `app/dashboard_data.py` delega las funciones históricas de transformación a
-  `smartenergy.analysis.measurements`.
-- `ml/train_model.py` y `ml/detect_anomalies.py` delegan en sus entradas canónicas.
-- Los seis módulos de `scripts/` conservan los comandos `python -m scripts...` y
-  delegan en `smartenergy.operations`.
-- El bucle ML conserva `--interval`; el generador continuo conserva
-  `--interval`, `--batch-size`, `--anomaly-ratio` y `--max-registros`.
+Se retiraron `app/dashboard_app.py`, el wrapper `app/dashboard_data.py`, los dos
+wrappers `ml.*` y los seis `scripts.*`. Sus consumidores conocidos eran la antigua
+UI, las pruebas y los comandos estáticos de Compose; se actualizaron a las rutas
+canónicas de `smartenergy.operations`. No se identificaron consumidores externos
+en el contexto disponible; cualquier automatización externa no inventariada deberá
+migrar sus comandos antes de actualizar el código.
 
-Estos wrappers no contienen implementaciones paralelas y no ejecutan operaciones al
-importarse. Su retiro requiere comprobar consumidores externos, actualizar comandos,
-documentación y pruebas, y disponer de una vía de reversión; corresponde a una etapa
-posterior autorizada.
+Se conservan las ocho operaciones canónicas, sus argumentos y todas las funciones
+compartidas de aplicación, análisis e infraestructura. El bucle ML conserva
+`--interval`; el generador continuo conserva `--interval`, `--batch-size`,
+`--anomaly-ratio` y `--max-registros`. No quedan wrappers temporales.
+
+La referencia previa `b0774ed` permite recuperar selectivamente la presentación y
+los wrappers si se autoriza una reversión. No se restauran datos ni artefactos.
+Dockerfile y Compose sólo se actualizaron como archivos; el laboratorio protegido
+permanece ajeno a esta migración.
 
 ## Decisión de adquisición: referencia ADW210 y contrato común previsto
 

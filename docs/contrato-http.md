@@ -2,8 +2,7 @@
 
 Este documento concreta el contrato de consulta de la API y la interfaz de P03 a
 partir del dashboard y de `smartenergy/application/`. La API FastAPI y el frontend
-se implementaron en H01–H02; Streamlit sigue disponible y no se retira hasta una
-etapa posterior aprobada.
+se implementaron en H01–H02; P04 retiró Streamlit sin cambiar este contrato.
 
 ## Límites y comportamiento
 
@@ -240,5 +239,5 @@ son FastAPI 0.143.2, Uvicorn 0.54.0 y HTTPX 0.28.1. Las pruebas HTTP usan
 ECharts 6.1.0 procede del paquete oficial `echarts` de npm; se verificó la
 integridad SHA-512 publicada antes de incorporar el bundle local. Se incluyen
 `LICENSE` y `NOTICE` de Apache-2.0 en `frontend/vendor/`; no se usa CDN.
-Streamlit permanece disponible y la sustitución/retirada corresponde a P04, que
-sigue pendiente.
+La retirada de Streamlit y el cierre de H03/P04 fueron aprobados tras la revisión
+personal satisfactoria del responsable, sin cambios en este contrato.

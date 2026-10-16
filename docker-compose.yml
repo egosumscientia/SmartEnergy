@@ -31,11 +31,11 @@ services:
       PYTHONPATH: /app
     command: >
       sh -lc "
-      python -m scripts.wait_for_db &&
-      python -m scripts.seed_db &&
-      python -m scripts.simulate_data &&
-      python -m ml.train_model &&
-      python -m ml.detect_anomalies
+      python -m smartenergy.operations.wait_for_db &&
+      python -m smartenergy.operations.seed_db &&
+      python -m smartenergy.operations.simulate_data &&
+      python -m smartenergy.operations.train_model &&
+      python -m smartenergy.operations.detect_anomalies
       "
     volumes:
       - models_data:/app/models
@@ -56,8 +56,8 @@ services:
       PYTHONPATH: /app
     command: >
       sh -lc "
-      python -m scripts.wait_for_db &&
-      python -m scripts.stream_realtime --interval 1 --batch-size 5 --anomaly-ratio 0.12 --max-registros 20000
+      python -m smartenergy.operations.wait_for_db &&
+      python -m smartenergy.operations.stream_realtime --interval 1 --batch-size 5 --anomaly-ratio 0.12 --max-registros 20000
       "
 
   trainer:
@@ -76,8 +76,8 @@ services:
       PYTHONPATH: /app
     command: >
       sh -lc "
-      python -m scripts.wait_for_db &&
-      python -m scripts.auto_train_loop --interval 300
+      python -m smartenergy.operations.wait_for_db &&
+      python -m smartenergy.operations.auto_train_loop --interval 300
       "
     volumes:
       - models_data:/app/models
@@ -99,11 +99,11 @@ services:
       PGOPTIONS: -c default_transaction_read_only=on
     command: >
       sh -lc "
-      python -m scripts.wait_for_db &&
-      streamlit run app/dashboard_app.py --server.headless true --server.address 0.0.0.0 --server.port 8501
+      python -m smartenergy.operations.wait_for_db &&
+      uvicorn smartenergy.interfaces.api.main:app --host 0.0.0.0 --port 8501
       "
     ports:
-      - "8501:8501"
+      - "127.0.0.1:8501:8501"
     volumes:
       - models_data:/app/models:ro
 

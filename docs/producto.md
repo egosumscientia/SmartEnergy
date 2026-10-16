@@ -25,7 +25,7 @@ El producto busca permitir que las organizaciones:
 Estas capacidades definen la orientación del producto; no implican que estén
 implementadas o validadas en su totalidad. El estado actual es un prototipo con
 PostgreSQL, servicios de consulta, API FastAPI y cinco vistas web con ECharts.
-Streamlit se conserva mientras P04 siga pendiente. Las funciones concretas
+FastAPI/ECharts es la única interfaz oficial tras retirar Streamlit en P04. Las funciones concretas
 implementadas y sus límites se detallan a continuación.
 
 La adquisición física, la trazabilidad multicanal, el análisis de demanda y consumo
@@ -41,7 +41,7 @@ industriales y el despliegue productivo requieren aprobación posterior.
 
 ## Consulta
 
-Streamlit y la nueva interfaz web mantienen cinco vistas de consulta:
+La interfaz web mantiene cinco vistas de consulta:
 
 1. Análisis general.
 2. Variables energéticas.

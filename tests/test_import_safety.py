@@ -28,14 +28,11 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from sklearn.ensemble import IsolationForest
 import joblib
-import streamlit
-import plotly.io as pio
 
 import smartenergy.config as config
 import smartenergy.infrastructure.database as database
 import smartenergy.infrastructure.model_artifact as artifact
 
-template_default = pio.templates.default
 
 def fail(*args, **kwargs):
     raise AssertionError("Importó y ejecutó una operación")
@@ -60,10 +57,6 @@ with ExitStack() as stack:
         (subprocess, "Popen"),
         (subprocess, "run"),
         (time, "sleep"),
-        (streamlit, "set_page_config"),
-        (streamlit, "markdown"),
-        (streamlit, "title"),
-        (streamlit, "tabs"),
     ):
         stack.enter_context(patch.object(target, name, side_effect=fail))
     for module in (
@@ -77,22 +70,10 @@ with ExitStack() as stack:
         "smartenergy.operations.wait_for_db",
         "smartenergy.operations.train_model",
         "smartenergy.operations.detect_anomalies",
-        "app.dashboard_data",
-        "scripts.simulate_data",
-        "scripts.reset_db",
-        "scripts.stream_realtime",
-        "scripts.auto_train_loop",
-        "scripts.seed_db",
-        "scripts.wait_for_db",
-        "ml.train_model",
-        "ml.detect_anomalies",
-        "app.dashboard_app",
         "smartenergy.interfaces.api.main",
     ):
         importlib.import_module(module)
 
-assert pio.templates.default == template_default
-assert "dark_custom" not in pio.templates
 assert not Path("models").exists()
 assert not Path("import_safety.db").exists()
 """
@@ -118,14 +99,14 @@ assert not Path("import_safety.db").exists()
             self.assertFalse((Path(directory) / "models").exists())
             self.assertFalse((Path(directory) / "import_safety.db").exists())
 
-    def test_monitoring_application_imports_without_streamlit(self):
+    def test_api_imports_without_streamlit(self):
         result = subprocess.run(
             [
                 sys.executable,
                 "-B",
                 "-c",
                 f"import sys; sys.path.insert(0, {str(ROOT)!r}); "
-                "import smartenergy.application.monitoring; "
+                "import smartenergy.interfaces.api.main; "
                 "assert 'streamlit' not in sys.modules",
             ],
             cwd=ROOT,
@@ -136,7 +117,7 @@ assert not Path("import_safety.db").exists()
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 
-    def test_dashboard_and_monitoring_import_without_scikit_learn(self):
+    def test_api_and_monitoring_import_without_scikit_learn(self):
         script = """
 import importlib.abc
 import sys
@@ -149,7 +130,7 @@ class BlockScikitLearn(importlib.abc.MetaPathFinder):
 
 sys.meta_path.insert(0, BlockScikitLearn())
 import smartenergy.application.monitoring
-import app.dashboard_app
+import smartenergy.interfaces.api.main
 """
         result = subprocess.run(
             [sys.executable, "-B", "-c", f"import sys; sys.path.insert(0, {str(ROOT)!r});\n{script}"],

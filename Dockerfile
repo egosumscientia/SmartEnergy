@@ -19,4 +19,4 @@ RUN mkdir -p /app/models
 
 EXPOSE 8501
 
-CMD ["streamlit", "run", "app/dashboard_app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]
+CMD ["uvicorn", "smartenergy.interfaces.api.main:app", "--host=0.0.0.0", "--port=8501"]

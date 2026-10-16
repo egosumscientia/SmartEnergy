@@ -17,17 +17,6 @@ La configuración se carga explícitamente desde la raíz del repositorio, no de
 directorio de trabajo. `wait_for_db` conserva su contrato previo y sólo lee las
 variables del proceso; en particular, no carga `.env` por su cuenta.
 
-## Dashboard
-
-```bash
-streamlit run app/dashboard_app.py
-```
-
-El dashboard es de consulta. No inicializa esquema ni genera datos, y mantiene
-deshabilitadas las acciones administrativas también en sus manejadores. Necesita
-una base existente y autorizada para lectura; sus estados vacíos no se rellenan con
-mediciones ficticias. La carga del modelo es opcional.
-
 ## Interfaz web de consulta
 
 ```bash
@@ -39,7 +28,8 @@ expone únicamente rutas GET; no inicializa esquema, escribe registros, entrena 
 persiste detecciones. Mantén el host en loopback: no hay autenticación ni
 autorización para exposición en red. Antes de consultar, verifica `DATABASE_URL`,
 destino y rol de sólo lectura. La ausencia de la base se informa como error de
-servicio, no como datos vacíos. Streamlit permanece operativo durante P03.
+servicio, no como datos vacíos. FastAPI/ECharts es la única presentación oficial;
+Streamlit y sus dependencias exclusivas se retiraron de `requirements.txt` en P04.
 
 ## Operaciones canónicas
 
@@ -59,11 +49,15 @@ Verifica destino, rol, permisos y alcance antes de ejecutarlas. No ejecutes rese
 generadores, entrenamiento ni detección contra recursos protegidos como parte de
 pruebas rutinarias.
 
-Los módulos históricos `scripts.*` y `ml.*` permanecen como wrappers para consumidores
-vigentes. Las invocaciones Docker conservan esas rutas; Compose no se modifica en P02.
+Los módulos históricos `scripts.*` y `ml.*` se retiraron en P04. Migra cualquier
+automatización externa a los comandos canónicos anteriores. Sus implementaciones
+y argumentos permanecen intactos; las pruebas los invocan con efectos simulados.
 
 ## Integración Docker
 
-`Dockerfile` y `docker-compose.yml` se mantienen como referencia existente. En P02
-sólo se permite su inspección estática: no ejecutar Docker o Compose, ni modificar
-contenedores, montajes, redes, volúmenes o política de arranque.
+`Dockerfile` y `docker-compose.yml` son referencia de integración. P04 actualiza
+estáticamente sus comandos a FastAPI y operaciones canónicas; el puerto del monitor
+se publica sólo en loopback. La escucha interna del contenedor permite esa
+publicación local y no es el comando nativo. No se construyó ni ejecutó Docker o
+Compose, ni se modificó el laboratorio, sus montajes, redes o volúmenes. La
+configuración actualizada no está validada en ejecución Docker.

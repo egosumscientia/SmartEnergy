@@ -133,6 +133,43 @@ class MonitoringApiTests(unittest.TestCase):
         self.assertEqual(payload["table"]["records"][0]["id"], 3)
         self.assertEqual(payload["chart"]["histograms"]["corriente"][0]["state"], "Normal")
 
+    def test_aggregation_keeps_original_population_denominator(self):
+        rows = pd.concat([self.rows] * 600, ignore_index=True)
+        rows["id"] = range(1, 1801)
+        rows["timestamp"] = pd.date_range("2026-10-15", periods=1800, freq="s")
+        self.mock_common(record_count=1800, records=rows, model=True)
+        model, scaler = Mock(), Mock()
+        scaler.transform.side_effect = lambda values: values
+        model.predict.side_effect = lambda values: np.where(values[:, 0] > 30, -1, 1)
+        with patch.object(monitoring, "load_model", return_value=(model, scaler, ENERGY_COLUMNS, None)):
+            payload = self.request("/api/v1/monitoring").json()
+        self.assertEqual(payload["data"]["filtered_count"], 1800)
+        self.assertEqual(payload["model"]["evaluation"]["detected"], 600)
+        self.assertAlmostEqual(payload["model"]["evaluation"]["coverage"], 100 / 3)
+        self.assertLess(payload["chart"]["point_count"], 1800)
+
+    def test_invalid_model_and_null_features_keep_measurements(self):
+        self.rows.loc[0, "voltaje"] = None
+        self.mock_common(record_count=3, records=self.rows, model=True)
+        model, scaler = Mock(), Mock()
+        with patch.object(monitoring, "load_model", return_value=(model, scaler, ENERGY_COLUMNS, None)):
+            payload = self.request("/api/v1/monitoring").json()
+        self.assertEqual(len(payload["table"]["records"]), 3)
+        self.assertEqual(payload["model"]["evaluation"]["reason"], "incomplete_features")
+        model.predict.assert_not_called()
+        with patch.object(monitoring, "load_model", return_value=(None, None, None, ValueError("invalid"))):
+            payload = self.request("/api/v1/monitoring").json()
+        self.assertEqual(payload["model"]["status"], "unavailable")
+        self.assertEqual(len(payload["table"]["records"]), 3)
+
+    def test_null_values_keep_table_without_fictitious_chart_points(self):
+        self.rows["timestamp"] = None
+        self.rows[ENERGY_COLUMNS] = None
+        self.mock_common(record_count=3, records=self.rows)
+        payload = self.request("/api/v1/monitoring").json()
+        self.assertEqual(len(payload["table"]["records"]), 3)
+        self.assertEqual(payload["chart"]["points"], [])
+
     def test_empty_state_filters_and_validation_errors_are_distinct(self):
         self.mock_common(record_count=3, records=self.rows)
         empty = self.request("/api/v1/monitoring?states=")
@@ -225,6 +262,21 @@ class MonitoringApiTests(unittest.TestCase):
             for method in getattr(route, "methods", set())
         }
         self.assertEqual(api_methods, {"GET"})
+
+    def test_monitoring_rejects_writes_without_invoking_administration(self):
+        async def requests():
+            transport = httpx.ASGITransport(app=create_app())
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                return [await client.request(method, path)
+                        for method in ("POST", "PUT", "PATCH", "DELETE")
+                        for path in ("/api/v1/monitoring", "/api/v1/monitoring/records.csv")]
+        with (
+            patch("smartenergy.application.model_jobs.train_model", side_effect=AssertionError("No training")),
+            patch("smartenergy.application.model_jobs.detect_anomalies", side_effect=AssertionError("No writes")),
+            patch.object(monitoring, "get_data_count", side_effect=AssertionError("No query")),
+        ):
+            responses = asyncio.run(requests())
+        self.assertTrue(all(response.status_code == 405 for response in responses))
 
     def test_server_shutdown_closes_database_engine(self):
         app = create_app()

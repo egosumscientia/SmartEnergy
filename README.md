@@ -5,7 +5,7 @@ industriales, comerciales e inmobiliarias. Su finalidad es registrar y analizar
 mediciones de equipos y circuitos para conocer el consumo y orientar decisiones de
 eficiencia energética. El alcance inicial es de consulta, sin control activo de cargas.
 
-El repositorio contiene un prototipo con PostgreSQL, Streamlit y una interfaz web
+El repositorio contiene un prototipo con PostgreSQL y una interfaz web
 FastAPI/ECharts local. Los ejemplos son sintéticos; la adquisición física y la
 validación industrial están pendientes. El Acrel ADW210 es la referencia inicial
 para el futuro contrato de mediciones, sin driver implementado. Consulta la
@@ -27,9 +27,8 @@ para distinguir capacidades previstas, implementadas y pendientes de validación
 - `smartenergy/`: configuración, aplicación, análisis, infraestructura y operaciones.
 - `smartenergy/interfaces/api/`: API HTTP de monitoreo de sólo lectura.
 - `frontend/`: cinco vistas web servidas por la API; ECharts se distribuye localmente.
-- `app/dashboard_app.py`: las cinco vistas Streamlit de consulta, que siguen disponibles.
-- `app/dashboard_data.py`, `ml/` y `scripts/`: wrappers temporales de compatibilidad;
-  las implementaciones canónicas están en `smartenergy/`.
+- `smartenergy/operations/`: entradas administrativas canónicas e independientes.
+- Streamlit y los wrappers históricos de `app/`, `ml/` y `scripts/` se retiraron en P04.
 - `tests/`: pruebas de contratos, disponibilidad, transformación, importación y UI.
 
 ML es opcional para consultar mediciones. La ausencia o invalidez del modelo no
@@ -45,16 +44,8 @@ tablas ni se generan datos al importar o abrir el dashboard.
 La configuración de ejemplo está en [`config/env.example`](config/env.example).
 Las credenciales se mantienen únicamente en un `.env` local, excluido de Git.
 
-Para abrir la interfaz de consulta con una base configurada:
-
-```bash
-streamlit run app/dashboard_app.py
-```
-
-El comando no inicializa ni pobla la base. Comprueba antes que `DATABASE_URL`
-identifique el destino y rol autorizados para consulta.
-
-Para iniciar la interfaz web FastAPI en el equipo local:
+FastAPI/ECharts es la única interfaz oficial. Comprueba antes que `DATABASE_URL`
+identifique el destino y rol autorizados para consulta. Para iniciarla localmente:
 
 ```bash
 .venv/bin/uvicorn smartenergy.interfaces.api.main:app --host 127.0.0.1 --port 8000
@@ -81,8 +72,8 @@ python -m smartenergy.operations.auto_train_loop [--interval SEGUNDOS]
 
 `reset_db` trunca tablas y repuebla; los generadores escriben registros; el
 entrenamiento publica un artefacto y la detección persiste métricas. No los ejecutes
-sin verificar el destino y la autorización. Los comandos históricos `python -m
-scripts...` y `python -m ml...` siguen disponibles como wrappers temporales.
+sin verificar el destino y la autorización. Utiliza exclusivamente las rutas
+canónicas anteriores; los comandos históricos `scripts.*` y `ml.*` se retiraron.
 
 Docker Compose se conserva como referencia de integración estática; esta etapa no
 autoriza levantar, detener, reconstruir ni modificar el laboratorio protegido.
