@@ -73,6 +73,14 @@ de canonicalización/admisión. El incremento independiente del paso 7 queda
 implementado parcialmente y **pendiente de auditoría independiente**; no se cierra
 el paso completo ni se autoriza el paso 8. No implica aceptación del paso 6.
 
+El 2026-10-17, mediante «SmartEnergy — S06, paso 7: consolidación documental
+D1–D3», el responsable aprueba D1–D3 como decisiones arquitectónicas y autoriza
+únicamente incorporarlas al contrato y a este roadmap. Base verificada:
+`feature/simulador`, HEAD `d6a6f2e`, árbol limpio. La política canónica queda
+elegida; sus precisiones numéricas y de entrada temporal siguen pendientes de
+aprobación antes de implementarla. No se implementa código ni se ejecutan pruebas.
+No cambia la aceptación de los incrementos anteriores ni autoriza paso 8 o S07–S09.
+
 Secuencia: S01 → S02 → S03 → S04 → S05 → S06 → S07 → S08 → S09.
 El núcleo inicial puede ser genérico, pero S01 conserva la investigación obligatoria
 del ADW210 y el contraste documental del apartado I del roadmap técnico. S02 puede
@@ -84,14 +92,14 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras incremento parcial del paso 7 de S06, pendiente de revisión (2026-10-17) |
+| Etapa | Estado tras consolidación documental D1–D3 del paso 7 de S06 (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
 | S02 | Cerrada como especificación matemática aprobada E01–E07; núcleo implementado y probado en el incremento S06, sin validación industrial |
 | S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
 | S04 | Especificación documental aprobada F-D01–F-D05; implementación del paso 4 aceptada formalmente |
 | S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; instrumentación I01–I04 del paso 5 aprobada; adquisición A01–A02 implementada en paso 6, pendiente de auditoría |
-| S06 | Pasos 1–5 aprobados; paso 6 pendiente de auditoría; paso 7 parcialmente implementado, pendiente de auditoría independiente y bloqueado en admisión por canonicalización; paso 8 no autorizado |
+| S06 | Pasos 1–5 aprobados; paso 6 pendiente de auditoría; paso 7 parcialmente implementado y pendiente de auditoría independiente; D1–D3 aprobadas documentalmente, admisión/canonicalización sin implementar y precisiones D2 pendientes; paso 8 no autorizado |
 | S07–S09 | No iniciadas; validación integral, integración y cierre no autorizados |
 
 La aceptación distingue tres niveles definidos en el
@@ -268,7 +276,8 @@ versionado; identidad/alcance; calidad/procedencia; tiempo; deduplicación;
 artefacto físico; compatibilidad/ML; integración y aceptación. Cada una incluye
 fundamento, alternativas, riesgos y consecuencias conservados como registro.
 La instrucción S03/S04 identificada al inicio cierra S03 sólo documentalmente.
-Siguen pendientes canonicalización definitiva antes de implementarla, garantías
+La consolidación D1–D3 posterior aprueba la política canónica en S03.4; siguen
+pendientes sus precisiones técnicas antes de implementarla, garantías
 de deduplicación concurrente, retención/recuperación de artefactos, evidencia de
 unidades/zonas históricas, adaptadores, persistencia, pruebas y autorizaciones de
 integración por nivel. Aprobar el contrato no demuestra esas capacidades ni
@@ -799,7 +808,8 @@ soporte real privado. Los linajes son referencias opacas explícitas del llamado
 no se generan manifiestos ni se acredita su resolución/integridad definitiva.
 Silencios y pérdidas no crean valores, ceros ni missing sin evidencia pública.
 
-**Bloqueo confirmado por el responsable:** S03.4/S05.1 requieren aprobar algoritmo
+**Bloqueo histórico del incremento parcial, previo a consolidar D1–D3:**
+S03.4/S05.1 requieren aprobar algoritmo
 y versión de canonicalización antes de implementarla. No se elige aquí JSON
 canónico, igualdad estructural ni digest como sustituto. En consecuencia no hay
 admisión accepted/duplicate/conflict/rejected, deduplicación, overwrite ni selección
@@ -834,6 +844,46 @@ sin diagnóstico añadido y separación soporte real/declarado. Sin suite genera
 servicios externos, nuevas dependencias, PostgreSQL, Docker, persistencia, API/UI,
 ML ni intervención del laboratorio protegido. Sin commit ni push. Se detiene
 en este incremento del paso 7; paso 8 y S07–S09 no iniciados.
+
+### Consolidación documental D1–D3 de S06 paso 7
+
+Decisiones aprobadas el 2026-10-17 sobre `d6a6f2e`; especificación normativa en
+[S03.3/S03.4 del contrato](contratos/simulador-fase-1.md#s033--calidad-procedencia-y-desconocidos).
+La elección de política sustituye el pendiente histórico de elegir algoritmo;
+no demuestra su implementación ni levanta las reservas de evidencia anteriores.
+
+- **D1:** `quality.method` clasifica cómo se obtuvo el resultado y
+  `provenance.method_ref` identifica el procedimiento documentado. S06 conserva
+  synthetic/calculated; no se reclasifican mediciones ni contadores por el mero
+  origen instrumental. Adaptadores futuros requieren evidencia del proceso.
+- **D2:** `smartenergy-jcs-nfc@1.0.0`: NFC y normalización de tiempos contractuales
+  antes de JCS, salida UTF-8 y comparación de bytes completos sin digest obligatorio.
+  Incluye identidad, contexto, valor/unidad, calidad y tiempos de origen, procedencia
+  completa; excluye entrega, registro y evaluación del receptor. Conserva arreglos
+  ordenados y diferencias entre null, cero, false, cadena vacía y propiedad ausente.
+  Los vectores documentales positivos/negativos están en S03.4 y no se ejecutaron.
+- **D3:** duplicados referencian siempre la primera aceptación; conflictos conservan
+  ambas recepciones sin overwrite y se comparan contra esa aceptación. Política
+  `smartenergy-latest@1.0.0`: sólo accepted, prioriza support.end declarado conocido,
+  conserva empates y no usa recepción ni verdad privada. Rechazar incompatibilidades
+  contractuales/canónicas sin rechazar automáticamente invalid/stale/unknown.
+  Procesar por llegada; primera válida aceptada aunque tardía; rechazo no reserva
+  identidad; origen y evaluación inmutables, determinismo en memoria.
+
+**Precisiones pendientes de aprobación antes de implementar D2:** dominio numérico
+y conversiones que satisfacen «sin pérdida de precisión significativa» bajo los
+requisitos IEEE 754 de JCS; formatos de entrada temporal y rangos compatibles con
+UTC Z y microsegundos exactos. No se inventan umbrales ni se reabre la política.
+El formato temporal actual del DTO puede necesitar normalización de ceros finales
+al comparar, sin cambiar el origen. NFC también puede unificar textos de identidad;
+la compatibilidad debe revisarse antes de implementar, sin migraciones implícitas.
+
+A01-CON y C01-MAS siguen pendientes de ejecución completa según S05.6/S05.7.
+Manifiestos definitivos, integridad/retención y demás reservas conservan su estado.
+Esta entrega sólo cambia contrato y roadmap: sin código, pruebas, servicios,
+dependencias, Docker, PostgreSQL, persistencia, concurrencia, transacciones,
+integración, commit ni push. No cierra S06 ni autoriza paso 8 o S07–S09.
+La implementación posterior exige autorización expresa.
 
 ## S07 — Validar coherencia física, matemática y temporal
 

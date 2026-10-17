@@ -77,8 +77,10 @@ Los estados de entregas anteriores son históricos; el último registro de
 aprobación y el apartado 9 determinan el estado vigente; no se alteran las
 matemáticas S02.1–S02.9.
 
-La aprobación C01–C08 conserva pendientes la canonicalización definitiva antes de
-implementarla, unicidad y deduplicación concurrente demostrables, políticas de
+La aprobación C01–C08 dejó pendiente la canonicalización definitiva; la posterior
+consolidación D1–D3 de S06 paso 7 aprueba la política en S03.4, con precisiones
+técnicas todavía pendientes antes de implementarla. Siguen pendientes unicidad y
+deduplicación concurrente demostrables, políticas de
 retención/recuperación de artefactos, evidencia de unidades y zonas históricas,
 adaptadores, almacenamiento/HTTP, pruebas y autorizaciones de integración por
 nivel. No habilita cambios en bases, servicios, interfaces, modelos ML ni recursos
@@ -922,8 +924,9 @@ repetición, orden de sorteos y entorno; resultados independientes y tolerancias
 ID de caso `<familia>-<sufijo>@1`; cambios de parámetros exigen variante/versionado.
 Los perfiles I/A no forman parte del digest de entradas físicas: comparar física
 con/sin ellos por soporte, no por run_id o digest del manifiesto completo.
-La canonicalización definitiva y su aprobación antes de implementar siguen
-pendientes de S03; estas reglas no la sustituyen.
+Estas reglas no sustituyen la política canónica D2 de S03.4, aprobada posteriormente
+en la consolidación documental de S06 paso 7. Sus precisiones técnicas pendientes
+deben aprobarse antes de implementarla; no hay canonicalización ejecutada.
 
 #### S05.2 — Transformaciones, orden y coherencia
 
@@ -1388,7 +1391,7 @@ a un instrumento conceptual; sus metadatos opcionales no condicionan el núcleo.
 |---|---|---|
 | `availability` | present, missing, not_applicable, unsupported, unknown | present contiene número; missing indica observación esperada sin valor; not_applicable es ajena a topología/definición; unsupported corresponde a capacidad no ofrecida; unknown no permite decidir |
 | `validity` | valid, invalid, unknown, not_evaluated | valid satisface reglas documentadas; invalid tiene evidencia de rechazo; unknown evidencia insuficiente; not_evaluated no hubo valor que evaluar |
-| `freshness` | current, stale, unknown, not_applicable | Se evalúa en recepción usando soporte real, límite de edad versionado y reloj conocido; no deriva de validez ni método |
+| `freshness` | current, stale, unknown, not_applicable | Se evalúa en recepción usando soporte declarado conocido, límite de edad versionado y evidencia de reloj; no usa verdad privada del simulador ni deriva de validez o método |
 | `method` | measured, calculated, estimated, unknown | measured: obtenido por cadena de medida; calculated: derivación explícita, incluida física sintética; estimated: inferencia/sustitución declarada; unknown: no documentado |
 
 quality añade `reason` string de catálogo o null y `evidence_ref` string o null.
@@ -1398,6 +1401,15 @@ Se proponen razones públicas `acquisition_timeout`, `undefined_zero_denominator
 La evidencia puede ser configuración, chequeo o estado reportado por dispositivo.
 Origen synthetic/instrumental es independiente de method: una lectura instrumental
 puede ser calculada; la salida física ideal es synthetic/calculated.
+
+**D1 — Clasificación del método, aprobada documentalmente el 2026-10-17**
+mediante «SmartEnergy — S06, paso 7: consolidación documental D1–D3»:
+`quality.method` describe cómo se obtuvo el resultado; `provenance.method_ref`
+identifica el procedimiento documentado. El perfil sintético S06 conserva
+`quality.method="calculated"`, conforme a esta sección y S05.6. No se reclasifican
+automáticamente mediciones ni contadores como `measured`. Los futuros adaptadores
+instrumentales clasificarán cada resultado según el proceso documentado, no sólo
+por el origen del dispositivo. Esta decisión no modifica la implementación actual.
 
 Combinaciones admisibles y reglas de exclusión:
 
@@ -1470,8 +1482,8 @@ enlazada, fuera de la clave y comparación de contenido de origen. El envelope
 combina origen y evaluación para lectura: no sobrescribe la calidad original.
 Al canonicalizar se excluyen time.assessment y los campos de calidad producidos
 por el receptor; se conservan las razones/evidencias de validez de origen.
-Canonicalización futura: objetos por claves ordenadas, números finitos normalizados
-sin redondeo metrológico y UTF-8; fijar algoritmo/versión antes de implementar.
+La política aprobada es `smartenergy-jcs-nfc@1.0.0`, definida en D2 más abajo;
+su implementación requiere cerrar previamente las precisiones allí identificadas.
 No deduplicar sólo por timestamp/valor. Para dispositivos sin ID/secuencia estable,
 el adaptador asigna ID por transacción capturada; reintentos de esa transacción
 reutilizan ID. Sondeos distintos con el mismo valor no prueban duplicación del
@@ -1488,6 +1500,107 @@ UTC canónica hasta aprobar, por lote/origen, zona IANA, reglas de horario estac
 ambigüedades y evidencia. Guardar original, regla, versión y resultado; ambiguos
 se aíslan. No hacer backfill ni reescribir PostgreSQL en S03. Timestamps conscientes
 se normalizan a UTC conservando offset original; precisión desconocida sigue null.
+
+#### D2 — Política canónica aprobada: smartenergy-jcs-nfc@1.0.0
+
+**Aprobación arquitectónica documental del 2026-10-17**, mediante la instrucción
+de consolidación D1–D3; no acredita implementación ni autoriza ejecutarla.
+Base: [RFC 8785 (JCS)](https://www.rfc-editor.org/rfc/rfc8785.html), secciones
+3.1–3.2, con las normalizaciones complementarias siguientes **antes de JCS**.
+NFC y normalización temporal son reglas de SmartEnergy: JCS por sí mismo no
+normaliza Unicode ni interpreta fechas. Después del preprocesamiento se aplican
+la serialización JCS, su orden de propiedades por unidades UTF-16 y salida UTF-8.
+
+- **Números:** sólo finitos representables sin pérdida de precisión significativa
+  conforme al dominio aprobado. Rechazar conversiones silenciosas con pérdida de
+  precisión. `1` y `1.0` son equivalentes; `-0` y `0` también. No convertir unidades,
+  redondear metrológicamente ni usar tolerancias E06 para comparar contenido.
+- **Tiempo:** normalizar campos temporales contractuales conocidos a UTC, sufijo
+  `Z`, ISO 8601 extendido, máximo microsegundos y sin ceros finales innecesarios
+  en la fracción. Rechazar precisión superior que no pueda representarse exactamente;
+  no inferir tiempos desconocidos. Conservar originales según S03.4, sin convertir
+  históricos naive por suposición ni interpretar como fechas las referencias opacas.
+- **Unicode:** aplicar NFC a claves y valores de texto antes de JCS. Rechazar
+  claves duplicadas, colisiones de claves tras NFC y secuencias Unicode inválidas,
+  incluidos sustitutos aislados. No alterar mayúsculas, espacios ni puntuación.
+- **Contenido:** incluir `contract_version`, identidad lógica, `context`, `quantity`,
+  `value`, `unit`, calidad de origen, tiempos de origen y procedencia completa,
+  incluidas todas las referencias y `counter_epoch` cuando corresponda. La identidad
+  sigue siendo `(installation_id, device_id, observation_id)`; recepción no la forma.
+  Excluir entrega/recepción, registro del receptor, `time.assessment` y evaluaciones
+  temporales con sus razones/evidencias generadas por el receptor. Conservar las
+  razones/evidencias de origen, aunque una evaluación posterior añada otras.
+- **Estructura e igualdad:** conservar orden de arreglos y distinguir `null`, cero,
+  `false`, cadena vacía y propiedad ausente. La igualdad se decide comparando todos
+  los bytes canónicos, sin digest obligatorio. Canonicalizar no convierte un payload
+  incompatible en una observación admisible.
+
+**Precisión numérica pendiente de aprobación antes de implementar:** RFC 8785
+usa números IEEE 754 de doble precisión y serialización ECMAScript; no garantiza
+conservar exactamente cualquier número JSON. Debe concretarse qué dominio y
+conversiones de entrada satisfacen «sin pérdida de precisión significativa»,
+incluidos enteros, decimales y extremos representables. No se fijan umbrales ni
+se autorizan conversiones a strings para eludir el tipo numérico de S03.2.
+También debe concretarse el conjunto de formatos temporales de entrada y rangos
+admisibles compatible con la representación aprobada; la salida normalizada ya
+está decidida. Estas precisiones no reabren JCS, NFC ni la política temporal.
+
+**Vectores documentales de aceptación futura (no ejecutados).** Los fragmentos
+suponen el resto de una observación válida idéntico. «Distinto» significa bytes
+distintos, no rechazo; la admisibilidad contractual se verifica por separado.
+
+| Área | Vector positivo / resultado | Vector negativo o diferencia exigida |
+|---|---|---|
+| Números | `1` / `1.0` → `1`; `-0` / `0` → `0` | NaN/Infinity: rechazo. Conversión que pierda precisión: rechazo; límites concretos pendientes, sin tolerancia E06 |
+| Tiempo | `2026-10-17T07:00:00.125000-05:00` / `2026-10-17T12:00:00.125Z` → segundo formato | Fracción `.1234567`: rechazo por no ser representable exactamente en microsegundos; `null` no equivale a fecha conocida |
+| Unicode | `"e\u0301"` / `"\u00e9"` → mismo texto NFC | Claves `"e\u0301"` y `"\u00e9"` en un objeto: rechazo por colisión; `"\uDEAD"`: rechazo; `"A"` / `"a"`: distintos |
+| Propiedades | `{"b":2,"a":1}` / `{"a":1,"b":2}` → `{"a":1,"b":2}` | Clave duplicada antes de NFC: rechazo |
+| Arreglos | `["L1","N"]` / `["L1","N"]`: iguales | `["L1","N"]` / `["N","L1"]`: distintos; no reordenar para aparentar igualdad |
+| Calidad | Mismo origen, evaluaciones del receptor current/stale: mismo contenido canónico de origen | Cambio de validity, reason o evidence_ref de origen: contenido distinto |
+| Procedencia | Mismos datos y referencias con propiedades en otro orden: iguales | Cambiar method_ref, original, lineage_ref o counter_epoch: distinto; no eliminar procedencia al comparar |
+| Ausentes y tipos | `{"x":null}` / `{"x":null}`: iguales | `{}`, `{"x":null}`, `{"x":0}`, `{"x":false}`, `{"x":""}`: distintos; omitir una clave obligatoria causa rechazo contractual |
+
+El identificador versiona esta política complementaria, separado de
+`contract_version`. Cambios futuros de equivalencia o dominio exigen evaluar
+compatibilidad y aprobar su versionado conforme a S03.2; no reinterpretar datos
+existentes silenciosamente. No se cambia aquí la versión del DTO ni su código.
+
+#### D3 — Admisión y deduplicación aprobadas en memoria
+
+**Aprobación arquitectónica documental del 2026-10-17**, por la misma instrucción.
+Identidad, contenido de origen, recepción y evaluación son conceptos separados.
+Estas reglas especifican comportamiento futuro; no diseñan persistencia,
+concurrencia, transacciones ni integración.
+
+- **D3.1 — Duplicados:** misma identidad y contenido canónico que la primera
+  aceptación → `duplicate`. `duplicate_of` referencia siempre el `delivery_id`
+  de esa primera recepción aceptada; no construir cadenas de duplicados.
+- **D3.2 — Conflictos:** misma identidad y contenido canónico diferente →
+  `conflict`. Conservar íntegramente ambas recepciones, sin sobrescribir la primera
+  aceptación. Comparar recepciones posteriores contra esa primera aceptación,
+  no contra candidatos conflictivos. Excluir conflictos del último lógico.
+- **D3.3 — Último lógico:** política `smartenergy-latest@1.0.0`, sólo observaciones
+  `accepted`. Priorizar `support.end` conocido del soporte declarado, nunca verdad
+  privada ni hora de recepción. Conservar todos los candidatos empatados, sin
+  desempate arbitrario. Un soporte desconocido no desplaza uno conocido ni adquiere
+  orden físico demostrado; conservar sus candidatos sin inventar tiempos.
+- **D3.4 — Rechazo:** rechazar estructura, identidad, unidad o contenido incompatible
+  con el contrato autorizado, o incumplimiento de D2. Conservar motivo y referencia
+  de recepción. `validity="invalid"`, stale o unknown temporal no implican rechazo
+  automático; no confundir invalidez observable del valor con payload inadmisible.
+- **D3.5 — Orden:** procesar en orden de llegada y aceptar la primera recepción
+  válida aunque sea tardía. Un rechazo no reserva identidad. Clasificar las
+  posteriores respecto de la primera aceptada. No modificar origen ni evaluación
+  temporal. Para las mismas entradas y políticas, garantizar determinismo en memoria.
+
+Los empates de llegada del transporte conservan el ordinal de intento de S05.5;
+esto no desempata soportes físicos en la selección del último lógico. Una nueva
+evaluación temporal por sí sola no cambia el contenido canónico ni crea conflicto.
+`recorded_at` permanece null en nivel 2; no se promete unicidad concurrente ni
+durabilidad. A01-CON y C01-MAS siguen pendientes de ejecución completa con sus
+oráculos S05.6/S05.7, sin cambios de calendario, conteos ni aceptación física.
+Manifiestos definitivos y reservas anteriores mantienen su estado. D1–D3 no
+autorizan implementar, cerrar S06, iniciar paso 8 ni S07–S09.
 
 ### S03.5 — Ejemplos completos del límite compartido
 
@@ -1777,20 +1890,26 @@ D01–D06 mantienen el cierre documental S01 con diferimientos; E01–E07 la
 especificación matemática aprobada S02; C01–C08 el contrato común aprobado S03.
 F-D01–F-D05 e I-D01–I-D07 fueron aprobadas expresamente el 2026-10-17:
 **S04 y S05 cerradas sólo como especificaciones documentales aprobadas**.
-**S06 iniciada: exclusivamente núcleo matemático S02 y pruebas aisladas,
-pasos internos 1–3; S07–S09 no iniciadas.** Los estados históricos
+**Estado tras consolidación documental D1–D3 de S06 paso 7 (2026-10-17):**
+pasos 1–5 aprobados; paso 6 pendiente de auditoría; paso 7 parcialmente implementado,
+pendiente de auditoría independiente y de implementación de admisión. D1 en S03.3
+y D2/D3 en S03.4 están aprobadas como decisiones arquitectónicas, con precisiones
+numéricas y de entrada temporal pendientes antes de implementar D2. Paso 8 no
+autorizado; S07–S09 no iniciadas. Los estados históricos
 anteriores no sustituyen este registro vigente. No se aprueban umbrales industriales,
 etiquetas ML, equivalencia instrumental ni nuevas convenciones físicas.
 
 Se conservan S02.1–S02.9, S03.1–S03.8, la matriz instrumental y los diferimientos
 D02/D05. El incremento implementado y su evidencia están en el
-[resultado S06 del roadmap](../roadmap-simulador.md#resultado-de-s06--núcleo-matemático-aislado-pasos-13).
-No hay escenarios, instrumentación, adquisición, DTO, manifiestos o artefactos
-persistentes implementados; canonicalización/integridad/retención S03 siguen
-pendientes y no son necesarias para estas funciones matemáticas en memoria.
-Pruebas unitarias del núcleo aportan evidencia parcial al nivel 1, sin cerrar
-S06, S07 ni acreditar el nivel 1 completo, integración (nivel 2), persistencia
+[resultado S06 del roadmap](../roadmap-simulador.md#resultado-de-s06--contratocomposición-parcial-paso-7).
+Hay escenarios, instrumentación, adquisición y composición DTO parcial en memoria;
+no hay canonicalización, admisión ni manifiestos definitivos o artefactos
+persistentes implementados. Integridad/retención S03 conservan sus reservas.
+A01-CON y C01-MAS siguen pendientes de ejecución completa. La evidencia previa
+del núcleo y de los incrementos aislados no cierra S06 ni S07, ni acredita
+el nivel 1 completo, integración (nivel 2), persistencia
 (nivel 3), equivalencia instrumental o preparación industrial.
 No se ejecutan servicios, generadores legados, PostgreSQL, Docker, migraciones,
 ML ni pruebas generales de aplicación. No se hace commit ni push. La intervención
-se detiene para revisión humana; los pasos internos 4–8 requieren nueva autorización.
+se detiene tras esta consolidación documental. Implementar D1–D3 o iniciar trabajo
+posterior requiere autorización expresa; esta aprobación no la concede.
