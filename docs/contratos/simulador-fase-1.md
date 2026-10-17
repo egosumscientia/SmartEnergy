@@ -864,7 +864,16 @@ contiene los linajes indicados, incluidos los fallos, sin exponer sus causas al 
 | Congelada con edad conocida | observation_id=o5, delivery_id=d5; time.assessment.at=2026-10-17T12:00:12Z, delivery.received_at=2026-10-17T12:00:12Z; quality.freshness=stale, reason=age_exceeded; provenance.lineage_ref=run-1/frozen-1. Conserva soporte [0,2), measured_at=12:00:02Z y valor 900; es una nueva captura con linaje a la lectura retenida, no otra ventana física. Causa de congelación sólo en oráculo |
 | Retrasada | observation_id=o6, delivery_id=d6; time.assessment.at=2026-10-17T12:00:20Z, delivery.received_at=2026-10-17T12:00:20Z; quality.freshness=stale, reason=age_exceeded; provenance.lineage_ref=run-1/delayed-1. Soporte/medición siguen en [0,2); puede llegar después de observaciones con soporte posterior |
 | Reentrega duplicada de la retrasada | Instanciar exactamente o6 del caso anterior; delivery_id=d7, received_at=2026-10-17T12:00:21Z, status=duplicate, duplicate_of=d6; observation_key=[plant-a,sim-a,o6]. Mantener evaluación original; una evaluación a t=21 se enlazaría aparte. Una observación, dos entregas, cero energía adicional |
-| Cero e invalidez finita | Dos instancias: o7/d8 con quantity=reactive_power, unit=var, value=0, provenance.method_ref=methods@1/mean_reactive_power y provenance.lineage_ref=run-1/zero-1 conserva present/valid (carga resistiva); o8/d9 con value=−10, quality.validity=invalid, reason=range_violation, evidence_ref=consumer-domain@1 y lineage_ref=run-1/invalid-1. El negativo incumple perfil consumidor; no se convierte a null sin conservar evidencia ni a Normal |
+| Cero e invalidez finita | Dos instancias: o7/d8 con quantity=reactive_power, unit=var, value=0, provenance.method_ref=methods@1/mean_reactive_power y provenance.lineage_ref=run-1/zero-1 conserva present/valid (carga resistiva); o8/d9 con quantity=active_power, unit=W, value=−10, quality.availability=present, quality.validity=invalid, quality.reason=range_violation, quality.evidence_ref=consumer-domain@1, provenance.method_ref=methods@1/mean_active_power y provenance.lineage_ref=run-1/invalid-1. Conserva el alcance de fase L1 de o1 y el valor finito rechazado: P=−10 W incumple P_k≥0 del perfil consumidor aprobado en S02.2; no se convierte a null sin conservar evidencia ni a Normal |
+
+En o8/d9, `consumer-domain@1` identifica la comprobación de P_k≥0 de
+[S02.2](#s022--catálogo-obtención-y-nulabilidad) para la fase L1 del perfil
+consumidor; se conservan el valor, el motivo, la evidencia y el linaje sin usarlo
+como medición válida. Cada instancia parte de o1/d1: o8/d9 no hereda la magnitud
+reactiva de o7/d8. **Q negativa es válida en consumo capacitivo**, incluso con P
+positiva, conforme a S02.2/S02.4; el signo negativo por sí solo no determina
+invalidez. La validez depende del dominio de la magnitud, su alcance y las
+restricciones aplicables.
 
 Segunda ventana de contraste: parada en t=1, P=1200 W en [0,1), P=0 en [1,2).
 La misma forma que o1 produce media 600 W y ΔE=1/3 Wh; conserva ambos segmentos
