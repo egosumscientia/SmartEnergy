@@ -7,8 +7,8 @@ ADW210 conserva su condición de referencia inicial aprobada; los otros dos
 instrumentos contrastan semánticas y evitan acoplar el modelo a una marca.
 
 S01 investigada desde `ed2e5d8219a21e2bd29235c7140327ff5b702662`, en
-`feature/simulador`, con árbol inicialmente limpio. **Investigación documental
-realizada; cierre formal pendiente de evidencia y aprobación**, según los resultados
+`feature/simulador`, con árbol inicialmente limpio. **S01 cerrada para el alcance
+documental y el núcleo genérico aprobados mediante D01–D06**, según los resultados
 y decisiones al final de este documento. No se ha validado ningún instrumento real.
 
 ## Fuentes primarias consultadas
@@ -267,7 +267,10 @@ Como clasificación de trabajo, V/I son entradas físicas y potencias/FP/energí
 resultados derivados; el método exacto de cada instrumento sólo se atribuirá cuando
 esté documentado. Esta inferencia no constituye una implementación de S02.
 
-### B. Recomendaciones de arquitectura, todavía no aprobadas
+### B. Recomendaciones de arquitectura y límites
+
+La aprobación D01–D06 de C acota el núcleo genérico y los traslados; no aprueba
+anticipadamente las decisiones de representación e integración descritas aquí.
 
 Mantener el motor genérico y perfiles de instrumentación separados. Conservar
 la procedencia del valor observado y de toda conversión/cálculo; no derivar Q o S
@@ -288,41 +291,49 @@ y que el HTTP sigue ofreciendo cuatro variables. S01 no modifica ese contrato ni
 decide cómo persistir el nuevo modelo. Esas diferencias se trasladan a S03 junto
 con la compatibilidad de temperatura, etiquetas, unidades y tiempos históricos.
 
-### C. Decisiones pendientes y recomendaciones concretas
+### C. Decisiones D01–D06 aprobadas y diferimientos
 
-Todas las filas están **pendientes de aprobación**. No constituyen una autorización
-para avanzar a S02 ni una selección de compra. El orden indica prioridad de cierre.
+**Aprobación humana registrada el 2026-10-17:** el responsable aprobó D01–D06
+mediante la instrucción «SmartEnergy — Cierre formal de S01 y ejecución de S02»,
+referida al commit `d84dc1fe48e86a14fcccf10ae183ee16f305c602`.
+Se acepta la suficiencia documental para el núcleo genérico; no es selección de
+compra, homologación, verificación física ni aprobación anticipada del diseño S02.
 
-| ID / decisión | Recomendación y justificación | Alternativa / condición de cierre |
+| ID / decisión | Decisión aprobada y fundamento | Límites / condición de cierre del pendiente |
 |---|---|---|
-| D01 — Referencia física ADW210 | Adoptar como referencia documental 3P4W, suministro común y capacidad CH1–CH4 con CT AKH-0.66/K; proponer opción 100 A de A2 como punto de contraste, sin atribuirle firmware confirmado. A3 aporta cableado específico y evita tratar circuitos como entradas de tensión independientes | Usar menos grupos o CT distinto si el caso real lo exige; confirmar accesorio/SKU y compatibilidad documental antes de afirmar configuración completa. No usar 12 monofásicos como emulación confirmada mientras falte su guía |
-| D02 — Núcleo genérico y límites de S01 | Aceptar la evidencia física relevante y permitir que S02 estudie un núcleo genérico, conservando PEN para firmware/decodificación ADW210 y compatibilidad E2–V2. No hace falta implementar un emulador para estudiar magnitudes comunes | Diferimiento propuesto, aún no aprobado: cerrar asociación exacta firmware/mapa, orden/base/sentinelas y discrepancias de configuración antes de cualquier perfil específico o adaptador. Si se exige equivalencia instrumental desde el inicio, esos pendientes bloquean el cierre de S01 y se requiere evidencia del fabricante |
+| D01 — Referencia física ADW210 | Aprobada la referencia documental 3P4W, suministro común y grupos CH1–CH4 con CT AKH-0.66/K; opción 100 A de A2 únicamente como contraste documental. A3 aporta cableado específico | No confirma firmware, compra ni hardware homologado. Confirmar accesorio/SKU y compatibilidad antes de afirmar configuración completa. No usar 12 monofásicos como emulación confirmada mientras falte su guía |
+| D02 — Núcleo genérico y límites de S01 | Aprobado el núcleo genérico y el diferimiento de decodificación específica, firmware/mapa, discrepancias de configuración y detalles necesarios para emulación/adquisición ADW210; se conserva PEN y la discrepancia E2–V2 | Resolver asociación exacta firmware/mapa, orden/base/sentinelas y configuración antes de desarrollar un adaptador específico o atribuir equivalencia instrumental. El núcleo genérico permite continuar S02 sin afirmar satisfecho ese requisito instrumental |
 | D03 — Referencias de contraste | Conservar E1 como manual V2 directo 100 A y S5 como paquete documental PM5310 HW B1/FW 2.2.4; registrar E4 como contraste con edición inconsistente. Son referencias reproducibles, no afirmaciones de última versión o equipo instalado | Cambiar de revisión sólo con comparación explícita y configuración identificada; una versión de software ilustrativa no confirma el firmware de un equipo |
-| D04 — Signos y contadores a resolver en S02 | Definir semántica canónica explícita y preservar la denominación/codificación original en futuras conversiones. Separar FP verdadero/desplazamiento y energía direccional/neta/absoluta evita pérdidas de significado | Adoptar una convención concreta de un fabricante acoplaría el núcleo; si se elige, documentar transformación y casos por cuadrante. La interpretación exacta de contadores reactivos ADW210/Eastron bloquea su equivalencia, no la investigación genérica de S02 |
-| D05 — Exactitud, resolución y tiempo | Diseñar después un perfil genérico parametrizable, sin prometer cadencia o exactitud de marca. Mantener tolerancias matemáticas del motor separadas de incertidumbre CT/medidor. El 1 s de S5 sólo acredita el bloque indicado | Un perfil metrológico específico requiere presupuesto de incertidumbre, resolución, simultaneidad y refresco por magnitud; diferimiento propuesto hasta autorizar ese perfil, nunca sustituir desconocidos por ceros o cifras inferidas de floats |
-| D06 — Traslado a S03 y cierre formal | Exigir en S03 identidad/alcance, calidad, unidades y codificación, referencia temporal y procedencia, con plan de conservación por nivel de aceptación. Someter ahora la suficiencia de S01 y D01–D05 a revisión humana | Si no se aprueban límites/diferimientos, mantener S01 abierta con los impedimentos identificados. La alternativa a una proyección legada con pérdidas es una evolución separadamente aprobada; S01 no decide migraciones ni valida persistencia |
+| D04 — Signos y contadores a resolver en S02 | Aprobado resolver en S02 la semántica canónica, conservando la distinción con denominaciones/codificaciones instrumentales. Separar FP verdadero/desplazamiento y energía direccional/neta/absoluta | Las convenciones concretas de S02 requieren revisión y aprobación propias. La interpretación exacta de contadores reactivos ADW210/Eastron bloquea su equivalencia, no el estudio genérico |
+| D05 — Exactitud, resolución y tiempo | Aprobado diferir la metrología específica de fabricante; separar tolerancias matemáticas, incertidumbre instrumental, resolución y actualización. El 1 s de S5 sólo acredita el bloque indicado | Antes de atribuir un perfil metrológico específico, resolver incertidumbre CT/medidor, resolución, simultaneidad y refresco por magnitud con evidencia aplicable y aprobación de ese perfil; nunca inferir exactitud de floats |
+| D06 — Traslado a S03 y cierre formal | Aprobado trasladar identidad, alcance, calidad, procedencia, unidades, representación temporal y compatibilidad a S03; aceptada suficiencia de S01 con D01–D05 y sus límites | S03 deberá resolver representación y conservación por nivel de aceptación antes de implementación/integración. No decide migraciones ni valida persistencia; su inicio necesita autorización posterior |
 
-Los diferimientos propuestos identifican alcance y condición de cierre; todos
-conservan estado pendiente. Antes de aprobarlos, el responsable debe registrar
-la decisión y su efecto sobre el requisito previo del apartado I del roadmap
-técnico. No se marca cumplido un requisito que permanece PEN ni se elimina la
-investigación obligatoria ADW210 por usar un núcleo genérico.
+**Efecto sobre el apartado I del roadmap técnico:** D01/D03 fijan las referencias
+documentales; D02 difiere la confirmación instrumental restante de su primer
+criterio, que sigue pendiente para un adaptador específico. D05 condiciona cualquier
+equivalencia metrológica futura. D04 encarga las relaciones físicas a S02 y D06
+traslada representación/compatibilidad a S03. Fixtures, coherencia implementada,
+escenarios e integración del apartado I siguen pendientes de etapas posteriores.
+Se aprueba el diferimiento, no el cumplimiento del requisito diferido. Los niveles
+COM/FAM/ESP/PEN y las fichas anteriores conservan su alcance y evidencia originales.
 
 ## Resultado de S01 y criterios de aceptación
 
 | Pregunta de aceptación | Evidencia y resultado |
 |---|---|
-| 1. ADW210 confirmado / pendiente | A3/A4 confirman cableado trifásico y grupos; A2 documenta magnitudes/mapa de familia. PEN: firmware, aplicación exacta del mapa, configuración monofásica y semánticas señaladas; D01/D02 pendientes |
-| 2. Base independiente de fabricante | Catálogo común y diferencias de unidades contrastados en las fichas. Se puede proponer su estudio en S02; no se aprobaron ecuaciones, nominales o tolerancias |
+| 1. ADW210 confirmado / pendiente | A3/A4 confirman cableado trifásico y grupos; A2 documenta magnitudes/mapa de familia. D01/D02 aprobadas; siguen PEN firmware, aplicación exacta del mapa, configuración monofásica y semánticas señaladas |
+| 2. Base independiente de fabricante | Catálogo común y diferencias contrastados; aprobado estudiar el núcleo genérico en S02. Esa autorización no aprueba sus ecuaciones, nominales o tolerancias |
 | 3. Diferencias para contrato común | Alcance, referencia de tensión, FP, energía, CT/VT, calidad, codificación y tiempos identificados en A/B; representación definitiva pendiente de S03 |
 | 4. Mapa relevante verificable | Tablas acotadas con localización y nivel; XLS PM5310 inspeccionado. No se certifica funcionamiento de un decodificador ni disponibilidad real de todos los registros |
-| 5. Incertidumbres diferibles | D02/D05 proponen diferir detalles de emulación, firmware, refresco y metrología específica; impacto y condición de cierre documentados, aprobación pendiente |
-| 6. Incertidumbres bloqueantes | Falta de configuración aprobada y de aprobación de diferimientos bloquea cierre formal/inicio S02. Discrepancias ADW210 y compatibilidad de firmware bloquean emulación/adquisición; signos/contadores/tolerancias deben resolverse en S02 antes de implementar |
-| 7. Decisiones previas a S02 | Revisar suficiencia de evidencia, referencia D01/D03 y límites D02/D05; aceptar los asuntos que D04/D06 trasladan a S02/S03 sin darlos por resueltos. No hay aprobación registrada |
+| 5. Incertidumbres diferibles | D02/D05 aprobadas con impacto y condición de cierre anteriores; los detalles instrumentales siguen sin verificar |
+| 6. Incertidumbres bloqueantes | Los diferimientos aprobados habilitan el diseño genérico S02. Discrepancias ADW210 y firmware bloquean su adaptador específico; signos/contadores/tolerancias necesitan aprobación S02 antes de implementar |
+| 7. Decisiones previas a S02 | D01–D06 aprobadas por el responsable en la instrucción identificada arriba; los asuntos trasladados a S02/S03 no se dan por resueltos |
 
-**Estado:** investigación realizada y entregable disponible para revisión; **S01 no
-cerrada formalmente**. No hubo pruebas con hardware, consultas Modbus, ejecución de
+**Estado: S01 cerrada formalmente para el alcance documental y el núcleo genérico
+aprobados**, con los pendientes instrumentales anteriores. No hubo pruebas con
+hardware, consultas Modbus, ejecución de
 generadores, PostgreSQL o Docker. La imposibilidad inicial de capturar algunos PDF
 en el navegador se resolvió con inspección local temporal; el acceso al XLS también
-se resolvió. Persisten incertidumbres documentales de contenido y aprobaciones,
-no una supuesta verificación física. No se inicia automáticamente S02.
+se resolvió. Persisten incertidumbres documentales de contenido; la aprobación
+humana de su diferimiento no constituye verificación física. S02 se autoriza
+expresamente en la misma instrucción; su diseño requiere aprobación independiente.

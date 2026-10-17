@@ -10,7 +10,11 @@ no altera los cuatro prompts P01–P04 ni los 16 controles de reestructuración.
 La fase documental y su corrección por auditoría quedaron publicadas en
 `ed2e5d8219a21e2bd29235c7140327ff5b702662`. La intervención posterior autorizó
 exclusivamente la investigación S01, iniciada en `feature/simulador` con árbol
-limpio. Su evidencia y decisiones pendientes están en la matriz instrumental.
+limpio y publicada en `d84dc1fe48e86a14fcccf10ae183ee16f305c602`.
+El 2026-10-17 el responsable aprobó D01–D06 y autorizó expresamente el cierre
+documental S01 y el diseño S02 mediante «SmartEnergy — Cierre formal de S01 y
+ejecución de S02». Esta intervención partió de ese commit, en `feature/simulador`
+con árbol limpio. La matriz conserva la evidencia y los diferimientos aprobados.
 No se considera aceptada una etapa futura por figurar aquí. La aprobación del
 responsable debe identificar etapa, alcance, entregables, criterios y efectos
 permitidos; ninguna etapa de implementación comienza sin aprobación explícita.
@@ -19,17 +23,19 @@ No hay fechas ni estimaciones de esfuerzo asignadas.
 Secuencia: S01 → S02 → S03 → S04 → S05 → S06 → S07 → S08 → S09.
 El núcleo inicial puede ser genérico, pero S01 conserva la investigación obligatoria
 del ADW210 y el contraste documental del apartado I del roadmap técnico. S02 puede
-preparar hipótesis genéricas ante pendientes, sin aprobar emulación ni dar S01
-por cumplida. Todo diferimiento deberá documentarse y aprobarse según el contrato;
+preparar el núcleo genérico con los diferimientos D02/D05 aprobados, sin aprobar
+emulación ni dar requisitos instrumentales pendientes por cumplidos. Todo nuevo
+diferimiento deberá documentarse y aprobarse según el contrato;
 la emulación ejecutable de registros puede diferirse sin omitir su revisión documental.
 S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras la investigación S01 (2026-10-17) |
+| Etapa | Estado tras cierre documental S01 y propuesta S02 (2026-10-17) |
 |---|---|
-| S01 | Investigación documental realizada; cierre formal pendiente de evidencia específica, selección de referencia y aprobación de límites/diferimientos D01–D06 |
-| S02–S05 | Requisitos y criterios iniciales documentados; especificaciones detalladas pendientes |
+| S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
+| S02 | Investigada y especificada en el contrato; revisión y aprobación humana E01–E07 pendientes; no cerrada |
+| S03–S05 | No iniciadas; requisitos iniciales conservados, diseños y autorizaciones pendientes |
 | S06–S09 | No iniciadas; implementación, integración y aceptación no autorizadas |
 
 La aceptación distingue tres niveles definidos en el
@@ -69,7 +75,7 @@ Ningún nivel acredita funcionamiento industrial ni autoriza el siguiente.
   diferimiento, identificando el requisito previo afectado. La investigación
   realizada no aprueba diferimientos ni elimina dependencias documentales.
 
-### Resultado de la investigación S01 — pendiente de revisión
+### Resultado de S01 — cierre documental aprobado
 
 Se ampliaron las [fichas instrumentales](instrumentacion/matriz-medidores.md#fichas-de-evidencia-s01-por-instrumento)
 y se contrastaron capacidades/mapas por variable. A3/A4 aportan configuración
@@ -78,19 +84,26 @@ PM5310, su aplicabilidad por modelo, cadencia del bloque básico y valores N/A.
 Se documentó la discrepancia de revisión de E4 y se conservó E1 como referencia.
 
 El [resultado por criterio](instrumentacion/matriz-medidores.md#resultado-de-s01-y-criterios-de-aceptación)
-distingue evidencia disponible de pendientes. Bloquean el cierre formal la
-configuración instrumental no aprobada y la falta de aprobación de suficiencia y
-diferimientos. Firmware/mapa ADW210, detalles de CT/VT y convenciones no resueltas
-bloquean equivalencia instrumental; no se los declara cumplidos por proponer un
-núcleo genérico. Persisten las condiciones del roadmap técnico, apartado I.
+distingue evidencia disponible de pendientes. El responsable aceptó su suficiencia
+para el núcleo genérico y aprobó referencias/límites/diferimientos D01–D06.
+Firmware/mapa ADW210, detalles de CT/VT y convenciones no resueltas siguen
+bloqueando equivalencia instrumental y deben resolverse antes del adaptador
+específico. No se los declara cumplidos por aprobar un núcleo genérico.
 
-**Recomendación pendiente:** revisar y aprobar o rechazar
-[D01–D06](instrumentacion/matriz-medidores.md#c-decisiones-pendientes-y-recomendaciones-concretas):
+**Decisiones aprobadas:**
+[D01–D06](instrumentacion/matriz-medidores.md#c-decisiones-d01d06-aprobadas-y-diferimientos):
 referencia ADW210 3P4W con tensión común, contraste Eastron directo/PM5310 B1,
 núcleo genérico sin equivalencia de marca y diferimientos acotados de decodificación
-y metrología. Las reglas eléctricas y la representación siguen pendientes de
-S02/S03; no se diseñaron ni implementaron. **S01 no está cerrada formalmente y S02
-no está autorizada ni iniciada.** No se modificaron contrato, AGENTS, código o entornos.
+y metrología. D04 encarga signos/energía a S02 y D06 reserva representación y
+compatibilidad para S03. **S01 cerrada formalmente para ese alcance documental;
+S02 autorizada sólo como diseño, sin aprobación anticipada de sus decisiones.**
+
+**Impacto en el apartado I del roadmap técnico:** la referencia documental queda
+elegida, pero la asociación firmware/mapa y detalles instrumentales de su primer
+criterio siguen pendientes por D02. D05 difiere equivalencia metrológica específica;
+D06 asigna representación/compatibilidad a S03. Fixtures comunes, coherencia
+implementada, escenarios y pruebas de integración siguen en sus etapas futuras.
+Se conserva el apartado I íntegro: aprobar diferimientos no satisface esos requisitos.
 
 ## S02 — Especificar variables y modelo eléctrico mínimo
 
@@ -122,6 +135,29 @@ no está autorizada ni iniciada.** No se modificaron contrato, AGENTS, código o
   acumulación, método de agregación de S/FP/Q, tolerancias y cualquier ampliación
   de topología/distorsión/exportación. Definir el contador activo exportado no
   incorpora generación exportadora al mínimo.
+
+### Resultado de S02 — propuesta disponible para revisión
+
+La [especificación matemática](contratos/simulador-fase-1.md#propuesta-matemática-s02--pendiente-de-aprobación)
+contiene catálogo con dominios/nulabilidad, fuente ideal y cargas de admitancia
+prescrita, relaciones fasoriales 1P2W/3P4W, agregados, neutro y límites de √3.
+Propone S aritmética, FP con signo activo, Q inductiva/capacitiva, cuatro contadores
+separados por alcance y tiempo físico relativo. Distingue integración exacta por
+tramos de aproximación y error numérico; temperatura auxiliar indisponible.
+
+Se investigaron fuentes primarias M1–M5, contrastadas con la matriz S01 sin
+extender evidencia de fabricante. El contrato presenta C01–C10 obligatorios y
+C11–C14 de compensación, cruce por cero, convergencia y límites, más el caso
+centinela próximo a cero. Los oráculos son analíticos e independientes de un
+futuro motor. Recomendación nominal: 120 V L-N y 60 Hz, con alternativas y
+dominios sintéticos; no son umbrales industriales.
+
+**Pendiente de aprobación individual:** E01 hipótesis/carga/topologías;
+E02 signos/cuadrantes/FP; E03 agregación S/FP/Q; E04 tiempo y acumuladores;
+E05 nominales/dominios; E06 tolerancias/convergencia; E07 temperatura y límites.
+Las alternativas e impactos están en S02.9 del contrato. Aprobar D01–D06 no
+aprueba estas decisiones. **S02 investigada y especificada, no cerrada; S03 no
+iniciada.** No hay código implementado ni validación instrumental/persistente.
 
 ## S03 — Diseñar contrato común y compatibilidad
 
