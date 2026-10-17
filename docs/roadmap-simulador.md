@@ -65,6 +65,14 @@ adquisición aislada. Base verificada: `feature/simulador`, HEAD
 implementado y pendiente de auditoría independiente; pasos 7–8 requieren nueva
 autorización. Los resultados anteriores conservan su estado histórico de entrega.
 
+El 2026-10-17, mediante «SmartEnergy — S06, paso 7», el responsable autoriza
+exclusivamente contrato/composición y la revisión dirigida K/reentregas. Base
+verificada: `feature/simulador`, HEAD `3d05313b93643b4633f19f2e595bc8bf9d556591`,
+árbol limpio. Durante la intervención confirma «Mantener el bloqueo documentado»
+de canonicalización/admisión. El incremento independiente del paso 7 queda
+implementado parcialmente y **pendiente de auditoría independiente**; no se cierra
+el paso completo ni se autoriza el paso 8. No implica aceptación del paso 6.
+
 Secuencia: S01 → S02 → S03 → S04 → S05 → S06 → S07 → S08 → S09.
 El núcleo inicial puede ser genérico, pero S01 conserva la investigación obligatoria
 del ADW210 y el contraste documental del apartado I del roadmap técnico. S02 puede
@@ -76,14 +84,14 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras implementación del paso 6 de S06, pendiente de revisión (2026-10-17) |
+| Etapa | Estado tras incremento parcial del paso 7 de S06, pendiente de revisión (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
 | S02 | Cerrada como especificación matemática aprobada E01–E07; núcleo implementado y probado en el incremento S06, sin validación industrial |
 | S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
 | S04 | Especificación documental aprobada F-D01–F-D05; implementación del paso 4 aceptada formalmente |
 | S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; instrumentación I01–I04 del paso 5 aprobada; adquisición A01–A02 implementada en paso 6, pendiente de auditoría |
-| S06 | Pasos 1–5 aprobados, conservando rechazo de integración energética con ruido; paso 6 implementado y pendiente de auditoría; pasos 7–8 pendientes de autorización |
+| S06 | Pasos 1–5 aprobados; paso 6 pendiente de auditoría; paso 7 parcialmente implementado, pendiente de auditoría independiente y bloqueado en admisión por canonicalización; paso 8 no autorizado |
 | S07–S09 | No iniciadas; validación integral, integración y cierre no autorizados |
 
 La aceptación distingue tres niveles definidos en el
@@ -757,6 +765,75 @@ S03, C01-MAS y manifiestos definitivos siguen pendientes; no se declaran probado
 No hay persistencia ni validación industrial. S01–S05 mantienen aprobación
 documental, S06 pasos 1–5 aprobados y paso 6 pendiente de auditoría; pasos 7–8
 pendientes de autorización, S07–S09 no iniciadas. Se detiene en el paso 6.
+
+### Resultado de S06 — contrato/composición parcial (paso 7)
+
+Se añaden [`simulator_contract.py`](../smartenergy/analysis/simulator_contract.py),
+[`application/simulator.py`](../smartenergy/application/simulator.py) y
+[`test_simulator_contract.py`](../tests/test_simulator_contract.py); se amplía
+[`test_simulator_acquisition.py`](../tests/test_simulator_acquisition.py) con la
+reserva K y el control de aislamiento de composición. Sólo se actualiza este
+roadmap. Física, energía, escenarios, instrumentación, adquisición y contrato
+documental no cambian. **Incremento parcial, pendiente de auditoría independiente.**
+
+`ObservationConfig` declara identidades, topología, configuración/productor,
+escenario/run, origen UTC consciente, época y conocimiento del reloj. El perfil
+es el existente c1→bus-a, 1P2W/3P4W; no añade circuitos ni capacidades.
+`observation_from_reading` construye el DTO de origen S03 de cada canal recibido:
+conserva valor canónico sin volver a escalar, original/unidad/código, alcance,
+calidad de origen, soporte declarado, época y procedencia. La identidad codifica
+el par captura/canal como string JSON; no es canonicalización del contenido.
+El perfil usa método calculated de origen synthetic. No fabrica temperatura ni
+IDs fuente de observaciones que no existen. Soportes desconocidos conservan
+nulls; event_at no se infiere del calendario. Tiempos no representables exactamente
+en microsegundos se rechazan sin redondeo silencioso; resolución/incertidumbre
+no declaradas siguen null.
+
+`compose_received(deliveries, config, lineage_refs=...)` sólo consume recepciones
+públicas. Devuelve por canal observación de origen, metadatos `reception` previos
+a admisión y evaluación separada `s05-age@1`. Cada recepción tiene ID por canal
+y vínculo al ID de transporte. Conserva orden y multiplicidad, recorded_at=null;
+la evaluación nunca reescribe origen ni razones de invalidez. Los diccionarios
+son independientes entre llamadas. No recibe trazas, pérdidas, cola, causas ni
+soporte real privado. Los linajes son referencias opacas explícitas del llamador;
+no se generan manifiestos ni se acredita su resolución/integridad definitiva.
+Silencios y pérdidas no crean valores, ceros ni missing sin evidencia pública.
+
+**Bloqueo confirmado por el responsable:** S03.4/S05.1 requieren aprobar algoritmo
+y versión de canonicalización antes de implementarla. No se elige aquí JSON
+canónico, igualdad estructural ni digest como sustituto. En consecuencia no hay
+admisión accepted/duplicate/conflict/rejected, deduplicación, overwrite ni selección
+de último lógico. `reception` no es la entrega S03 completa y carece deliberadamente
+de status/duplicate_of. Candidatos de mismo ID y distinto contenido se conservan
+ambos sin clasificarlos. A01-CON completo sigue bloqueado; C01-MAS, manifiestos,
+proyección legada, validador general de dispositivos y pruebas integrales del paso 8
+no se adelantan. No se acredita nivel 2 ni cierre de S06.
+
+Reserva del paso 6: S05.5 fija K como «intentos totales por observación». La prueba
+dirigida verifica inicial+reentregas y inicial+FIFO+reentrega con K=2, además de
+inicial recibido con K=1; ninguna vía elude K. El comportamiento existente cumple:
+no requiere corrección ni cambio de política.
+
+Validación aislada: se ejecutaron los cinco módulos `tests.test_simulator_contract`,
+`tests.test_simulator_acquisition`, `tests.test_simulator_physics`,
+`tests.test_simulator_scenarios` y `tests.test_simulator_instrumentation`.
+Tras corregir dos aserciones físicas nuevas para usar E06 ya aprobado
+(1e-6+1e-9·|referencia|, sin redondear la salida), se repitieron sólo los dos
+módulos afectados: **36 pruebas aprobadas**, junto con las **69 pruebas conservadas
+aprobadas** en la primera ejecución: **105 pruebas distintas, cero fallos pendientes**.
+Nueve pruebas nuevas de composición y una de K. Oráculos independientes A01-CAL
+(600/630/640/650/610/630 W), edades 5/6 s, retención declarada, FP nulo frente a
+cero real, 1200 W durante 60 s con inicial 10 Wh→30 Wh, conversión kW/W,
+alcances 3P4W, invalidez, conservación de contenidos y determinismo. La fidelidad
+DTO/lectura se contrasta exactamente, separada de la tolerancia física.
+Proceso separado bloquea I/O de escritura/.env, red, reloj y dependencias ajenas;
+componer no altera RNG global. `git diff --check` sin errores.
+
+Se mantienen ruido/integración energética pendiente, coherencia conjunta P/Q/S/FP
+sin diagnóstico añadido y separación soporte real/declarado. Sin suite general,
+servicios externos, nuevas dependencias, PostgreSQL, Docker, persistencia, API/UI,
+ML ni intervención del laboratorio protegido. Sin commit ni push. Se detiene
+en este incremento del paso 7; paso 8 y S07–S09 no iniciados.
 
 ## S07 — Validar coherencia física, matemática y temporal
 

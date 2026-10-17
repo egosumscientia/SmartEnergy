@@ -182,6 +182,20 @@ class AcquisitionOracles(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "viola FIFO"):
             acquire(self.traces, fifo_config(times=((2, 6), (1, 7), (3, 8))))
 
+    def test_k_limits_initial_fifo_and_explicit_redeliveries_together(self):
+        # S05.5: K intentos TOTALES; una reentrega consume el mismo presupuesto.
+        ts = self.traces[:1]
+        for retries, redeliveries in (((), ((0, 2), (0, 3))),
+                                      (((0, 2),), ((0, 3),))):
+            with self.subTest(retries=retries):
+                r = acquire(ts, AcquisitionConfig(3, outages=((0, 1),),
+                    fifo=FifoPolicy(1, 5, 2, retries), redeliveries=redeliveries))
+                self.assertEqual([(a.attempted_s, a.number) for a in r.attempts], [(0, 1), (2, 2)])
+                self.assertEqual([d.received_s for d in r.deliveries], [2])
+        r = acquire(ts, AcquisitionConfig(3, fifo=FifoPolicy(1, 5, 1, ()), redeliveries=((0, 2),)))
+        self.assertEqual(len(r.attempts), 1)
+        self.assertEqual(len(r.deliveries), 1)
+
     def test_retries_do_not_share_random_draws(self):
         cfg = AcquisitionConfig(8, loss_probability=.5,
                                 random_identity=RandomIdentity(20261017, "a01-bernoulli-control", "sim-a"),
@@ -378,6 +392,8 @@ import time
 from unittest.mock import patch
 class BlockExternal(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
+        if fullname in {'smartenergy.application', 'smartenergy.application.simulator'}:
+            return None
         if fullname.split('.')[0] in {'sqlalchemy', 'psycopg2', 'dotenv', 'numpy', 'pandas', 'sklearn', 'joblib'} or fullname.startswith(('smartenergy.config', 'smartenergy.infrastructure', 'smartenergy.operations', 'smartenergy.application', 'smartenergy.interfaces')):
             raise AssertionError(fullname)
 def audit(event, args):
@@ -394,12 +410,20 @@ with patch.object(time, 'time', side_effect=AssertionError('reloj')), patch.obje
     from smartenergy.analysis.simulator_acquisition import *
     from smartenergy.analysis.simulator_instrumentation import *
     from smartenergy.analysis.simulator_scenarios import build_scenario
+    from smartenergy.analysis.simulator_contract import ObservationConfig
+    from smartenergy.application.simulator import compose_received
+    from datetime import datetime, timezone
     s = build_scenario('F01-RAM')
     identity = RandomIdentity(20261017, 'isolated', 'sim-a')
     v = VirtualInstrument(s, InstrumentConfig('sim-a', (ChannelConfig('c1/P'),), identity))
     ts = v.capture(range(6))
     cfg = AcquisitionConfig(8, outages=((1, 4),), fifo=FifoPolicy(3, 5, 2, ((1, 6), (2, 7), (3, 8))))
     assert len(acquire(ts, cfg).deliveries) == 6
+    ds = acquire(ts, cfg).deliveries
+    oc = ObservationConfig('plant-a', 'sim-a', '1P2W', 'F01-RAM', '1', 'isolated',
+                           'cfg@1', 's06@1', datetime(2026, 10, 17, 12, tzinfo=timezone.utc))
+    refs = {(d.capture.capture_id, r.channel): 'opaque-lineage' for d in ds for r in d.capture.readings}
+    assert compose_received(ds, oc, lineage_refs=refs) == compose_received(ds, oc, lineage_refs=refs)
     cfg = AcquisitionConfig(8, loss_probability=.5, random_identity=identity, random_channel='c1/P', random_profile='loss@1')
     assert acquire(ts, cfg) == acquire(ts, cfg)
 assert state == random.getstate()
