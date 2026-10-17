@@ -78,8 +78,9 @@ aprobación y el apartado 9 determinan el estado vigente; no se alteran las
 matemáticas S02.1–S02.9.
 
 La aprobación C01–C08 dejó pendiente la canonicalización definitiva; la posterior
-consolidación D1–D3 de S06 paso 7 aprueba la política en S03.4, con precisiones
-técnicas todavía pendientes antes de implementarla. Siguen pendientes unicidad y
+consolidación D1–D3 de S06 paso 7 aprueba la política en S03.4. La consolidación
+D2.1–D2.2 aprueba sus dominios numérico y temporal, todavía sin implementar.
+Siguen pendientes unicidad y
 deduplicación concurrente demostrables, políticas de
 retención/recuperación de artefactos, evidencia de unidades y zonas históricas,
 adaptadores, almacenamiento/HTTP, pruebas y autorizaciones de integración por
@@ -925,8 +926,8 @@ ID de caso `<familia>-<sufijo>@1`; cambios de parámetros exigen variante/versio
 Los perfiles I/A no forman parte del digest de entradas físicas: comparar física
 con/sin ellos por soporte, no por run_id o digest del manifiesto completo.
 Estas reglas no sustituyen la política canónica D2 de S03.4, aprobada posteriormente
-en la consolidación documental de S06 paso 7. Sus precisiones técnicas pendientes
-deben aprobarse antes de implementarla; no hay canonicalización ejecutada.
+en la consolidación documental de S06 paso 7. Sus precisiones D2.1–D2.2 están
+también aprobadas documentalmente; no hay canonicalización ejecutada.
 
 #### S05.2 — Transformaciones, orden y coherencia
 
@@ -1483,7 +1484,7 @@ combina origen y evaluación para lectura: no sobrescribe la calidad original.
 Al canonicalizar se excluyen time.assessment y los campos de calidad producidos
 por el receptor; se conservan las razones/evidencias de validez de origen.
 La política aprobada es `smartenergy-jcs-nfc@1.0.0`, definida en D2 más abajo;
-su implementación requiere cerrar previamente las precisiones allí identificadas.
+sus precisiones D2.1–D2.2 están aprobadas, sin autorización de implementación.
 No deduplicar sólo por timestamp/valor. Para dispositivos sin ID/secuencia estable,
 el adaptador asigna ID por transacción capturada; reintentos de esa transacción
 reutilizan ID. Sondeos distintos con el mismo valor no prueban duplicación del
@@ -1511,39 +1512,60 @@ NFC y normalización temporal son reglas de SmartEnergy: JCS por sí mismo no
 normaliza Unicode ni interpreta fechas. Después del preprocesamiento se aplican
 la serialización JCS, su orden de propiedades por unidades UTF-16 y salida UTF-8.
 
-- **Números:** sólo finitos representables sin pérdida de precisión significativa
-  conforme al dominio aprobado. Rechazar conversiones silenciosas con pérdida de
-  precisión. `1` y `1.0` son equivalentes; `-0` y `0` también. No convertir unidades,
-  redondear metrológicamente ni usar tolerancias E06 para comparar contenido.
-- **Tiempo:** normalizar campos temporales contractuales conocidos a UTC, sufijo
-  `Z`, ISO 8601 extendido, máximo microsegundos y sin ceros finales innecesarios
-  en la fracción. Rechazar precisión superior que no pueda representarse exactamente;
-  no inferir tiempos desconocidos. Conservar originales según S03.4, sin convertir
-  históricos naive por suposición ni interpretar como fechas las referencias opacas.
-- **Unicode:** aplicar NFC a claves y valores de texto antes de JCS. Rechazar
+- **D2.1 — Números:** JCS conforme a RFC 8785, IEEE 754 binary64 y serialización
+  ECMAScript. Admitir números internos `float` si son finitos y compatibles con
+  binary64. Para JSON externo, conservar el token numérico original antes de
+  convertirlo: los enteros requieren conversión exacta a binary64; para los
+  decimales, obtener su valor decimal exacto y convertirlo a binary64. Admitir un
+  decimal sólo si su valor coincide numéricamente, mediante aritmética decimal
+  exacta, con la representación decimal canónica JCS del binary64 obtenido.
+  Esta equivalencia decimal no exige representación binaria exacta: `0.1` puede
+  admitirse aunque no sea una fracción binaria exacta. Aceptar diferencias sólo
+  sintácticas de notación científica, ceros finales o formatos decimales
+  equivalentes. Rechazar pérdida de precisión declarada, desbordamiento, resultados
+  no finitos y subdesbordamiento de un valor no nulo a cero. `1` y `1.0` son
+  equivalentes; `-0` y `0` también. Mantener separados valor declarado,
+  representación binary64 y bytes canónicos. Un `float` interno no permite
+  recuperar la precisión declarada de un token externo ya perdido; no omitir
+  por ello el control de entrada externa. No convertir números a strings, cambiar
+  unidades, redondear metrológicamente ni aplicar tolerancias E06. El dominio
+  contractual S03.2 sigue vigente, sin añadir límites físicos.
+- **D2.2 — Tiempo:** entradas ISO 8601 extendidas con fecha y hora completas,
+  segundos obligatorios y zona explícita `Z` o desplazamiento `±HH:MM`. Años
+  0001–9999; desplazamientos `±HH:MM` con `00 ≤ HH ≤ 14` y `00 ≤ MM ≤ 59`;
+  si `HH = 14`, obligatoriamente `MM = 00`. `+14:00` y `-14:00` son válidos;
+  `+14:01` y `-14:01` son inválidos. Fracción opcional de uno a
+  seis dígitos. Rechazar más de seis dígitos incluso si terminan en cero, tiempos
+  naive, fechas incompletas o inexistentes, segundos intercalares y `24:00:00`.
+  Rechazar conversiones a UTC fuera del rango representable. Salida canónica:
+  UTC con sufijo `Z`, máximo microsegundos, eliminando ceros fraccionarios finales
+  y la fracción si queda vacía. Instantes equivalentes producen idénticos bytes.
+  No inferir tiempos desconocidos; conservar `null` donde el contrato lo permita.
+  La normalización es para la comparación: no modificar tiempos originales ni
+  evaluaciones del receptor. Conservar originales según S03.4, sin convertir
+  históricos naive por suposición ni interpretar referencias opacas como fechas.
+- **D2.3 — Unicode:** aplicar NFC a claves y valores de texto antes de JCS. Rechazar
   claves duplicadas, colisiones de claves tras NFC y secuencias Unicode inválidas,
   incluidos sustitutos aislados. No alterar mayúsculas, espacios ni puntuación.
-- **Contenido:** incluir `contract_version`, identidad lógica, `context`, `quantity`,
+- **D2.4 — Contenido:** incluir `contract_version`, identidad lógica, `context`, `quantity`,
   `value`, `unit`, calidad de origen, tiempos de origen y procedencia completa,
   incluidas todas las referencias y `counter_epoch` cuando corresponda. La identidad
   sigue siendo `(installation_id, device_id, observation_id)`; recepción no la forma.
   Excluir entrega/recepción, registro del receptor, `time.assessment` y evaluaciones
   temporales con sus razones/evidencias generadas por el receptor. Conservar las
   razones/evidencias de origen, aunque una evaluación posterior añada otras.
-- **Estructura e igualdad:** conservar orden de arreglos y distinguir `null`, cero,
+- **D2.5 — Estructura e igualdad:** conservar orden de arreglos y distinguir `null`, cero,
   `false`, cadena vacía y propiedad ausente. La igualdad se decide comparando todos
   los bytes canónicos, sin digest obligatorio. Canonicalizar no convierte un payload
   incompatible en una observación admisible.
 
-**Precisión numérica pendiente de aprobación antes de implementar:** RFC 8785
-usa números IEEE 754 de doble precisión y serialización ECMAScript; no garantiza
-conservar exactamente cualquier número JSON. Debe concretarse qué dominio y
-conversiones de entrada satisfacen «sin pérdida de precisión significativa»,
-incluidos enteros, decimales y extremos representables. No se fijan umbrales ni
-se autorizan conversiones a strings para eludir el tipo numérico de S03.2.
-También debe concretarse el conjunto de formatos temporales de entrada y rangos
-admisibles compatible con la representación aprobada; la salida normalizada ya
-está decidida. Estas precisiones no reabren JCS, NFC ni la política temporal.
+**D2.1–D2.2 aprobadas como precisiones arquitectónicas, todavía sin implementar**,
+mediante «SmartEnergy — S06, paso 7: consolidación documental D2.1–D2.2», sobre
+`feature/simulador`, HEAD `fe7c4b8`, árbol limpio. Sustituyen los pendientes de
+dominio numérico y formatos/rangos temporales de la consolidación D1–D3.
+RFC 8785 no garantiza conservar exactamente cualquier número JSON: el control
+adicional de admisión externa de D2.1 evita aceptar pérdida de precisión declarada.
+No cambia la política `smartenergy-jcs-nfc@1.0.0`, S03.2, D1, D2.3–D2.5 ni D3.
 
 **Vectores documentales de aceptación futura (no ejecutados).** Los fragmentos
 suponen el resto de una observación válida idéntico. «Distinto» significa bytes
@@ -1551,8 +1573,15 @@ distintos, no rechazo; la admisibilidad contractual se verifica por separado.
 
 | Área | Vector positivo / resultado | Vector negativo o diferencia exigida |
 |---|---|---|
-| Números | `1` / `1.0` → `1`; `-0` / `0` → `0` | NaN/Infinity: rechazo. Conversión que pierda precisión: rechazo; límites concretos pendientes, sin tolerancia E06 |
-| Tiempo | `2026-10-17T07:00:00.125000-05:00` / `2026-10-17T12:00:00.125Z` → segundo formato | Fracción `.1234567`: rechazo por no ser representable exactamente en microsegundos; `null` no equivale a fecha conocida |
+| Números externos equivalentes | `1` / `1.0` → `1`; `-0` / `0` → `0`; `1e3` / `1000` / `1000.00` → `1000` | `0.10000000000000001`: rechazo; su binary64 se serializa como `0.1`, decimal diferente del declarado |
+| Decimal externo | `0.1` / `0.10` / `1e-1` → `0.1`, equivalencia decimal exacta con la salida JCS | No exigir que `0.1` tenga representación binaria exacta ni usar E06 para aceptar el vector anterior |
+| Enteros externos | `9007199254740992` y `9007199254740994`: conversiones exactas, cada uno conserva su valor | `9007199254740993`: rechazo por conversión inexacta; no imponer como límite global el mayor entero consecutivo exacto |
+| Magnitudes externas extremas | `1.7976931348623157e308` → `1.7976931348623157e+308`; `5e-324` → `5e-324` | `1e309`: desbordamiento; `1e-400`: subdesbordamiento no nulo a cero; `4.9e-324`: su salida `5e-324` cambia el decimal declarado; todos rechazados |
+| Números internos | `float` binary64 finito: admisible como valor interno, sin atribuirle un token externo | NaN/Infinity: rechazo; haber convertido antes el token externo no elimina el control de precisión declarada |
+| Tiempo equivalente | `2026-10-17T07:00:00.125000-05:00` / `2026-10-17T12:00:00.125Z` → segundo formato; `.000000Z` → `Z` | Fracciones `.1234567` y `.1234560`: rechazo por longitud, incluso con cero final |
+| Cambio de fecha | `2026-10-17T00:30:00+01:00` / `2026-10-16T23:30:00Z` → segundo formato | No conservar la fecha local como fecha UTC ni sustituir por recepción |
+| Límites UTC | `0001-01-01T14:00:00+14:00` → `0001-01-01T00:00:00Z`; `9999-12-31T09:59:59.999999-14:00` → `9999-12-31T23:59:59.999999Z` | `0001-01-01T00:00:00+14:00` y `9999-12-31T23:59:59-14:00`: UTC fuera de rango; años 0000/10000 y offsets ±14:01: rechazo |
+| Formato temporal | `null` se conserva sólo donde esté permitido; no equivale a fecha conocida | Rechazar `2026-10-17`, `2026-10-17T12:00Z`, `2026-10-17T12:00:00`, `2026-02-30T12:00:00Z`, `2016-12-31T23:59:60Z` y `2026-10-17T24:00:00Z` |
 | Unicode | `"e\u0301"` / `"\u00e9"` → mismo texto NFC | Claves `"e\u0301"` y `"\u00e9"` en un objeto: rechazo por colisión; `"\uDEAD"`: rechazo; `"A"` / `"a"`: distintos |
 | Propiedades | `{"b":2,"a":1}` / `{"a":1,"b":2}` → `{"a":1,"b":2}` | Clave duplicada antes de NFC: rechazo |
 | Arreglos | `["L1","N"]` / `["L1","N"]`: iguales | `["L1","N"]` / `["N","L1"]`: distintos; no reordenar para aparentar igualdad |
@@ -1890,11 +1919,11 @@ D01–D06 mantienen el cierre documental S01 con diferimientos; E01–E07 la
 especificación matemática aprobada S02; C01–C08 el contrato común aprobado S03.
 F-D01–F-D05 e I-D01–I-D07 fueron aprobadas expresamente el 2026-10-17:
 **S04 y S05 cerradas sólo como especificaciones documentales aprobadas**.
-**Estado tras consolidación documental D1–D3 de S06 paso 7 (2026-10-17):**
+**Estado tras consolidación documental D2.1–D2.2 de S06 paso 7 (2026-10-17):**
 pasos 1–5 aprobados; paso 6 pendiente de auditoría; paso 7 parcialmente implementado,
 pendiente de auditoría independiente y de implementación de admisión. D1 en S03.3
-y D2/D3 en S03.4 están aprobadas como decisiones arquitectónicas, con precisiones
-numéricas y de entrada temporal pendientes antes de implementar D2. Paso 8 no
+y D2/D3 en S03.4 están aprobadas como decisiones arquitectónicas, incluidas las
+precisiones numéricas y temporales D2.1–D2.2, todavía sin implementar. Paso 8 no
 autorizado; S07–S09 no iniciadas. Los estados históricos
 anteriores no sustituyen este registro vigente. No se aprueban umbrales industriales,
 etiquetas ML, equivalencia instrumental ni nuevas convenciones físicas.

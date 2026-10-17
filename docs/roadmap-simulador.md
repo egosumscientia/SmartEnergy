@@ -77,9 +77,16 @@ El 2026-10-17, mediante «SmartEnergy — S06, paso 7: consolidación documental
 D1–D3», el responsable aprueba D1–D3 como decisiones arquitectónicas y autoriza
 únicamente incorporarlas al contrato y a este roadmap. Base verificada:
 `feature/simulador`, HEAD `d6a6f2e`, árbol limpio. La política canónica queda
-elegida; sus precisiones numéricas y de entrada temporal siguen pendientes de
-aprobación antes de implementarla. No se implementa código ni se ejecutan pruebas.
+elegida; sus precisiones numéricas y de entrada temporal quedaron entonces pendientes
+de aprobación. Se aprueban posteriormente mediante D2.1–D2.2, sin implementación.
+No se implementa código ni se ejecutan pruebas.
 No cambia la aceptación de los incrementos anteriores ni autoriza paso 8 o S07–S09.
+
+Mediante «SmartEnergy — S06, paso 7: consolidación documental D2.1–D2.2», el
+responsable aprueba los dominios numérico y temporal de la política existente
+`smartenergy-jcs-nfc@1.0.0`. Base verificada: `feature/simulador`, HEAD `fe7c4b8`,
+árbol limpio. Sólo se actualizan contrato y roadmap; precisiones aprobadas,
+todavía sin implementar. No autoriza código, pruebas, paso 8 ni S07–S09.
 
 Secuencia: S01 → S02 → S03 → S04 → S05 → S06 → S07 → S08 → S09.
 El núcleo inicial puede ser genérico, pero S01 conserva la investigación obligatoria
@@ -92,14 +99,14 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras consolidación documental D1–D3 del paso 7 de S06 (2026-10-17) |
+| Etapa | Estado tras consolidación documental D2.1–D2.2 del paso 7 de S06 (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
 | S02 | Cerrada como especificación matemática aprobada E01–E07; núcleo implementado y probado en el incremento S06, sin validación industrial |
 | S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
 | S04 | Especificación documental aprobada F-D01–F-D05; implementación del paso 4 aceptada formalmente |
 | S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; instrumentación I01–I04 del paso 5 aprobada; adquisición A01–A02 implementada en paso 6, pendiente de auditoría |
-| S06 | Pasos 1–5 aprobados; paso 6 pendiente de auditoría; paso 7 parcialmente implementado y pendiente de auditoría independiente; D1–D3 aprobadas documentalmente, admisión/canonicalización sin implementar y precisiones D2 pendientes; paso 8 no autorizado |
+| S06 | Pasos 1–5 aprobados; paso 6 pendiente de auditoría; paso 7 parcialmente implementado y pendiente de auditoría independiente; D1–D3 y precisiones D2.1–D2.2 aprobadas documentalmente, admisión/canonicalización sin implementar; paso 8 no autorizado |
 | S07–S09 | No iniciadas; validación integral, integración y cierre no autorizados |
 
 La aceptación distingue tres niveles definidos en el
@@ -276,8 +283,8 @@ versionado; identidad/alcance; calidad/procedencia; tiempo; deduplicación;
 artefacto físico; compatibilidad/ML; integración y aceptación. Cada una incluye
 fundamento, alternativas, riesgos y consecuencias conservados como registro.
 La instrucción S03/S04 identificada al inicio cierra S03 sólo documentalmente.
-La consolidación D1–D3 posterior aprueba la política canónica en S03.4; siguen
-pendientes sus precisiones técnicas antes de implementarla, garantías
+La consolidación D1–D3 posterior aprueba la política canónica en S03.4, y D2.1–D2.2
+aprueba sus dominios numérico y temporal. Siguen pendientes implementación, garantías
 de deduplicación concurrente, retención/recuperación de artefactos, evidencia de
 unidades/zonas históricas, adaptadores, persistencia, pruebas y autorizaciones de
 integración por nivel. Aprobar el contrato no demuestra esas capacidades ni
@@ -870,10 +877,9 @@ no demuestra su implementación ni levanta las reservas de evidencia anteriores.
   Procesar por llegada; primera válida aceptada aunque tardía; rechazo no reserva
   identidad; origen y evaluación inmutables, determinismo en memoria.
 
-**Precisiones pendientes de aprobación antes de implementar D2:** dominio numérico
-y conversiones que satisfacen «sin pérdida de precisión significativa» bajo los
-requisitos IEEE 754 de JCS; formatos de entrada temporal y rangos compatibles con
-UTC Z y microsegundos exactos. No se inventan umbrales ni se reabre la política.
+**Pendientes históricos resueltos documentalmente por D2.1–D2.2:** dominio numérico
+y conversiones bajo los requisitos binary64 de JCS; formatos y rangos temporales.
+Las reglas aprobadas se detallan a continuación, todavía sin implementar.
 El formato temporal actual del DTO puede necesitar normalización de ceros finales
 al comparar, sin cambiar el origen. NFC también puede unificar textos de identidad;
 la compatibilidad debe revisarse antes de implementar, sin migraciones implícitas.
@@ -884,6 +890,40 @@ Esta entrega sólo cambia contrato y roadmap: sin código, pruebas, servicios,
 dependencias, Docker, PostgreSQL, persistencia, concurrencia, transacciones,
 integración, commit ni push. No cierra S06 ni autoriza paso 8 o S07–S09.
 La implementación posterior exige autorización expresa.
+
+### Consolidación documental D2.1–D2.2 de S06 paso 7
+
+Precisiones arquitectónicas aprobadas sobre `fe7c4b8`, todavía sin implementar;
+se conserva `smartenergy-jcs-nfc@1.0.0`. Reglas y vectores documentales en
+[D2 del contrato](contratos/simulador-fase-1.md#d2--política-canónica-aprobada-smartenergy-jcs-nfc100).
+
+- **D2.1 — Dominio numérico:** RFC 8785, IEEE 754 binary64 y serialización
+  ECMAScript. Admitir `float` internos finitos compatibles con binary64. En JSON
+  externo conservar el token antes de convertir; exigir conversión exacta para
+  enteros. Para decimales, comparar mediante aritmética decimal exacta el valor
+  declarado con el decimal canónico JCS del binary64 obtenido; no exigir exactitud
+  binaria del decimal. Aceptar diferencias sintácticas equivalentes y rechazar
+  pérdida de precisión declarada, desbordamiento, no finitos y subdesbordamiento
+  no nulo a cero. Separar valor declarado, binary64 y bytes canónicos; sin strings,
+  tolerancias E06, conversiones metrológicas ni cambios de S03.2. Vectores:
+  `0.1` admisible, `0.10000000000000001` rechazado; `1e3`/`1000` equivalentes;
+  enteros exactos e inexactos y extremos de magnitud detallados en el contrato.
+- **D2.2 — Dominio temporal:** ISO 8601 extendido, fecha/hora completas y segundos
+  obligatorios; zona `Z` o `±HH:MM`, años 0001–9999 y offsets entre −14:00 y +14:00.
+  En `±HH:MM`: `00 ≤ HH ≤ 14`, `00 ≤ MM ≤ 59` y, si `HH = 14`, `MM = 00`.
+  Fracción opcional de uno a seis dígitos; más de seis se rechaza aunque termine
+  en cero. Rechazar naive, fechas incompletas/inexistentes, segundos intercalares,
+  `24:00:00` y conversiones UTC fuera de rango. Conservar null permitido y no inferir
+  tiempos. Salida UTC Z, máximo microsegundos, sin ceros fraccionarios finales;
+  instantes equivalentes producen bytes idénticos. No modificar originales ni
+  evaluaciones del receptor. Vectores de equivalencia, rechazo, cambio de fecha
+  y límites UTC documentados, sin ejecución.
+
+Se resuelven los pendientes de aprobación numérica y temporal de D2, sin reabrir
+D1, D2.3–D2.5 ni D3. A01-CON, C01-MAS, manifiestos definitivos y demás reservas
+mantienen su estado. No se implementa ni valida canonicalización o admisión, no
+se cierra S06 y no se autoriza paso 8 ni S07–S09. Sin código, pruebas, servicios,
+Docker, PostgreSQL, commit ni push. Detención para auditoría independiente.
 
 ## S07 — Validar coherencia física, matemática y temporal
 
