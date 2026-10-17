@@ -58,6 +58,13 @@ exclusivamente I01–I04. Base verificada: `feature/simulador`, HEAD
 implementado con el pendiente de contadores con ruido registrado más abajo,
 sometido a auditoría independiente; pasos 6–8 siguen sin autorización.
 
+El 2026-10-17, mediante «SmartEnergy — S06, paso 6: adquisición simulada
+A01–A02», el responsable aprueba los pasos 1–5 y autoriza exclusivamente
+adquisición aislada. Base verificada: `feature/simulador`, HEAD
+`631045501c4934f6f939fb589b1075b86465ea1f`, árbol limpio. El paso 6 queda
+implementado y pendiente de auditoría independiente; pasos 7–8 requieren nueva
+autorización. Los resultados anteriores conservan su estado histórico de entrega.
+
 Secuencia: S01 → S02 → S03 → S04 → S05 → S06 → S07 → S08 → S09.
 El núcleo inicial puede ser genérico, pero S01 conserva la investigación obligatoria
 del ADW210 y el contraste documental del apartado I del roadmap técnico. S02 puede
@@ -69,14 +76,14 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras implementación del paso 5 de S06, pendiente de revisión (2026-10-17) |
+| Etapa | Estado tras implementación del paso 6 de S06, pendiente de revisión (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
 | S02 | Cerrada como especificación matemática aprobada E01–E07; núcleo implementado y probado en el incremento S06, sin validación industrial |
 | S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
 | S04 | Especificación documental aprobada F-D01–F-D05; implementación del paso 4 aceptada formalmente |
-| S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; instrumentación I01–I04 implementada en paso 5, pendiente de auditoría; adquisición sin implementar |
-| S06 | Pasos 1–4 aceptados; paso 5 implementado y pendiente de auditoría, con rechazo explícito de integración energética con ruido; pasos 6–8 no autorizados |
+| S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; instrumentación I01–I04 del paso 5 aprobada; adquisición A01–A02 implementada en paso 6, pendiente de auditoría |
+| S06 | Pasos 1–5 aprobados, conservando rechazo de integración energética con ruido; paso 6 implementado y pendiente de auditoría; pasos 7–8 pendientes de autorización |
 | S07–S09 | No iniciadas; validación integral, integración y cierre no autorizados |
 
 La aceptación distingue tres niveles definidos en el
@@ -658,6 +665,98 @@ Sin commit ni push. S01–S05 mantienen aprobación documental; S06 pasos 1–4
 aceptados, paso 5 pendiente de auditoría con el límite indicado; pasos 6–8 no
 autorizados; S07–S09 no iniciadas. No acredita validación industrial, metrológica,
 integración ni cierre de un nivel completo. Se detiene en el paso 5.
+
+### Resultado de S06 — adquisición A01–A02 (paso 6)
+
+Se crean [`simulator_acquisition.py`](../smartenergy/analysis/simulator_acquisition.py)
+y [`test_simulator_acquisition.py`](../tests/test_simulator_acquisition.py).
+Sólo se actualiza este roadmap; núcleo físico, escenarios, instrumentación y
+contrato permanecen intactos. Incremento pendiente de auditoría independiente.
+
+Interfaces públicas:
+
+| Interfaz | Responsabilidad |
+|---|---|
+| `AcquisitionConfig` | Horizonte inclusivo, pérdidas por índice, retrasos no negativos por envío, reentregas con tiempo de envío explícito, caídas [a,b) y Bernoulli opcional |
+| `FifoPolicy` | B, H, K y calendario de reintentos obligatorio; cola acotada en memoria, descarte del más antiguo, expiración edad>H desde producción y límite total de intentos |
+| `acquire(traces, config)` | Consume un calendario instrumental por dispositivo; genera intentos y recepciones sin volver a medir, alterar origen ni avanzar física |
+| `AcquisitionAttempt`, `Delivery` | Intento numerado y recepción con ID propio; misma captura inmutable, soporte declarado, tiempo programado/producción y enlace al intento inicial preservados |
+| `AcquisitionResult`, `QueueEvent` | Artefacto privado: configuración, trazas instrumentales originales, decisiones de pérdida, intentos, recibidas/nunca recibidas/pendientes, silencios, descartes, semilla y versión Python |
+
+Las entregas disponibles son únicamente `result.deliveries`. El resto conserva
+verdad privada de ensayo, sin publicarla como diagnóstico. No se añade un evento
+físico por intento, pérdida ni silencio: la referencia física sigue en S02/S04 y
+el soporte real/retención en las trazas S05 originales. Los IDs de captura se
+conservan; intentos usan `<capture_id>/acquisition-k` y entregas la convención
+S05 `<capture_id>/attempt-k`, con enlace explícito entre ambos. Se conservan todas las
+recepciones; no hay deduplicación, admisión accepted/duplicate/conflict, selección
+de último lógico ni DTO S03. Los ensayos cuentan identidades para contrastar
+oráculos, sin implementar esas políticas de consumidor.
+
+El primer envío ocurre en producción. La caída bloquea el intento de envío; un
+retraso conserva su recepción programada, sin inventar buffers de red durante
+el tránsito. Recepciones ordenadas por (tiempo, ordinal de intento). Los reenvíos
+deben ser posteriores a producción; en empates de envío se procesan iniciales
+antes de reenvíos y luego por índice. La recuperación sólo ejecuta el calendario
+explícito de la cabeza FIFO, nunca drena automáticamente. Un reintento de una
+captura ya descartada/expirada no crea intento. Al horizonte se distinguen cola
+con reintento futuro, tránsito y pérdida definitiva; un calendario agotado no
+promete recuperación posterior. Cada intento tiene resultado recibido, fallido
+o en vuelo; cada captura producida pertenece a recibida única, nunca recibida
+o pendiente. Los silencios I03 permanecen fuera del denominador de pérdidas.
+
+Bernoulli usa p∈[0,1], pierde si u<p y conserva la decisión por captura; un
+sorteo por captura producida en orden de índice, ninguno por silencio ni reintento.
+SHA-256/JSON y MT19937 local según I-D03, con layer=`acquisition` y canal/perfil/
+identidad explícitos. No hay retraso o duplicación aleatorios: no tienen perfiles
+aprobados. S05 no fija n/seed/banda binomial para aceptación estadística de pérdida;
+se verifica transformación, semilla, extremos y reproducción, sin atribuirle esa
+aceptación ni inventar un oráculo estadístico.
+
+Validación nativa aislada, sin dependencias nuevas:
+
+```bash
+.venv/bin/python -B -m unittest -v tests.test_simulator_acquisition tests.test_simulator_physics tests.test_simulator_scenarios tests.test_simulator_instrumentation
+git diff --check
+```
+
+**95 pruebas aprobadas: 26 nuevas y 69 conservadas, cero fallos.** A01-CAL:
+7 intentos/1 fallido/6 recepciones, orden 0,3,4,5,1,3, valores
+600,630,640,650,610,630 W, edades 6 stale y 5 current, energía física 35 Wh.
+A02-DES: 6 intentos/3 fallidos/3 recepciones, sin recuperación de huecos.
+A02-FIFO B=3/H=5/K=2: 9/3/6, orden 0,4,5,1,2,3; B=2: 8/3/5 y descarte j1;
+B=2/H=3: 6/3/3 por expiración. Sin pendientes ni tránsito al cerrar estos casos.
+I03-INT: 3 silencios, 3 producidas/intentos/recepciones y cero pérdidas A.
+Se cubren límites [a,b), edad 5/>5, horizonte inclusivo, tránsito/cola pendientes,
+K/FIFO, empates, producción distinta de captura programada, parámetros inválidos,
+reproducción exacta e inmutabilidad. Los controles S02/S04/S05 originales pasan.
+
+Reservas de auditoría del paso 5:
+
+- **R1:** se conserva el rechazo energético de rutas con ruido. Alternativas
+  pendientes de decisión humana: retención de orden cero produce una trayectoria
+  escalonada dependiente de cadencia; interpolación exige puntos futuros y cambia
+  áreas; un proceso continuo especificado requiere su propio modelo temporal y
+  oráculos. Ninguna se implementa ni se integra energía desde muestras.
+- **R2:** soporte declarado antiguo/actual/desconocido y soporte real retenido se
+  preservan por separado; las pruebas mantienen el enlace privado a la captura
+  fuente y evalúan edad sólo sobre evidencia declarada, sin diagnóstico inventado.
+- **R3:** un fallo sólo de P conserva su incoherencia con S/FP sin corrección ni
+  diagnóstico conjunto. Validación individual de rango no acredita coherencia.
+
+La prueba en proceso separado bloquea infraestructura/configuración/ML/API,
+lectura de .env, escrituras, red, procesos y reloj/sleep durante importación y
+adquisición. La reproducción conserva todas las identidades/valores/calendarios;
+los flujos A no consumen RNG global ni sorteos I. Física, eventos, lecturas,
+unidades, calidad y contadores originales permanecen intactos. No se ejecutaron
+PostgreSQL, Docker, servicios, generadores, API/frontend ni suite general; el
+laboratorio protegido no se intervino. Sin commit ni push.
+
+A01-CON (admisión de contenidos conflictivos), canonicalización, composición
+S03, C01-MAS y manifiestos definitivos siguen pendientes; no se declaran probados.
+No hay persistencia ni validación industrial. S01–S05 mantienen aprobación
+documental, S06 pasos 1–5 aprobados y paso 6 pendiente de auditoría; pasos 7–8
+pendientes de autorización, S07–S09 no iniciadas. Se detiene en el paso 6.
 
 ## S07 — Validar coherencia física, matemática y temporal
 
