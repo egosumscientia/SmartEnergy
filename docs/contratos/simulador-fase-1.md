@@ -73,8 +73,9 @@ la corrección puntual de S03.5. Base verificada: `feature/simulador`, HEAD
 `024d820f784aa38e321cf5970deb78a4bd838c39`, árbol limpio. Esta instrucción autoriza
 el diseño documental S04 en este contrato y el roadmap; **S04 queda propuesta,
 pendiente de revisión y aprobación F-D01–F-D05; S05–S09 no iniciadas**.
-Los estados de entregas anteriores son históricos y quedan sustituidos por este
-registro y el apartado 9; no se alteran las matemáticas S02.1–S02.9.
+Los estados de entregas anteriores son históricos; el último registro de
+aprobación y el apartado 9 determinan el estado vigente; no se alteran las
+matemáticas S02.1–S02.9.
 
 La aprobación C01–C08 conserva pendientes la canonicalización definitiva antes de
 implementarla, unicidad y deduplicación concurrente demostrables, políticas de
@@ -82,6 +83,14 @@ retención/recuperación de artefactos, evidencia de unidades y zonas histórica
 adaptadores, almacenamiento/HTTP, pruebas y autorizaciones de integración por
 nivel. No habilita cambios en bases, servicios, interfaces, modelos ML ni recursos
 persistentes; tampoco acredita capacidades ejecutadas o validación industrial.
+
+**Actualización S04/S05 (2026-10-17):** la instrucción «SmartEnergy — Cierre formal
+de S04 y diseño documental de S05» aprueba F-D01–F-D05 y cierra S04 exclusivamente
+como especificación documental (S04.7). Base verificada: `feature/simulador`, HEAD
+`a9ae8ef8c7039882271ef2600400db7950986576`, árbol limpio. Autoriza sólo modificar
+este contrato y el roadmap para diseñar S05. **S05 especificada, pendiente de
+revisión y aprobación I-D01–I-D07; S06–S09 no iniciadas.** No autoriza implementación,
+servicios, infraestructura, PostgreSQL, Docker, ML, commit ni push.
 
 ## 2. Estado real y brechas comprobadas
 
@@ -616,10 +625,11 @@ eléctrica; fallo de comunicación no significa máquina parada. La política de
 etiquetado será multicausal; una eventual proyección a `Normal`/`Anomalo` necesita
 regla explícita y aprobación, sin colapsar la referencia original.
 
-### S04 — Escenarios físicos y perfiles propuestos
+### S04 — Escenarios físicos y perfiles aprobados
 
-**Propuesta documental pendiente F-D01–F-D05**, sin implementación ni aceptación
-experimental. La investigación se limita a derivar casos del modelo aprobado
+**Especificación documental aprobada F-D01–F-D05 el 2026-10-17**, sin
+implementación ni aceptación experimental. La investigación se limita a derivar
+casos del modelo aprobado
 S02 y del contrato S03; no requiere nuevas atribuciones instrumentales ni normas
 externas. F01–F05 conservan exactamente sus significados de la tabla anterior.
 Los sufijos siguientes son casos de esas familias; `S02:Cxx` identifica oráculos
@@ -681,7 +691,7 @@ soportes y entradas originales, con el contexto común; no amplían el modelo.
 
 #### S04.3 — Condiciones de ensayo y límites de interpretación
 
-Propuestas exclusivamente sintéticas para aprobación F-D02:
+Condiciones exclusivamente sintéticas aprobadas mediante F-D02:
 
 - F02-SOB: capacidad I_cap=15 A; condición sobrecarga si I_L1>15 A de forma
   continua al menos 10 s. Umbral estricto: exactamente 15 A no cumple; 20 A
@@ -810,16 +820,32 @@ artefactos en esta entrega.
 Las ventanas/identidades de estos casos aportarán fixtures al nivel 2, que exige
 validación independiente del contrato/consumidores en S08. Ningún cálculo documental
 acredita ya nivel 1, 2 o 3. Cobertura física F01–F05 especificada, no ejecutada:
-quedan pendientes I01–I04/A01–A02/C01 (S05), estadísticas/perfiles instrumentales,
+I01–I04/A01–A02/C01 y estadísticas/perfiles instrumentales se proponen en S05;
+quedan pendientes su aprobación,
 implementación/pruebas unitarias (S06), aceptación con tolerancias y reproducción
 (S07), compatibilidad ejecutada/persistencia autorizada (S08) y cierre operativo
 (S09). Reinicio/rollover y cercanía a cero conservan los controles S02/S03, sin
 simularlos como fenómenos nuevos S04. D02/D05 siguen bloqueando equivalencia de
 instrumentos específicos; no bloquean estos perfiles genéricos ni se dan por cumplidos.
 
-#### S04.7 — Decisiones propuestas para aprobación humana
+#### S04.7 — Decisiones aprobadas y cierre documental
 
-Todas pendientes. Aprobar diseño S04 no autorizará S05/S06 ni ejecución posterior.
+**Aprobación humana explícita registrada el 2026-10-17:** el responsable aprueba
+individualmente F-D01–F-D05 mediante «SmartEnergy — Cierre formal de S04 y diseño
+documental de S05», sobre HEAD `a9ae8ef8c7039882271ef2600400db7950986576`,
+rama `feature/simulador`, árbol inicialmente limpio. **S04 cerrada únicamente
+como especificación documental aprobada.** La tabla conserva recomendaciones,
+alternativas y riesgos como fundamento histórico de las decisiones aprobadas.
+
+- F-D01: catálogo físico F01–F05, parámetros, versiones y manifiesto reproducible.
+- F-D02: capacidades, umbrales y duraciones exclusivamente sintéticos.
+- F-D03: ventanas, transiciones, oráculos independientes y condiciones de rechazo.
+- F-D04: separación de verdad física, eventos, condiciones, diagnóstico y ML.
+- F-D05: cobertura y aceptación futura, sin acreditar pruebas ejecutadas.
+
+Se conservan límites S02/S03, D02/D05, implementación y aceptación pendientes.
+La instrucción autoriza sólo el diseño documental S05; no ejecución de código,
+infraestructura ni inicio de S06. Aprobar S04 por sí solo no autoriza otra etapa.
 
 | ID | Recomendación y fundamento | Alternativas | Consecuencias / riesgos / aprobación requerida |
 |---|---|---|---|
@@ -828,6 +854,409 @@ Todas pendientes. Aprobar diseño S04 no autorizará S05/S06 ni ejecución poste
 | F-D03 | Aprobar ventanas de P/Q, contadores y fronteras de S04.4 con áreas independientes y tolerancias E06 | Sólo puntos finales; usar integración del propio motor como esperado | Alternativas ocultan transiciones/compensaciones. Aprobar soportes y criterios/rechazos, manteniendo pendientes métodos instrumentales de otras ventanas |
 | F-D04 | Aprobar estados/eventos/condiciones separados de diagnóstico/ML y artefactos/linaje S04.6 conforme a S03 | Etiqueta binaria automática; verdad mezclada en observaciones | Riesgo de fuga de causas y evaluación ficticia; requiere trazabilidad de todos los segmentos. Aprobar separación y calidad ideal sin adelantar fallos S05 |
 | F-D05 | Aprobar suficiencia documental y plan de aceptación física futuro nivel 1, fixtures posteriores nivel 2, sin acreditar persistencia | Exigir integración inmediata o dar pruebas por aprobadas con estas cuentas | Las cuentas no validan código; mantener D02/D05, pendientes de S03 y autorizaciones de S05–S09. Aprobar límites/pendientes y cierre documental S04 sólo tras revisión humana |
+
+### S05 — Instrumentación y adquisición propuestas
+
+**Propuesta documental pendiente de revisión y aprobación I-D01–I-D07.** No
+implementa funciones, clases, módulos ni almacenamiento. I01 es ruido/error
+acotado; I02 sesgo/deriva/descalibración; I03 congelación/intermitencia; I04
+relación CT/VT incorrecta; A01 pérdida/retraso/duplicación; A02 caída/recuperación.
+C01 conserva exactamente F02 + I03 + A01 del catálogo mínimo. No se confunde con
+F02-F03-JUN, oráculo S02:C01, ni decisión S03:C01.
+
+#### S05.1 — Evidencia, fronteras y manifiesto
+
+Fuentes primarias consultadas el 2026-10-17:
+
+| Referencia | Uso y límite |
+|---|---|
+| [Python 3.13, random](https://docs.python.org/3.13/library/random.html), generador y reproducibilidad | MT19937, instancias con estado separado y random() de 53 bits; no demuestra independencia estadística entre semillas ni exactitud instrumental |
+| [Python 3.13, hashlib](https://docs.python.org/3.13/library/hashlib.html), SHA-256 | Derivación determinista de semillas; no es certificación de subflujos independientes |
+| [NIST, Uniform Distribution](https://www.itl.nist.gov/div898/handbook/eda/section3/eda3662.htm), media y desviación | Uniforme acotada: media (A+B)/2, varianza (B−A)²/12; no acredita una distribución de ruido real |
+| [Hoeffding, 1963, Probability Inequalities for Sums of Bounded Random Variables](https://www.cs.rpi.edu/academics/courses/spring06/random/hoefding.pdf), JASA 58, 13–30 | Cotas para sumas independientes acotadas; aplicación bilateral y unión de controles como deducción de ensayo, sin asumir que un PRNG sea IID verdadero |
+| Matriz S01, apartados A/B y D02/D05 | V/I como entradas y P/Q/S/FP/energía como resultados derivados es una clasificación conceptual. Cadencia, resolución, incertidumbre y CT/VT específicos siguen pendientes |
+
+Las fórmulas, bandas conservadoras y políticas siguientes son deducciones y
+propuestas de ensayo propias. No se atribuyen a ADW210, SDM630 ni PM5310. Se
+prefiere uniforme acotada a gaussiana: permite un límite absoluto sin recortes
+que cambien la distribución. Normal truncada sería una alternativa con densidad,
+normalización y aceptación propias; no se incluye en el mínimo propuesto.
+
+Fronteras conceptuales, sin cambiar el DTO S03:
+
+| Frontera | Entrada → salida conceptual | Evidencia separada del producto |
+|---|---|---|
+| Física → instrumentación | Consulta inmutable de estados/segmentos y soporte → resultado instrumental con ID lógico, valor original, método y soporte declarado | Segmentos verdaderos y soporte real, parámetros y causa de error |
+| Instrumentación → adquisición | Observación S03 de origen inmutable → intentos con observation_key, ordinal y tiempo simulado | Resultado previo/posterior a cada transformación; lectura retenida y reloj real/declarado |
+| Adquisición → disponible | Intentos → cero/una/varias entregas S03, recepción/evaluación separadas | Calendario completo, descartes, intentos fallidos y causas no observables |
+| Disponible → admisión futura | Validación y deduplicación conceptual → accepted/duplicate/conflict o rechazo | Correspondencias, evaluación temporal y payload conflictivo conservados; sin SQL ni garantía transaccional ejecutada |
+
+Una pérdida no borra la observación producida en el artefacto ni el evento físico.
+La salida disponible contiene sólo lo recibido, incluidos avisos con evidencia
+propia si el ensayo los habilita; el producto no recibe el calendario oculto.
+Admisión futura no equivale a recorded_at: éste sigue null en todos los ejemplos.
+La normalización es responsabilidad de frontera del adaptador (apartado 4);
+se especifica aquí después de instrumentar el valor original y antes de exponer
+su forma canónica. Puede materializarse al recibir, sin alterar su identidad ni
+hacer depender los errores instrumentales del orden de llegada.
+
+Manifiesto S04.1 ampliado **sólo en el artefacto de ensayo**: caso/versión S05,
+referencia física ID@versión, run_id, configuración, sujetos, canales y unidades;
+perfiles y orden de operaciones; relaciones CT/VT reales/configuradas y lugar de
+escala; cadencia/ventanas, reloj real y declarado; calendarios de producción,
+retención y entrega, política de edad/cola/reintentos; algoritmo/versión/semillas,
+repetición, orden de sorteos y entorno; resultados independientes y tolerancias.
+ID de caso `<familia>-<sufijo>@1`; cambios de parámetros exigen variante/versionado.
+Los perfiles I/A no forman parte del digest de entradas físicas: comparar física
+con/sin ellos por soporte, no por run_id o digest del manifiesto completo.
+La canonicalización definitiva y su aprobación antes de implementar siguen
+pendientes de S03; estas reglas no la sustituyen.
+
+#### S05.2 — Transformaciones, orden y coherencia
+
+Orden recomendado para el perfil de canales primarios:
+
+```text
+verdad física inmutable
+→ secundario ideal CT/VT (si está declarado)
+→ ganancia/sesgo/deriva de sensor y ruido en unidad secundaria
+→ relación configurada para volver a primario indicado
+→ cálculo instrumental de magnitudes derivadas y acumulación instrumental
+→ error de canal de resultado, sólo si se declara ese perfil distinto
+→ cuantización de resultados → retención/congelación/intermitencia
+→ original con unidad explícita → normalización canónica una sola vez
+→ adquisición/recepción/evaluación → observaciones disponibles
+```
+
+Sin CT/VT, secundario=primario y relación=1. Para canal x:
+`z_sec=(1+b+d(t))*x_sec+a+η(t)`; indicado `z=R_cfg*z_sec`, con
+`x_sec=x_true/R_real`. b/d son adimensionales, a/η usan la unidad secundaria;
+un offset especificado en primario se convierte por R_cfg explícitamente.
+No intercambiar offset y relación: cambia su magnitud. Error de configuración
+es R_cfg/R_real distinto de 1, no deriva del sensor. Error de resultado es una
+transformación posterior a la derivación (p. ej. sesgo sólo en P); puede romper
+coherencia con I/Q/S. No es otra forma de ruido en el CT.
+
+En el perfil primario sólo se alteran módulos U/I con ángulos físicos preservados;
+no se simula error de fase CT, saturación ni respuesta espectral. Con ganancias
+positivas g_V/g_I por fase, sin offsets ni ruido: U'=g_V U, I'=g_I I,
+P'=g_V g_I P, Q'=g_V g_I Q, S'=g_V g_I S, FP'=FP. f no cambia; neutro y
+U_LL se recalculan fasorialmente sólo con información suficiente. Una tensión
+compartida se perturba una vez por bus, con el mismo error para sus circuitos;
+cada CT conserva su canal. No sortear P/Q/S/FP por separado.
+
+Con offsets/ruido en módulos y ángulos conocidos, derivar P'/Q'/S' con los módulos
+alterados y el mismo desfase; a carga cero no inventar un ángulo de corriente:
+rechazar ese perfil en el manifiesto o usar error explícito de resultado.
+Totales se calculan de fases instrumentadas simultáneas: P/Q algebraicos,
+S aritmética y FP=P/S. No sustituir S por hypot(P_T,Q_T). El signo Q se conserva
+con ganancias positivas; el offset de Q de un perfil de resultado sí puede
+cruzarlo, sin cambiar el cuadrante físico. Q negativa sigue admisible.
+
+Contadores instrumentales son un estado separado: integrar P'/Q' por alcance,
+separando signos después de agregar como S02.5; nunca reescribir E verdadera.
+En ganancia constante e iniciales cero, E'=g_V*g_I*E para cada contador afectado.
+Para ganancia variable integrar el producto: no multiplicar E(t) por ganancia
+final. Cuantizar la lectura acumulada, sin redondear cada incremento interno.
+Una congelación de pantalla no detiene el acumulador interno de este perfil;
+si se retiene el canal de contador, la siguiente lectura puede saltar al valor
+interno actual. Época e iniciales son explícitos, sin reset implícito. Un sesgo
+sólo de P reportada no afecta energía salvo que el perfil declare esa ruta.
+
+Cuantización opcional genérica `q*round_ties_to_even(z/q)`, q>0 en unidad de
+salida, |error|≤q/2; q=null la desactiva. No representa resolución de fabricante.
+Normalizar después preserva el escalón original (q kW equivale a 1000q W).
+Retener después de cuantizar reproduce el registro realmente leído; retener antes
+del ruido produciría lecturas variables y sería otro modelo. La normalización
+conserva original, unidad y método/versionado, incluido CT/VT ya aplicado.
+
+Resultados inconsistentes por fallo de canal, cuantización o soportes distintos
+se conservan sin reparar silenciosamente. Un chequeo con entradas simultáneas,
+método y presupuesto de cuantización conocidos puede marcar validity=invalid
+con evidencia de range_violation; sin evidencia suficiente, unknown. No imponer
+identidades de S02 a toda salida defectuosa ni ajustar su valor para aprobarla.
+E06 mide precisión de cálculo contra la transformación esperada; dispersión η,
+resolución q y exactitud del instrumento son conceptos distintos.
+
+#### S05.3 — Catálogo instrumental y dominios
+
+Todos los tiempos se expresan en s relativos al origen S04.1; perfiles activos en
+[a,b), 0≤a<b≤T. Parámetros finitos; las cotas siguientes son de ensayo genérico.
+Física conserva S02.6. Salidas erróneas fuera de dominio se conservan como inválidas
+si son finitas; no se saturan ni se cambian los límites físicos para admitirlas.
+
+| ID | Mecanismo, parámetros y dominio propuesto | Temporalidad, dependencias y rechazo |
+|---|---|---|
+| I01 | η uniforme en [−a_n,a_n], a_n≥0 en V/A/Hz o unidad de canal de resultado declarado; amplitud relativa opcional 0≤r≤0,1, a_n=r*x_ref con x_ref fijo en manifiesto | Una innovación por índice lógico de captura; ruido blanco de ensayo, sin correlación temporal prometida en hardware. a_n=0 exacto sin sorteo. Primarios propagan error a derivados; canal de resultado independiente exige declarar inconsistencia posible. Rechazar amplitud negativa/no finita, canal/unidad ambiguos, o módulos negativos en perfil que exige no negatividad; no recortar ni volver a sortear |
+| I02 | Ganancia 1+b, b∈[−0,5;0,5]; offset a∈[−0,1*x_ref;0,1*x_ref] en unidad del canal y x_ref>0 declarado; deriva d(t)=v*min(max(t−t_d,0),L), v en s⁻¹, L>0 s, abs(v)*L≤0,1 | Continua desde t_d, luego meseta; 1+b+d>0 obligatorio. No reinicia al cambiar la carga. Activación/desactivación abrupta debe declararse como evento instrumental; origen t_d no es recepción. Alternativa de paseo aleatorio diferida: no necesaria para cobertura y requeriría paso, límites y estadística propios |
+| I03 | Captura retenida identificada; intervalo de congelación [a,b); máscara determinista de intermitencia por índices; sin probabilidad por defecto | Congelar grupo/canal explícito, no todas las variables por accidente. Cada nueva captura puede tener ID propio enlazado al retenido; reentregar la misma captura mantiene ID. Rechazar retención sin lectura anterior y soporte real no recuperable en artefacto; fuera de intervalo volver a medición actual, sin interpolación |
+| I04 | R_Ireal/R_Vreal y R_Icfg/R_Vcfg positivos, adimensionales, cada uno en [1;1000]; cociente configurado/real explícito, lugar de escala device o adapter mutuamente excluyente | Configuración constante por tramo versionado; no cambia instalación real. Relación 1 representa conexión directa genérica, no CT físico universal. Doble escala es fixture negativo deliberado; rechazar configuración accidental que escale en ambos lugares, unidad secundaria desconocida o denominador cero |
+
+Para I01, r=0,1 corresponde al 10% de x_ref. En canales de resultado, el error
+absoluto puede aplicarse sin propagar a otras magnitudes si
+se declara que es un fallo de ese resultado. Para cada perfil, `method_ref` resuelve
+la transformación conocida por el productor; no publica parámetros secretos de
+inyección. El acceso al artefacto está separado. origin=synthetic y method=calculated
+para estos fixtures; no atribuir measured a una cadena sintética por su parecido.
+
+I03 distingue tres políticas de evidencia, todas conservando el soporte real oculto:
+
+- **Soporte antiguo conocido:** repetir valor/soporte/measured_at de la captura
+  original, nuevo ID si es nueva captura; evaluar edad en recepción. Puede ser
+  present/valid/stale con age_exceeded; no demuestra causa de congelación.
+- **Reloj aparentemente actual:** el dispositivo declara punto/medida nuevos con
+  el valor viejo. Sin diagnóstico público, el producto puede evaluar valid/current
+  respecto de ese reloj; el oráculo guarda la discrepancia y el soporte real antiguo.
+  No inventar advertencia ni diagnóstico de congelación desde la verdad oculta.
+- **Sin evidencia temporal suficiente:** soporte unknown, measured_at=null,
+  clock unknown y freshness=unknown; el artefacto sí conoce la captura retenida.
+  Si falta evidencia de validez, validity=unknown, sin convertir repetición en fallo.
+
+Intermitencia puede producir silencio (ninguna observación) o un aviso de sensor
+con identidad propia y valor null, según evidencia pública configurada. No mezclar
+con caída de enlace A02. Un timeout del gateway es otra observación missing con
+soporte unknown, acquisition_timeout y evidencia de timeout, como S03.5; no es
+la medición perdida. Repetición legítima F01-EST/REP es control negativo obligatorio.
+
+#### S05.4 — Aleatoriedad y aceptación estadística propuesta
+
+Se propone MT19937 mediante instancias locales Random de Python 3.13, sin RNG
+global ni dependencias nuevas. Cada flujo usa seed entero obtenido por SHA-256
+de una lista JSON de strings UTF-8, ensure_ascii=true, separadores coma/dos puntos
+sin espacios: `["s05-rng-v1",master,run_id,layer,device,channel,profile,replicate]`.
+master es decimal canónico de entero no negativo <2^64; run_id y demás strings
+son los del manifiesto expandido, layer=instrumentation/acquisition; digest completo
+como entero big-endian. No usar hash() del proceso ni hora actual. Seeds derivados,
+versión exacta de Python y regla de transformación se registran en el artefacto.
+Una nueva ejecución estadística cambia replicate; reproducción conserva la tupla.
+La física determinista S04 no consume RNG.
+
+Dentro de cada flujo, orden creciente por índice de producción preasignado;
+una llamada random() por captura elegible, η=a_n*(2u−1). Generar la innovación
+aunque una congelación posterior la oculte o A01 pierda el dato; así activar A no
+cambia I. No compartir flujo entre capas/dispositivos/canales ni con reintentos.
+Cambiar lista de capturas cambia el ensayo/versionado. Dos ejecuciones iguales
+reproducen valores/IDs/calendarios en entorno fijado; no prometer igualdad de
+funciones auxiliares entre versiones Python ni independencia demostrada por seeds.
+
+Para errores comunes, asignar una fuente latente identificada a los canales que
+la comparten: ruido de bus se reutiliza por todos sus circuitos, no se vuelve a
+sortear. Para dos canales correlacionados opcionales, usar η_k=a_k*(c*u_c+(1−c)*u_k),
+u en [−1,1], c∈[0,1]. Su varianza es a_k²*(c²+(1−c)²)/3; no es uniforme general
+ni conserva a_k²/3. El mínimo acepta sólo c=0 (flujos distintos) o c=1 (común);
+valores intermedios requieren perfil y aceptación propios. No añadir ruido a los
+derivados que ya reciben error de sus primarios.
+
+Ensayo I01-UNI: F01-EST resistiva, T=600, n=10000 puntos t_j=600j/n,
+j=0…9999, ruido sólo I con a_n=0,1 A; x_ref=10 A, U=120, φ=0. master="20261017",
+run_id="s05-i01-uni", layer="instrumentation", device="sim-a", channel="c1/L1/I",
+profile="I01-UNI@1", replicate="0". I'∈[9,9;10,1] A, P'=S'=120I', Q'=0, FP'=1.
+No integrar estas muestras instrumentales para sustituir la energía física 200 Wh.
+El ensayo estadístico no requiere consumir ni transportar los 10000 puntos.
+
+Oráculo independiente: uniforme continua de media cero, E[η²]=a_n²/3 y
+Pr(η<0)=1/2. Evaluar residuos I'−10, nunca sólo un histograma de I'. Con α=0,001,
+L=ln(26/α), exigir simultáneamente:
+
+- |media(η)| ≤ a_n*sqrt(2L/n) ≈ 0,0045090690 A.
+- |media(η²)−a_n²/3| ≤ a_n²*sqrt(L/(2n)) ≈ 0,0002254535 A².
+- |fracción(η<0)−1/2| ≤ sqrt(L/(2n)) ≈ 0,0225453452.
+- Para cada uno de diez intervalos iguales de [−a_n,a_n], frecuencia relativa
+  dentro de 0,1±sqrt(L/(2n)); intervalos semiabiertos salvo el último cerrado.
+  Comparar las diez frecuencias, sin ajustar bordes a las muestras.
+- Todas las muestras finitas y |η|≤a_n; duplicación deliberada de canales c=1
+  exige igualdad exacta de innovaciones y relaciones derivadas dentro de E06.
+
+Bandas deducidas de la cota de Hoeffding para variables independientes acotadas:
+Pr(|media−esperanza|≥e)≤2exp(−2ne²/(B−A)²); aplicar a η, η², al indicador η<0 y
+a los diez indicadores de intervalo, y sumar los trece riesgos por unión (cada
+control tiene riesgo ≤α/13). Riesgo total de falso rechazo ≤0,001 bajo
+hipótesis IID ideal; no es garantía matemática de MT19937. La malla de 53 bits
+introduce correcciones de momentos despreciables aquí; margen numérico adicional
+máximo 1e−12 en la unidad de cada estadístico, fijado antes del ensayo. Validar
+transformación con u=0,1/4,1/2,3/4 (resultados exactos −a_n,−a_n/2,0,a_n/2), no
+usar la misma función de producción como esperado. Una sola seed que pase no
+certifica la distribución; el plan combina esos controles, momentos teóricos y
+diez frecuencias y bandas predefinidas. Si falla, investigar sin cambiar seed,
+bandas o n para aprobar.
+Pruebas de independencia multicanal o gaussianas no quedan acreditadas ni forman
+parte de este perfil mínimo; requerirán aceptación adicional si se incorporan.
+
+#### S05.5 — Adquisición, calendarios y recuperación
+
+Cada observación conserva observation_key, contenido, soporte y measured_at.
+Intento tiene ordinal propio y tiempo de envío en artefacto; delivery_id identifica
+cada recepción. Un intento fallido sin recepción no crea entrega S03. Retraso
+δ≥0 finito en s; caída [a,b), producción no se detiene. Ordenar recepción por
+(received_at, ordinal de intento) para empates, sin cambiar el orden físico.
+No enviar antes de completar la observación. Calendario de ensayo puede vaciar
+cola después de T con horizonte explícito, sin añadir consumo después de T.
+
+A01 usa conjuntos de índices perdidos, retrasos por índice y lista de reentregas;
+I/A se componen sin cambiar IDs de origen. Alternativa probabilística acotada:
+Bernoulli con p∈[0,1], perder si u<p por observación, flujo acquisition separado;
+E[pérdidas]=np, no recuento exacto prometido. Un perfil aleatorio futuro fijará n,
+seed y banda binomial antes del ensayo; S05 propone aceptar el mínimo con
+calendarios deterministas, sin añadir ese perfil a la cobertura obligatoria.
+Retrasos no negativos o una permutación realizable de recepciones modelan fuera
+de orden; no cambiar tiempos declarados para simularlo. No sumar contadores
+acumulados ni calcular energía por número de entregas.
+
+A02 propone políticas alternativas explícitas, no simultáneas:
+
+| Política de ensayo | Cola, intentos y recuperación | Límite |
+|---|---|---|
+| Descartar durante caída (default) | Un intento por captura; sin cola ni reintento; al restablecer recibir sólo nuevas observaciones | Perdidas definitivamente al horizonte; no backfill ni ceros |
+| Recuperar FIFO acotada | Capacidad B entero 1…10000, retención H>0 s; al llenarse descartar la más antigua y registrar motivo; expirar cuando edad>H | Retener payload/ID inmutables; no nuevo soporte al recuperar; cola sólo de ensayo en memoria futura |
+| Reintentar | Máximo K entero 1…10 intentos totales por observación, calendario fijo por caso, sin jitter por defecto; exceder K descarta | Reintento idéntico mantiene ID y nuevo intento/entrega; si el primer envío llegó, puede duplicarse |
+
+Capacidad, H, K, calendario y horizonte de drenaje son obligatorios si hay cola.
+No llamar recuperación a inventar mediciones del período caído. Contabilidad por
+horizonte: N_producidas=N_únicas_recibidas+N_nunca_recibidas+N_pendientes;
+N_intentos=N_recibidos+N_fallidos+N_en_vuelo. Al cerrar fixtures no quedan pendientes
+ni en vuelo. Recibidos=accepted+duplicate+conflict en los casos finitos válidos;
+rechazos malformados se cuentan aparte si el ensayo negativo los incorpora.
+
+La llegada vieja se conserva en historial; el «último» lógico se selecciona por
+soporte conocido y política versionada, no por última recepción. Si soporte es
+unknown no reemplaza silenciosamente el último conocido: permanece serie/evaluación
+sin orden físico demostrado. Política de edad s05-age@1: recepción menos fin de
+soporte (o punto)≤5 s implica current, >5 stale; reloj/soporte insuficientes unknown.
+Para contadores usar tiempo de lectura conocido y preservar época/acumulación.
+No reescribir freshness de origen ni incluir evaluación del receptor en dedup.
+Conflicto se conserva para resolución, sin overwrite. S03 sigue rigiendo la
+canonicalización; no prometer unicidad concurrente, durabilidad, entrega exactamente
+una vez ni comportamiento de Modbus/redes reales a partir de estas políticas.
+
+#### S05.6 — Matriz de casos y oráculos independientes
+
+Defaults heredados explícitamente: origen/identidades/topologías/unidades/E0 de
+S04.1; física ID@1 sin cambios; escenarios de duración completa S04 salvo soporte
+de consulta indicado. Casos deterministas seed/algoritmo=null, sin otros fallos,
+normalización identidad y q=null; perfiles activos en [0,T) salvo reemplazo.
+contract_version=1.0.0, producer_version=s05-design@1. clock usa basis=simulated,
+uncertainty_s=0 y resolution_s=1, excepto I01-UNI con resolution_s=0,06. Cada serie de la tabla es una magnitud/alcance
+S03 independiente. Capturas puntuales con measured_at=t_j y soporte point; entrega
+inmediata salvo calendario reemplazado. Para counters, soporte acumulado desde
+época hasta lectura, no punto sin historia. Calidad por defecto present/valid/
+current/calculated, origin synthetic, no_diagnostic y evidencia de configuración/
+validación pública de dominio. La verificación de coherencia entre canales sólo
+cambia validity cuando está habilitada y cuenta con la evidencia de S05.2; assessment en recepción con s05-age@1. FP/temperatura nulos
+conservan S03.3. Conteos corresponden **sólo a la serie emitida indicada**, no a
+cada variable calculada para contrastar la frontera instrumental.
+
+Cada observación usa ID `<caso>/j`, entregas `<caso>/j/attempt-k`; claves incluyen
+plant-a/sim-a. scenario_ref identifica el caso y versión; el manifiesto resuelve
+física original. lineage_ref=`<run_id>/<caso>/j` resuelve soporte real, segmentos,
+transformaciones y captura retenida. run_id de casos deterministas=`s05-<caso>`;
+provenance.configuration_ref y method_ref resuelven configuración y método
+públicos versionados; el perfil expandido de inyección sólo se resuelve dentro
+del artefacto separado, nunca desde características ML. original conserva
+valor/unidad antes de normalizar. source_observation_ids enlaza sólo
+fuentes disponibles; no crea observaciones físicas para alimentar al producto.
+Referencias son conceptuales, no archivos creados. Intentos y causas permanecen
+fuera del DTO. Resultado esperado se obtiene por fracciones/áreas/tablas externas
+al motor; igualdad exacta de IDs/tiempos/conteos/nulls, E06 para aritmética de
+transformación en su unidad, q/2 sólo para error de cuantización declarado.
+
+| Caso / cobertura | Física, parámetros y calendario | Resultado independiente, entregas y rechazo |
+|---|---|---|
+| I01-AC / I01 | F01-EST resistiva; emitir I en t=0,1,2,3; innovaciones prescritas −0,1;−0,05;0;+0,05 A (u de S05.4), sin PRNG | I'=9,9;9,95;10;10,05; P'=1188;1194;1200;1206, Q'=0,FP'=1. 4 producidas/intentos/accepted, cero pérdidas/duplicados/conflictos. Física I=10,E_P+(600)=200. Rechazar ruido adicional independiente en P |
+| I01-UNI / I01 | F01-EST y seed/n/soportes exactos S05.4; entrega ideal de las n lecturas si se verifica contrato | 10000 producidas/intentos/accepted, cero pérdidas/duplicados/conflictos; criterio estadístico S05.4 sobre innovaciones, derivación P=120I. Energía física 200. No dar por ejecutado ni aceptar por una realización visual |
+| I02-GAN / I02 | F01-EST inductiva; emitir I en t=0,60,120; b_I=0,1, b_V=0, a=d=η=0 | I'=11,P'=1056,Q'=792,S'=1320,FP'=0,8; U=120,f=60. E instrumental final (176,0,132,0), física (160,0,120,0). 3/3/3, cero P/D/C. Variante offset sólo resultado P: a=12 W produce 972 W, resto ideal, contador ideal si su ruta no usa ese resultado; no «reparar» S |
+| I02-DER / I02 | F01-EST resistiva; t_d=0,L=100,v=0,001 s⁻¹ en ganancia I; emitir I en t=0,50,100,150 | I'=10;10,5;11;11, P'=1200;1260;1320;1320; meseta hasta 600. E instrumental=(integral 0…100 de 1200+1,2t + 500*1320)/3600=655/3 Wh; física 200. 4/4/4, cero P/D/C. Variante deriva de resultado P conserva ruta de energía declarada; rechazar ganancia final aplicada a toda E |
+| I02-QNT / I02 | Control de composición/descalibración, F01-EST resistiva, una P en t=0; sesgo sólo resultado a=5 W, q=10 W antes de salida original | Previo 1205 W, ties-to-even→1200 W; original=1,2 kW si perfil de unidad lo declara, canónico=1200 W una vez. Física 1200. 1/1/1, cero P/D/C; presupuesto error canal 5 W separado de E06; q negativo/cero se rechaza |
+| I03-RET / I03 | F01-RAM; emitir I en t=0,10,20,30; capturar normalmente hasta 10; retener lectura t=10 en [20,40) | I=5;35/6;35/6;35/6, P instrumental retenida=700 desde 10; física I(20)=20/3,I(30)=15/2. IDs 0…3 distintos; soportes 0,10,10,10. 4/4/4, cero P/D/C; a 20/30 stale por edades 10/20. Variantes reloj actual: valid/current sin diagnóstico; tiempo insuficiente: unknown temporal (y validity unknown si no verificable). Oráculo conserva soporte 10 en todas |
+| I03-INT / I03 | F01-EST resistiva; capturas previstas t=0…5; silencio de sensor j=2,3,4; sin avisos ni timeout público | Sólo IDs 0,1,5: 3 producidas/intentos/accepted; 3 capturas sin resultado, cero pérdidas de transporte/D/C. Física sigue I=10,E(600)=200. Variante aviso explícito por captura ausente: 3 missing/null/not_evaluated/not_applicable/unknown con evidencia propia y 3 valores, 6 entregas; no convertir silencio en missing automáticamente |
+| I03-EST / I03 control negativo | F01-EST resistiva t=0…5, sin fallo; control adicional F01-REP con mismos tiempos | 6 IDs y soportes distintos, igual I=10 o 0; 6/6/6, cero P/D/C. No diagnóstico de congelación por igualdad; en REP FP not_applicable y counters constantes |
+| I04-CT / I04 | F01-EST inductiva; R_Ireal=20,R_Icfg=40, R_Vreal=R_Vcfg=1; emitir I en t=0,60 | I secundario=0,5 A; primario indicado=20 A; P'=1920,Q'=1440,S'=2400,FP'=0,8,U=120,f=60. E instrumental=(320,0,240,0), física (160,0,120,0). 2/2/2, cero P/D/C. Conservar secundario en artefacto y original indicado 20 A; no aplicar otra vez CT al normalizar |
+| I04-VT / I04 | F01-EST inductiva; R_Vreal=2,R_Vcfg=3, CT=1; una U en t=0 | Secundario=60 V, indicado=180 V, I=10,P'=1440,Q'=1080,S'=1800,FP'=0,8,f=60. 1 producida/intento/accepted, cero P/D/C; salida U fuera de dominio sintético observable validity=invalid con range_violation, física U=120 intacta. No limitarla a 144 V |
+| I04-DOB / I04 negativo | F01-EST inductiva; CT real/configurado=20, lectura ya primaria I=10; fixture incorrecto fuerza otra escala ×20 | Candidato I=200 A rechazado como válido por dominio; conservar finito/evidencia, 1 producida/intento/accepted con validity=invalid, sin modificar físico ni agregar ganancia a f. Configuración de doble escala accidental se rechaza antes del ensayo; fixture negativo explícito permite contrastar esa detección, cero P/D/C |
+| A01-CAL / A01 | F01-RAM, emitir sólo P puntual j=0…5, t=j, P=600+10j; perder j2, recibir j1 en 7, demás en j; duplicar j3 en 8, idéntico origen | Producción 6, intentos 7, fallidos 1, recepciones 6: orden IDs 0,3,4,5,1,3; 5 accepted+1 duplicate, 1 nunca recibida, cero conflictos/pendientes. P recibida 600,630,640,650,610,630; j1 stale (edad6), j3 duplicada edad5 current en evaluación separada. Último lógico j5. E física(120)=35 Wh, no depende de entregas |
+| A01-CON / A01 límite de conflicto | A01-CAL más candidato negativo con ID j4 y P=641 en t=9 frente a original 640, mismo soporte/origen restante | 8 intentos, 7 recepciones=5 accepted+1 duplicate+1 conflict; 1 fallido/nunca recibida. Candidato no es nueva medición ni fallo de contenido añadido a A01: fixture adverso para probar regla S03. Conservar ambos contenidos, último lógico sigue j5; no overwrite. j0/j5 con distinto ID son legítimas aunque un control estable les dé igual valor |
+| A02-DES / A02 | F01-RAM, P j=0…5, caída [1,4); default descartar, sin timeout | 6 producidas/intentos, fallidos3 (1/2/3), recibidas 0/4/5: 3 accepted, 3 nunca recibidas, D/C=0, sin missing ficticio. Retorno en 4 no recupera hueco ni reinicia física |
+| A02-FIFO / A02 | Mismos 6 puntos/caída; B=3,H=5,K=2; fallan intentos iniciales 1/2/3, reintentar éstos en 6/7/8; horizonte cierre 8 inclusivo | 9 intentos, fallidos3, recibidos6: 0,4,5,1,2,3; 6 accepted, cero pérdidas/D/C/pendientes; edades recuperadas 5, current en umbral inclusivo. Último lógico j5 aunque j3 llegue al final. Variante B=2 descarta j1, reintenta j2 en 6/j3 en7: 8 intentos, recibidos5, fallidos3, 1 nunca recibida, edades4/current; H=3 en esa variante expira ambos antes de reintentar: 6 intentos, 3 recibidos,3 nunca recibidas |
+| C01-MAS / C01 | F02-SOB con I03 y A01; calendario y resultados S05.7 | 12 capturas/observaciones I; 12 intentos, 9 accepted y 3 fallidos/nunca recibidas; D/C=0. Física sobrecarga de 60 s y energía de 60 Wh; todas las I recibidas=10 A; la causa no se deduce de esa serie |
+
+P/D/C en las filas significa pérdidas de transporte/duplicados/conflictos, no
+potencia P. 3/3/3 u otra terna sin nombres significa producidas/intentos/accepted.
+Cuando no se emiten contadores, sus valores citados son verificación de frontera
+y artefacto, no observaciones adicionales contadas. Para I02-GAN variante de
+offset se emite P en los tres tiempos en lugar de I; I02-DER conserva el mismo
+calendario si se prueba su variante. Cada variante es ejecución independiente.
+Toda fila debe rechazar alteración de física, unidad original perdida, escala
+doble involuntaria, IDs/tiempos/conteos diferentes, calidad inventada por la causa
+oculta, falta de linaje o comparación exclusiva contra el propio motor.
+
+Controles adicionales de frontera obligatorios: perfiles sobre F01-EST capacitiva
+con ganancia I=1,1 (P'=1056,Q'=−792,S'=1320,FP'=0,8;
+E'=(176,0,0,132), sin E_P− añadido), sobre F04-COM 3P4W con ganancia común
+I=1,1 (P_T'=3432,Q_T'=0,S_A'=3960,FP_A'=13/15; E_Q± del circuito=0, no suma de
+fases), ventanas S04.4 [590,610) de F01-ESC con ganancia común 1,1
+(P_media'=990,Q_media'=0, ΔE'=(11/2,0,11/4,11/4)), congelación al inicio/fin
+semiabierto, atraso exactamente 5/>5 s, dos valores iguales con IDs diferentes,
+δ negativo, identidad conflictiva, retención sin antecedente, parámetros no
+finitos/unidades desconocidas y entrega anterior a measured_at. Por cada control
+puntual emitir una observación de la magnitud probada (una entrega, cero P/D/C);
+para ventana emitir una P_media al final, contador e incrementos sólo en artefacto.
+Los controles de rechazo de manifiesto producen cero observaciones/intentos.
+No ampliar a ventanas RMS/FP de método desconocido ni atribuir simultaneidad real.
+
+#### S05.7 — C01 combinado y enmascaramiento
+
+C01-MAS@1 usa íntegro F02-SOB@1, T=120: I=10 en [0,30) y [90,120), I=20 en
+[30,90), U=120,Q=0, P=S=120I; evento sobrecarga de 60 s respecto de 15 A/10 s. Energía
+verdadera=(1200*60+2400*60)/3600=60 Wh. Emitir sólo I L1 cada 10 s, t_j=10j,
+j=0…11; mantener en artefacto las demás variables y los contadores verdaderos.
+
+I03 retiene la captura t=20 (10 A, soporte point en 20) para las seis capturas nuevas
+t=30,40,50,60,70,80; termina en 90, que mide estado actual de 10 A. Cada captura tiene
+ID nuevo con linaje a 20; no es reentrega duplicada. A01 pierde exactamente las
+observaciones de 40,60,80, sin reintentos ni aviso/timeout observable. Recepción
+inmediata de las otras nueve: 0,10,20,30,50,70,90,100,110. No se modifica el
+calendario físico, el acumulador ni el evento al perderlas.
+
+| Frontera | Resultado independiente |
+|---|---|
+| Física | Seis puntos en 30…80 dan 20 A, condición continua de 60 s; counters finales (60,0,0,0), eventos 30/90 intactos |
+| Instrumentación | 12 resultados I=10 A; soportes reales/declarados 0,10,20,20,20,20,20,20,20,90,100,110 en política de soporte conocido |
+| Adquisición | 12 intentos, 3 fallidos y 9 recibidos/accepted; cero duplicate/conflict; ninguna medición missing inventada |
+| Producto con soporte conocido | I=10 en las 9 recibidas; en 30/50/70 edades 10/30/50 ⇒ stale con age_exceeded. Otras 6 current. La edad evidencia antigüedad, no sobrecarga ni causa de congelación |
+| Variante reloj aparentemente actual | Mismos valores/entregas, soportes declarados t_j; nueve valid/current sin diagnóstico público; oráculo conserva la retención real. No afirmar ausencia de sobrecarga ni detectar automáticamente congelación |
+
+El artefacto registra F02, I03 y A01, intervalos, captura retenida y pérdidas; cada
+observación tiene linaje resoluble sin exponer las causas al producto/ML. Congelar
+oculta el aumento de I y perder tres lecturas reduce además evidencia temporal.
+Desde las nueve lecturas de I no puede reconstruirse la energía de 60 Wh ni concluir
+parada/normalidad; con edad conocida sólo puede observarse dato viejo. Una lectura
+de contador independiente podría aportar evidencia adicional, pero no se emite en
+este caso. No crear estado=Anomalo ni evaluar detector. Se verifica física idéntica
+con/sin I03/A01 y observabilidad separada de presencia de condición física.
+
+#### S05.8 — Decisiones pendientes y aceptación futura
+
+**Todas I-D01–I-D07 pendientes de aprobación humana.** Cada aprobación fijaría
+sólo el diseño indicado, sin autorizar S06, servicios, infraestructura o persistencia.
+
+| ID | Recomendación y fundamento | Alternativas | Riesgos, consecuencias de aprobar y pendientes no resueltos |
+|---|---|---|---|
+| I-D01 | Modelos/dominios S05.2/3: primarios coherentes y fallos de resultado explícitos; CT/VT real/configurado separado | Errores independientes en toda variable; perfiles específicos de fabricante | Independencia indiscriminada falsea causas. Aprobar transformaciones/unidades/dominios; no resuelve D02/D05, error angular/saturación ni equivalencia metrológica |
+| I-D02 | Orden S05.2, energía instrumental separada y normalización única; conserva semántica del original | Ruido después de retención; escala en ambos extremos; corregir datos para cerrar balances | Cambiar orden cambia oráculo. Aprobar orden/rutas/cuantización; no decide clases/módulos, mapa ni precisión de almacenamiento |
+| I-D03 | MT19937 local, semillas/orden S05.4 y uniforme con bandas α=0,001; determinismo como base | Philox con dependencia/versionado evaluados; gaussiana con aceptación propia; sólo determinismo | Seeds distintas no demuestran independencia. Aprobar flujo reproducible y riesgo estadístico; no acredita distribución ni pruebas ejecutadas o realismo del ruido |
+| I-D04 | I03 con soporte antiguo, reloj declarado o desconocido; calidad sólo por evidencia S03 | Marcar automáticamente frozen por repetición o por conocimiento del ensayo | Riesgo de ocultamiento con reloj actual. Aprobar controles y nulls/edad; no resuelve diagnóstico real ni garantiza detectar congelación |
+| I-D05 | Calendarios A01/A02, default descartar y variantes FIFO/reintentos acotados; conflicto sin overwrite | Cola ilimitada; recuperación implícita; promesa exactly once | Pérdidas/backlog son visibles en oráculo. Aprobar políticas/contabilidad/último lógico; no resuelve protocolo, durabilidad, dedup concurrente ni canonicalización final |
+| I-D06 | C01-MAS conserva F02+I03+A01, tres fronteras y causas ocultas separadas | Otro combinado como ampliación; etiquetado binario por causa | Puede enmascarar evento real. Aprobar trazabilidad/enmascaramiento; no aprueba Anomalo, evaluación ML ni energía inferida desde huecos |
+| I-D07 | Cobertura S05.6/7 y oráculos exactos/estadísticos independientes; plan por tres niveles | Sólo comparar motor consigo mismo; integrar ahora para validar documentos | Cuentas documentales no validan código. Aprobar suficiencia del diseño; siguen S06/S07, contratos/compatibilidad S08 y nivel 3 con autorización y entorno propios, más cierre S09 |
+
+Aceptación futura: nivel 1 contrasta física S02/S04, aislamiento y reproducción,
+transformaciones/calendarios contra las cuentas independientes de esta sección;
+nivel 2 valida DTO/calidad/identidad/dedup/proyección en memoria conforme S03;
+nivel 3 exige escritura, lectura y consumo completos en PostgreSQL aislado, con
+permiso expreso, diseño aprobado y reversión propia. S05 no acredita ninguno.
+Sin aprobar I-D01–I-D07 no se cierra S05 ni se inicia S06. Perfiles de marca,
+incertidumbre CT/medidor, tiempos/resolución/sentinelas, emulación y hardware siguen
+pendientes D02/D05; tampoco se resuelven unidades/zonas históricas, compatibilidad
+ML con temperatura nula, retención de artefactos ni integración persistente.
 
 ## 6. Contrato común y compatibilidad — S03 aprobada
 
@@ -1314,19 +1743,19 @@ independientes, evitando copiar el mismo cálculo de producción en la prueba.
 
 ## 9. Decisiones abiertas y cierre de esta fase
 
-D01–D06 mantienen el cierre documental S01 con sus diferimientos instrumentales;
-E01–E07, la especificación matemática aprobada S02. C01–C08 quedan aprobadas y
-S03 cerrada exclusivamente como especificación documental mediante la instrucción
-S03/S04 del apartado 1. **S04 especificada en S04.1–S04.7, pendiente de revisión
-y aprobación F-D01–F-D05; S05–S09 no iniciadas.** Se mantienen los pendientes
-operativos de S03, la metrología específica y todos los ensayos de aceptación.
-No se aprueban umbrales industriales, etiquetas ML ni nuevas convenciones físicas.
+D01–D06 mantienen el cierre documental S01 con diferimientos; E01–E07 la
+especificación matemática aprobada S02; C01–C08 el contrato común aprobado S03.
+F-D01–F-D05 fueron aprobadas expresamente el 2026-10-17: **S04 cerrada sólo como
+especificación documental aprobada**. **S05 especificada en S05.1–S05.8, pendiente
+de revisión y aprobación I-D01–I-D07; S06–S09 no iniciadas.** Los estados históricos
+anteriores no sustituyen este registro vigente. No se aprueban umbrales industriales,
+etiquetas ML, equivalencia instrumental ni nuevas convenciones físicas.
 
-Esta intervención modifica sólo contrato y roadmap. La investigación recupera
-familias F01–F05 y reutiliza E01–E07, el contrato S03 y los oráculos S02, sin
-reabrir instrumentos ni modificar S02.1–S02.9. La comprobación numérica independiente
-usa aritmética racional, integrales analíticas y sumas fasoriales, sin importar
-el producto ni ejecutar un simulador. Se revisan cobertura, dominios, linaje,
-identificadores, enlaces y `git diff --check`; no equivale a validar implementación.
-No se ejecutan servicios, generadores, migraciones, PostgreSQL, Docker, ML ni
-pruebas de aplicación. Sin código implementado, nuevos archivos, commit ni push.
+Esta intervención sólo modifica contrato y roadmap. Conserva S02.1–S02.9 y
+S03.1–S03.8, la matriz instrumental y los
+diferimientos D02/D05. Se contrastan fórmulas, recuentos, bandas estadísticas,
+identificadores y enlaces con oráculos documentales independientes; `git diff --check`
+y alcance de archivos se verifican sin importar el producto. No se ejecutan
+simulador, servicios, generadores, PostgreSQL, Docker, migraciones, ML ni pruebas
+de aplicación. No se crean archivos adicionales ni se hace commit/push.
+Ningún nivel de aceptación está acreditado por esta especificación.

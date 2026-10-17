@@ -27,6 +27,12 @@ S04 en contrato y roadmap. Base: `feature/simulador`, HEAD
 `024d820f784aa38e321cf5970deb78a4bd838c39`, árbol limpio. Se conservan D01–D06,
 E01–E07 y todos los diferimientos instrumentales; no se autorizan implementación,
 servicios, bases, interfaces, ML ni integración persistente.
+El 2026-10-17, mediante «SmartEnergy — Cierre formal de S04 y diseño documental
+de S05», el responsable aprueba individualmente F-D01–F-D05 y cierra S04 sólo como
+especificación documental. Base: `feature/simulador`, HEAD
+`a9ae8ef8c7039882271ef2600400db7950986576`, árbol limpio. Autoriza únicamente el
+diseño documental S05 en contrato y roadmap. D02/D05 y aceptación futura siguen
+pendientes; no hay autorización de implementación ni infraestructura.
 No se considera aceptada una etapa futura por figurar aquí. La aprobación del
 responsable debe identificar etapa, alcance, entregables, criterios y efectos
 permitidos; ninguna etapa de implementación comienza sin aprobación explícita.
@@ -43,13 +49,13 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras cierre documental S03 y propuesta S04 (2026-10-17) |
+| Etapa | Estado tras cierre documental S04 y propuesta S05 (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
 | S02 | Cerrada como especificación matemática aprobada E01–E07; sin implementación ni validación experimental |
 | S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
-| S04 | Escenarios y perfiles especificados; pendiente de revisión y aprobación F-D01–F-D05; no cerrada |
-| S05 | No iniciada; diseño y autorización pendientes |
+| S04 | Cerrada únicamente como especificación documental aprobada F-D01–F-D05; sin pruebas ejecutadas |
+| S05 | Instrumentación y adquisición especificadas; revisión y aprobación I-D01–I-D07 pendientes |
 | S06–S09 | No iniciadas; implementación, integración y aceptación no autorizadas |
 
 La aceptación distingue tres niveles definidos en el
@@ -268,16 +274,17 @@ actual; no es consecuencia automática de ese cierre. Sin commit ni push.
 - **Aprobación humana:** catálogo mínimo, umbrales de escenarios y utilidad para
   SmartEnergy; ampliaciones de realismo sólo con necesidad verificable.
 
-### Resultado de S04 — propuesta documental pendiente de aprobación
+### Resultado de S04 — cierre documental aprobado
 
-La [propuesta de escenarios S04](contratos/simulador-fase-1.md#s04--escenarios-físicos-y-perfiles-propuestos)
+La [especificación de escenarios S04](contratos/simulador-fase-1.md#s04--escenarios-físicos-y-perfiles-aprobados)
 conserva las familias F01–F05. S04.1 fija defaults, identidades, versiones,
 condiciones iniciales y manifiesto reproducible; S04.2 define casos con U/Y
 prescritas y resultados independientes; S04.3 propone condiciones sintéticas,
 sin convertirlas en umbrales industriales. S04.4 incluye ventanas con transición
 en inicio/final/interior y varias transiciones, cambio de signo Q, reposo y parada;
 S04.5 define rechazo y tolerancias heredadas E06. S04.6 fija linaje y matriz de
-cobertura; S04.7 somete **F-D01–F-D05 a aprobación**, sin cerrar S04.
+cobertura; S04.7 registra la aprobación explícita **F-D01–F-D05 del 2026-10-17** y el
+cierre únicamente documental de S04, sin acreditar pruebas ejecutadas.
 
 Catálogo: F01-REP/EST/ESC/RAM/Q/TUR (reposo, estable resistivo/inductivo/capacitivo,
 escalón, rampa, cruce reactivo y turno); F02-SOB (sobrecarga relativa a capacidad
@@ -293,11 +300,12 @@ Se especifican contadores por alcance, ventanas y transiciones, incluida Q negat
 válida con P no negativa; condición física, operación, diagnóstico y resultado ML
 permanecen separados. No hay etiquetado Anomalo automático.
 
-Decisiones pendientes: F-D01 catálogo/defaults/manifiesto; F-D02 condiciones y
-umbrales de ensayo; F-D03 ventanas/oráculos/rechazos; F-D04 identidad/calidad y
+Decisiones aprobadas expresamente el 2026-10-17: F-D01 catálogo/defaults/manifiesto;
+F-D02 condiciones y umbrales de ensayo; F-D03 ventanas/oráculos/rechazos; F-D04 identidad/calidad y
 separación de verdad/diagnóstico; F-D05 cobertura/límites/aceptación futura.
-Cada una registra fundamento, alternativas, consecuencias, riesgos y aprobación
-necesaria. La matriz identifica pendientes de S05–S09 y mantiene D02/D05.
+Cada una conserva fundamento, alternativas, consecuencias y riesgos como
+registro de la aprobación humana; ésta no autoriza ejecución ni infraestructura.
+La matriz identifica pendientes de aprobación/ejecución de S05–S09 y mantiene D02/D05.
 
 Verificación de esta entrega: cálculos independientes no destructivos (fracciones,
 productos e integrales analíticas y fasores), coherencia con S02/S03, IDs,
@@ -306,8 +314,10 @@ matriz instrumental se conservan sin cambios. No se ejecuta simulador, servicios
 generadores, PostgreSQL, Docker, ML o pruebas de aplicación; ningún nivel de
 aceptación queda demostrado por estas cuentas documentales.
 **S01 cerrada con diferimientos; S02 aprobada; S03 aprobada y cerrada documentalmente;
-S04 especificada, pendiente de revisión y aprobación; S05–S09 no iniciadas.**
-No se crean archivos ni se hace commit/push ni se avanza a la siguiente etapa.
+S04 aprobada y cerrada sólo documentalmente; S05 propuesta pendiente de aprobación;
+S06–S09 no iniciadas.**
+No se crean archivos ni se hace commit/push. La instrucción vigente autoriza
+expresamente el diseño S05 siguiente; no es una consecuencia automática del cierre.
 
 ## S05 — Diseñar instrumentación y adquisición defectuosas
 
@@ -328,6 +338,55 @@ No se crean archivos ni se hace commit/push ni se avanza a la siguiente etapa.
   alterar energía física por pérdida de datos, confundir ausencia con cero o parada.
 - **Aprobación humana:** perfiles/bandas estadísticas, orden de efectos y políticas
   de cola/recuperación. No se añade emulación de protocolo ni servicio de red.
+
+### Resultado de S05 — propuesta documental pendiente de aprobación
+
+La [especificación S05](contratos/simulador-fase-1.md#s05--instrumentación-y-adquisición-propuestas)
+conserva los IDs y criterios originales: I01 ruido/error acotado, I02 sesgo/deriva/
+descalibración, I03 congelación/intermitencia, I04 CT/VT incorrecto; A01 pérdida/
+retraso/duplicación, A02 caída/recuperación. Fuentes primarias, fronteras conceptuales
+y manifiesto están en S05.1; composición/coherencia en S05.2; dominios y evidencia
+de calidad en S05.3; semillas y aceptación estadística en S05.4; adquisición y
+recuperación en S05.5; matriz de casos/oráculos en S05.6.
+
+La física S02–S04 permanece inmutable. Se propone instrumentar canales primarios
+y derivar potencias coherentemente, separando errores explícitos de resultado;
+secundario real, CT/VT configurado, original y canónico no son intercambiables.
+Orden: transformación secundaria → ganancia/sesgo/deriva/ruido → escala configurada
+→ derivados/contador instrumental → fallo de resultado declarado → cuantización
+→ retención/intermitencia → normalización única → adquisición. El detalle y sus
+consecuencias se fijan en S05.2, sin crear clases ni cambiar responsabilidades S03.
+
+Se priorizan calendarios deterministas y cuentas analíticas. El perfil uniforme
+propone MT19937 local, SHA-256 para semillas separadas y n=10000 con bandas de
+media, segundo momento, fracción negativa y diez intervalos, riesgo total ideal de falso rechazo
+≤0,001. E06 sigue siendo tolerancia numérica, no dispersión instrumental. La
+calidad expresa sólo evidencia observable; repetición no prueba congelación.
+Se explicitan descarte, FIFO acotada, reintentos, tardíos, duplicado y conflicto;
+no se prometen durabilidad ni entrega exactamente una vez.
+
+**C01-MAS@1 (S05.7):** F02-SOB + I03 + A01, conforme al catálogo original;
+no es F02-F03-JUN ni decisión S03:C01. Sobrecarga física de 60 s, energía de 60 Wh;
+12 observaciones I, seis retenidas de t=20, tres pérdidas y nueve recepciones,
+todas de 10 A. Con soporte antiguo, tres recibidas son stale; con reloj aparentemente
+actual puede no haber diagnóstico. Todas las causas permanecen en el artefacto
+separado; no etiquetas Anomalo ni evaluación ML.
+
+**I-D01–I-D07 pendientes**, con recomendación, fundamento, alternativas, riesgos,
+consecuencias y pendientes individuales en S05.8: modelos/parámetros; composición;
+RNG/estadística; congelación/calidad; adquisición/recuperación; combinado/linaje;
+cobertura/aceptación. No se declaran aprobadas ni se cierra S05. Se conservan los
+criterios originales de cada familia, la cobertura física previa y D02/D05.
+
+Verificación documental de esta entrega: fórmulas y momentos teóricos, bandas,
+recuentos de observaciones/intentos/entregas, calendarios, identidad/soporte/calidad,
+correspondencia I01–I04/A01–A02/C01, referencias y enlaces/anclas, alcance exclusivo
+de contrato/roadmap y git diff --check. No se ejecuta simulador, generadores,
+servicios, PostgreSQL, Docker, migraciones, ML ni pruebas de aplicación. Ningún
+nivel 1/2/3 queda demostrado. No hay código, archivos adicionales, commit ni push.
+**S01 cerrada con diferimientos; S02 matemática aprobada; S03 contrato aprobado;
+S04 aprobada y cerrada sólo documentalmente; S05 especificada pendiente de revisión
+y aprobación humana; S06–S09 no iniciadas.** La intervención termina aquí.
 
 ## S06 — Implementar núcleo incremental aislado
 
