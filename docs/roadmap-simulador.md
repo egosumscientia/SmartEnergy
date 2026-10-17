@@ -7,8 +7,10 @@ no altera los cuatro prompts P01–P04 ni los 16 controles de reestructuración.
 
 ## Estado y secuencia de aprobación
 
-La fase documental produjo investigación inicial, contrato y esta hoja de ruta;
-la tarea actual sólo corrige los ocho hallazgos de auditoría. No inicia S01.
+La fase documental y su corrección por auditoría quedaron publicadas en
+`ed2e5d8219a21e2bd29235c7140327ff5b702662`. La intervención posterior autorizó
+exclusivamente la investigación S01, iniciada en `feature/simulador` con árbol
+limpio. Su evidencia y decisiones pendientes están en la matriz instrumental.
 No se considera aceptada una etapa futura por figurar aquí. La aprobación del
 responsable debe identificar etapa, alcance, entregables, criterios y efectos
 permitidos; ninguna etapa de implementación comienza sin aprobación explícita.
@@ -24,9 +26,9 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado al entregar esta fase documental |
+| Etapa | Estado tras la investigación S01 (2026-10-17) |
 |---|---|
-| S01 | Investigación inicial realizada en la matriz; cierre de variante/mapas pendiente |
+| S01 | Investigación documental realizada; cierre formal pendiente de evidencia específica, selección de referencia y aprobación de límites/diferimientos D01–D06 |
 | S02–S05 | Requisitos y criterios iniciales documentados; especificaciones detalladas pendientes |
 | S06–S09 | No iniciadas; implementación, integración y aceptación no autorizadas |
 
@@ -64,8 +66,31 @@ Ningún nivel acredita funcionamiento industrial ni autoriza el siguiente.
   firmware distinto, confusión entre resolución, exactitud y sondeo.
 - **Aprobación humana:** configuración de referencia y suficiencia de la evidencia;
   decidir si el primer núcleo será genérico y aprobar expresamente cualquier
-  diferimiento, identificando el requisito previo afectado. Esta corrección no
-  aprueba diferimientos ni elimina las dependencias documentales existentes.
+  diferimiento, identificando el requisito previo afectado. La investigación
+  realizada no aprueba diferimientos ni elimina dependencias documentales.
+
+### Resultado de la investigación S01 — pendiente de revisión
+
+Se ampliaron las [fichas instrumentales](instrumentacion/matriz-medidores.md#fichas-de-evidencia-s01-por-instrumento)
+y se contrastaron capacidades/mapas por variable. A3/A4 aportan configuración
+específica ADW210; A2 conserva nivel de familia. S5 permitió inspeccionar el XLS
+PM5310, su aplicabilidad por modelo, cadencia del bloque básico y valores N/A.
+Se documentó la discrepancia de revisión de E4 y se conservó E1 como referencia.
+
+El [resultado por criterio](instrumentacion/matriz-medidores.md#resultado-de-s01-y-criterios-de-aceptación)
+distingue evidencia disponible de pendientes. Bloquean el cierre formal la
+configuración instrumental no aprobada y la falta de aprobación de suficiencia y
+diferimientos. Firmware/mapa ADW210, detalles de CT/VT y convenciones no resueltas
+bloquean equivalencia instrumental; no se los declara cumplidos por proponer un
+núcleo genérico. Persisten las condiciones del roadmap técnico, apartado I.
+
+**Recomendación pendiente:** revisar y aprobar o rechazar
+[D01–D06](instrumentacion/matriz-medidores.md#c-decisiones-pendientes-y-recomendaciones-concretas):
+referencia ADW210 3P4W con tensión común, contraste Eastron directo/PM5310 B1,
+núcleo genérico sin equivalencia de marca y diferimientos acotados de decodificación
+y metrología. Las reglas eléctricas y la representación siguen pendientes de
+S02/S03; no se diseñaron ni implementaron. **S01 no está cerrada formalmente y S02
+no está autorizada ni iniciada.** No se modificaron contrato, AGENTS, código o entornos.
 
 ## S02 — Especificar variables y modelo eléctrico mínimo
 
