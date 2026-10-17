@@ -1,6 +1,6 @@
 # Simulador — Fase 1: contrato de ingeniería
 
-Fecha: 2026-10-17. Base inspeccionada: `7656863e434e42fd14ec8719ad940fb8643e9e6d`,
+Fecha: 2026-10-17. Base de la entrega documental inicial: `7656863e434e42fd14ec8719ad940fb8643e9e6d`,
 rama `feature/simulador`. Esta entrega establece requisitos documentales;
 su revisión y la aprobación de las etapas futuras corresponden al responsable.
 No acredita implementación ni autoriza escrituras, migraciones o adquisición real.
@@ -55,8 +55,15 @@ la instrucción «SmartEnergy — Cierre formal de S01 y ejecución de S02».
 La [matriz, decisiones D01–D06](../instrumentacion/matriz-medidores.md#c-decisiones-d01d06-aprobadas-y-diferimientos)
 registra configuración, alcance, impacto sobre el apartado I y condiciones de
 cierre de los pendientes. La evidencia instrumental diferida no está cumplida.
-La especificación siguiente es una **propuesta S02 pendiente de aprobación**;
-no autoriza S03 ni implementación, commit o push.
+**Actualización S02/S03 (2026-10-17):** el responsable aprobó E01–E07 mediante
+«SmartEnergy — Cierre formal de S02 y ejecución documental de S03», sobre
+`0bde38154ce9630c93f6cd6c38670d4111cad29e`, en `feature/simulador` con árbol
+limpio. **S02 queda cerrada como especificación matemática aprobada**, sin
+implementación ni validación experimental. Se mantienen D01–D06, los límites
+del núcleo y los diferimientos instrumentales S01. La misma instrucción autoriza
+únicamente el diseño documental S03 de este contrato y del roadmap: **S03
+especificada, pendiente de revisión y aprobación; S04 no iniciada**. No autoriza
+implementación, migraciones, servicios, commit ni push.
 
 ## 2. Estado real y brechas comprobadas
 
@@ -93,16 +100,16 @@ no reinterpretaciones del ORM ni características de un medidor.
 | Potencia aparente S | VA | No negativa; método de agregado explícito, sin promediar fases |
 | Factor de potencia FP | 1, adimensional | Identificar verdadero o desplazamiento y convención de signo; indisponible si S es cero |
 | Frecuencia | Hz | Del suministro/referencia declarada, no suma de frecuencias por fase |
-| Energía activa/reactiva | Wh / varh | Distinguir activa importada/exportada y reactiva inductiva/capacitiva; propuesta S02 detallada abajo, pendiente de aprobación |
+| Energía activa/reactiva | Wh / varh | Distinguir activa importada/exportada y reactiva inductiva/capacitiva; especificación S02 aprobada detallada abajo |
 | Temperatura de motor | °C, auxiliar | Sólo con perfil auxiliar declarado; no inferirla de un analizador ni inventarla para completar ML |
 
 Los adaptadores futuros convertirán kW/kWh a unidades canónicas exactamente una
 vez, registrando unidad original y método. El perfil legado requerirá autorización
 y mapeo independiente; no sustituye al contrato común.
 
-S02 deberá especificar por separado los signos de P y Q, la convención de
+S02 especifica por separado los signos de P y Q, la convención de
 cuadrantes y su referencia de flujo, los contadores de energía activa importada
-y exportada y los de energía reactiva inductiva y capacitiva. Deberá definir
+y exportada y los de energía reactiva inductiva y capacitiva. Define
 acumulación, tratamiento de cambios de signo y, si corresponde, separación por
 cuadrante. No equiparar exportación activa con comportamiento capacitivo:
 una carga consumidora puede mantener P positiva y presentar Q negativa bajo
@@ -111,9 +118,9 @@ mínimo; especificar su contador no autoriza añadir ese escenario.
 
 La correspondencia entre esos conceptos y los registros denominados
 importados/exportados, directos/inversos o de cuatro cuadrantes depende de la
-fuente y configuración. S02 deberá contrastarla con las fuentes de la matriz,
+fuente y configuración. S02 la contrasta con las fuentes de la matriz,
 incluidas las convenciones distintas de FP descritas en S1. No se fija aquí una
-codificación universal; la propuesta S02 siguiente resuelve la semántica genérica.
+codificación universal; la especificación S02 siguiente resuelve la semántica genérica.
 La equivalencia de registros no verificados permanece diferida según D02/D04.
 
 Reglas físicas obligatorias:
@@ -123,7 +130,7 @@ Reglas físicas obligatorias:
   P/Q/S deben formar un triángulo de potencia coherente. Los módulos de P y Q no
   pueden superar S en ese perfil; valores de FP deben estar entre −1 y 1.
 - En 3P4W sinusoidal calcular y conservar cada fase. P y Q totales son las sumas
-  algebraicas de fases bajo la misma referencia temporal. El mínimo propondrá
+  algebraicas de fases bajo la misma referencia temporal. El mínimo adopta
   S total como suma de S de fases, identificando el método; no imponer al total
   el triángulo de potencias si hay desfases diferentes entre fases.
 - Las simplificaciones con raíz de tres y conversión fija entre tensión L-L y
@@ -155,11 +162,13 @@ la etiqueta de anomalía. Nominales, frecuencia 50/60 Hz, potencias, escalas de 
 y límites se parametrizarán y aprobarán en S02/S04; no se deducen de los promedios
 aleatorios actuales ni se heredan automáticamente de la ficha ADW210.
 
-### Propuesta matemática S02 — pendiente de aprobación
+### Especificación matemática S02 — aprobada
 
-Todo este apartado, incluidas sus decisiones E01–E07, es diseño propuesto, no
-capacidad implementada ni convención instrumental verificada. La aprobación de
-D04 encarga resolver estos asuntos; no aprueba automáticamente sus soluciones.
+Todo este apartado, incluidas sus decisiones E01–E07, es especificación matemática
+aprobada por la instrucción S02/S03 registrada en el apartado 1. No es capacidad
+implementada ni convención instrumental verificada. Se conserva el razonamiento
+de las recomendaciones originales y sus alternativas; su aprobación no amplía
+el mínimo ni resuelve los pendientes instrumentales D02/D05.
 
 #### S02.1 — Hipótesis y fuentes
 
@@ -509,9 +518,9 @@ Estos resultados proceden de productos, sumas fasoriales, áreas e integrales
 analíticas, no de un simulador ni de datos del producto. La futura prueba deberá
 conservar esos oráculos independientes de la implementación.
 
-#### S02.9 — Decisiones técnicas pendientes y límites
+#### S02.9 — Decisiones técnicas aprobadas y límites
 
-| ID | Recomendación sometida a aprobación | Consecuencia / alternativa |
+| ID | Decisión aprobada el 2026-10-17 | Consecuencia / alternativa |
 |---|---|---|
 | E01 | 1P2W L-N y 3P4W estrella, fuente/neutro ideales, Y prescrita y equilibrio angular ABC | Admite desequilibrio de módulos/cargas; neutro flotante, cargas L-L, potencia constante y dinámica RLC requerirían más diseño |
 | E02 | P hacia carga; Q+ inductiva/Q− capacitiva; FP=P/S sin signo reactivo | Preserva consumo capacitivo; cualquier codificación de fabricante precisa transformación específica verificada |
@@ -527,8 +536,8 @@ transitorios reales, inferir equivalencia instrumental del núcleo ideal o conve
 dominios de ensayo en umbrales industriales. S03 conserva identidad, calidad,
 procedencia, unidades representadas, tiempo de observación y compatibilidad.
 La presente notación no migra las unidades/timestamps históricos ni amplía el ORM.
-**S02 investigada y especificada; pendiente de revisión y aprobación humana de
-E01–E07. S03 no iniciada.**
+**S02 cerrada como especificación matemática aprobada E01–E07; sin implementación
+ni validación experimental. S03 se especifica en el apartado 6, pendiente de aprobación.**
 
 ## 4. Tres capas y referencia verificable
 
@@ -553,8 +562,8 @@ En escenarios combinados se conservarán todos los eventos y su precedencia.
 Toda observación derivada de una ventana debe identificar el intervalo físico
 de referencia, la operación o transformación aplicada, el instante de observación,
 el instante de recepción o registro según corresponda y una referencia verificable
-al escenario físico original y su versión. S03 definirá la representación y la
-semántica de los límites temporales. Se permiten referencias por intervalo o
+al escenario físico original y su versión. La propuesta S03 del apartado 6 define
+la representación y la semántica de los límites temporales, pendiente de aprobación. Se permiten referencias por intervalo o
 segmento que permitan reconstruir la relación; no se exige un enlace por cada
 muestra física. Una referencia a un único instante no basta si el valor depende
 de una ventana. Las pruebas deberán incluir ventanas que atraviesen transiciones
@@ -589,58 +598,383 @@ eléctrica; fallo de comunicación no significa máquina parada. La política de
 etiquetado será multicausal; una eventual proyección a `Normal`/`Anomalo` necesita
 regla explícita y aprobación, sin colapsar la referencia original.
 
-## 6. Contrato común y compatibilidad
+## 6. Contrato común y compatibilidad — propuesta S03
 
-El futuro contrato común debe identificar instalación, dispositivo, circuito,
-topología, fase/par de conductores o agregado, variable, valor, unidad y tiempo;
-incluir versión, fuente sintética/real, naturaleza medida/calculada/estimada,
-método, calidad y procedencia. Debe separar identidad de observación y de entrega,
-tiempo de ocurrencia/medida/recepción/registro y duración de la ventana. Los nombres
-de campos, tipos y representación larga/ancha quedan por aprobar en S03.
+**Estado:** diseño recomendado, pendiente de revisión y aprobación humana C01–C08.
+Inspección exclusivamente estática sobre el HEAD registrado en el apartado 1;
+no se importó código, abrió una conexión ni ejecutó operaciones. Los ejemplos
+son datos conceptuales de contrato, no mediciones ni fixtures ejecutados. Los
+campos y ubicaciones propuestos todavía no existen en SmartEnergy.
 
-La calidad y la procedencia deben representar dimensiones independientes:
+### S03.1 — Inventario verificado y matriz de compatibilidad
 
-- **Disponibilidad:** distinguir dato presente, ausente o no disponible por
-  capacidad/topología, con motivo cuando se conozca.
-- **Validez:** indicar si el valor satisface las reglas aplicables o si no hay
-  evidencia suficiente para determinarlo.
-- **Vigencia:** distinguir actualidad u obsolescencia según la referencia temporal
-  y el criterio que se apruebe, incluyendo vigencia desconocida.
-- **Método de obtención:** medido, calculado o estimado, con procedencia y método.
+Rutas relativas a la raíz del repositorio. Esta tabla identifica hechos del código
+y el impacto de la propuesta, sin atribuir unidades a históricos desconocidos.
 
-Estas dimensiones pueden coexistir: un valor estimado puede ser válido y obsoleto;
-uno medido puede ser inválido. Ausencia no equivale a invalidez ni implica por sí
-sola un método de obtención. S03 definirá combinaciones admisibles, representación
-de lo desconocido y ejemplos; no se eligen aquí clases ni enums definitivos.
-La calidad observable por SmartEnergy sólo puede basarse en información disponible
-en su límite de adquisición. Un error puede ser desconocido para el sistema:
-las causas físicas y etiquetas de inyección conocidas exclusivamente por el
-simulador van en la referencia de prueba, no se atribuyen como diagnóstico
-automático al futuro dispositivo. Valores no finitos no deben entrar como
-mediciones válidas ni serializarse como NaN/Infinity. Cero válido se conserva;
-ausencia o invalidez se expresa sin cero sustituto y con motivo.
+| Componente / evidencia | Contrato existente verificado | Impacto, pérdida y transición propuesta |
+|---|---|---|
+| `smartenergy/infrastructure/models.py`, `Registro` | Tabla `registros`: `id` Integer PK/index; `timestamp` DateTime sin zona, default UTC aware en Python; `corriente`, `voltaje`, `potencia_activa`, `temperatura_motor` Float y `estado` String, todos sin `nullable=False` | Faltan todas las identidades eléctricas, unidad, Q/S/FP/f/energía, calidad y linaje. El default no acredita UTC histórico ni conserva zona en SQL. Una fila no representa un circuito multifase sin selección explícita. Conservar tabla; ningún DDL aprobado |
+| Mismo archivo, `Metrica` | `id`, `total`, `anomalias`, `porcentaje`, `estado`, `fecha` DateTime naive; resumen ML | No es almacén de observaciones ni referencia física; no usarlo para guardar calidad o escenario |
+| `infrastructure/persistence.py` | `load_records`: siete columnas de Registro, orden timestamp/id asc; últimas métricas por id desc; entrenamiento lee cuatro variables y estado, detección añade id | Nuevos campos no atraviesan estas consultas. Necesitará ruta común autorizada y selección de serie; usar el SQL actual sólo para la proyección identificada. Orden de llegada no equivale a orden físico |
+| `analysis/measurements.py` | `ENERGY_COLUMNS = [corriente, voltaje, potencia_activa, temperatura_motor]`; fechas inválidas→NaT, números inválidos/no finitos→NaN; estado nulo→Sin estado, prefijo `an`→Anomalo, cualquier otro→Normal; etiqueta binaria | No pasar estados de calidad por `estado`: `invalid` terminaría como Normal. Preparación pierde la causa del nulo y no valida instrumentos. Filtra fechas inclusivas/estados, ordena, muestrea, suaviza y promedia ventanas; estas transformaciones no conservan por sí solas linaje ni son integración de energía |
+| `application/monitoring.py` | Reutiliza consultas y `prepare_records`; datos vacíos→None; métricas/modelo opcionales; valida features como lista no vacía/subconjunto de ENERGY_COLUMNS | No ingesta común ni validación eléctrica. Validación de nombres del bundle no demuestra compatibilidad de unidades, distribución o temperatura |
+| `interfaces/api/routes.py`, `schemas.py` | GET `/api/v1/monitoring` y `/api/v1/monitoring/records.csv`; cuatro variables numéricas nullable, unidad de gráfica null; filtros de fecha/estado, muestra y tabla; 422/503/500 | HTTP no transporta identidad/alcance/calidad/procedencia. Mantener contrato v1; extensión de lectura separada necesita aprobación. No añadir escritura a la API. CSV tiene id,timestamp,cuatro variables,estado,label_anomalia; exporta originales filtrados asc, no sólo tabla reciente desc |
+| `frontend/js/dashboard.js`, `charts.js`, `api.js` e `index.html` | Cinco vistas comparten la respuesta de monitoreo; ejes/captions «unidad no especificada»; sin selector de circuito/fase/calidad | Análisis general: serie y cobertura ML; Variables energéticas: serie/histograma; Comparativos: exige cuatro valores completos tanto en frontend como histogramas backend; Detección: evaluación y predicción; Tabla: filas/CSV. Con temperatura null, Comparativos queda vacío y el modelo de cuatro features no evalúa; otras mediciones y tabla siguen consultables. Las cinco vistas deben permanecer accesibles |
+| `analysis/training.py`, `anomalies.py`, `application/model_jobs.py` | Orden ML fijo ENERGY_COLUMNS; StandardScaler + IsolationForest; etiqueta exacta Anomalo afecta contaminación/evaluación; detect persiste Metrica | No cambiar orden ni sustituir temperatura por cero. Entrenamiento/detección administrativos no tienen la guarda HTTP de features incompletas: no invocarlos sobre esta proyección. Etiqueta sintética no prueba anomalía detectable. Nuevo modelo sin temperatura requeriría autorización/dataset/validación propios |
+| `infrastructure/model_artifact.py` | Bundle joblib `model`, `scaler`, `features`; lectura con flock compartido, escritor FileLock, temporal/fsync/os.replace y lock estable | No incluye versión eléctrica/unidades. No reutilizarlo por coincidencia de nombres; mantener formato, archivo y bloqueo. No entrenar ni publicar en S03 |
+| `operations/simulate_data.py`, `stream_realtime.py` | Batch 10.000 a 1 s; continuo `build_sample`→Registro, recalcula P=abs(V·I·0,9/1000); RNG global sin escenario. Ambos `create_all`, insert/commit y DELETE por retención (20.000 por defecto); batch hora local naive | No son núcleo físico puro ni adaptadores del nuevo contrato. No ejecutarlos para validar S03. `/1000` sugiere kW sólo en ese productor, no demuestra unidad de cualquier histórico. Mantener operaciones separadas; sustitución futura explícita y reversible |
 
-Evolución propuesta, pendiente de S03/S08:
+Unidades propuestas: V, A, W, var, VA, `1`, Hz, Wh, varh y `degC` auxiliar.
+La tabla S02.2 gobierna dominios, signos y alcances. Ángulos/admitancias son
+parámetros de verdad física; no se prometen como canales instrumentales del mínimo.
+Conversión instrumental sólo con unidad, escala y referencia primaria/secundaria
+verificadas: kW×1000→W, kWh×1000→Wh, kvar×1000→var, kvarh×1000→varh.
+CT/VT se aplica una sola vez y queda registrado. No convertir FP de fabricante
+sin su convención; método desconocido impide declarar equivalencia canónica.
 
-1. Diseñar y verificar el contrato en memoria/artefactos aislados sin SQLAlchemy
-   en el motor físico y sin I/O al importar. No duplicar entidades ORM.
-2. Mantener inicialmente los generadores y consumidores existentes. Si se necesita
-   una proyección legada, declarar qué circuito/fase representa, conversiones,
-   pérdida de metadatos, temperatura ausente y política de etiquetas; rechazar
-   proyecciones ambiguas. Nunca copiar un total a cada fase.
-3. Reutilizar normalización/consultas existentes sólo donde sus contratos sean
-   compatibles; `prepare_records` normaliza el formato histórico, no el de un
-   instrumento. Definir un límite común para simulador y futuro adaptador físico
-   sin implementar Modbus en esta iniciativa mínima.
-4. Evaluar cada consumidor: ORM, consultas, cuatro variables/orden ML, bundle,
-   CSV, filtros, unidades, timestamps y UI. Una migración de almacenamiento o
-   cambio HTTP exige diseño, autorización y reversión propios; no usar `reset_db`
-   ni `create_all` para resolver incompatibilidades.
+### S03.2 — Representación, versión e identidad
 
-No se eligió aún un esquema nuevo ni un formato de archivo. El monitoreo seguirá
-siendo sólo lectura, con cinco vistas independientes de datos y ML; ejecución de
-simulación y persistencia serán operaciones administrativas separadas. No alterar
-`model_artifact.py` ni publicar modelos por esta tarea.
+Recomendación **híbrida**: observaciones largas (una magnitud/alcance/soporte por
+observación), catálogo versionado de identidades y entregas separadas; vistas anchas
+sólo como proyecciones explícitas para consumidores actuales. JSON es el formato
+de intercambio conceptual; JSONL por tipo de registro es la propuesta de artefacto
+de ensayo, sin crear archivos ahora. No es un esquema SQL ni un endpoint nuevo.
+
+Versión candidata `1.0.0`, todavía no aprobada. Cambio mayor para semántica, unidad,
+identidad, obligatoriedad o enum incompatible; menor para campos opcionales que el
+lector pueda ignorar; parche para aclaraciones sin cambio observable. Rechazar mayor
+desconocida y enums desconocidos en campos críticos, conservar payload rechazado en
+cuarentena autorizada; no degradarlos a Normal. `unknown` explícito expresa falta
+de evidencia, no un comodín para datos mal formados. El catálogo de magnitudes y
+métodos lleva versión junto al contrato; alias de marca pertenecen al adaptador.
+
+| Campo / objeto | Tipo y obligación propuesta | Regla |
+|---|---|---|
+| `contract_version` | string obligatorio en cada registro | Versión exacta de semántica |
+| `context` | objeto obligatorio: `installation_id`, `device_id`, `circuit_id`, `voltage_reference_id`, `topology`, `scope` | IDs string no vacíos, estables, sin dirección de red/credenciales; referencias resueltas contra catálogo versionado |
+| Identidad de instalación/dispositivo | installation_id/device_id no nulos | Un dispositivo sintético también se identifica; cambio de configuración lleva versión, no reutilización ambigua de identidad |
+| Circuito/referencia de tensión | circuit_id y voltage_reference_id string o null, claves siempre presentes | Circuito obligatorio para corriente/potencias/contadores; null en tensión/frecuencia del suministro común. voltage_reference_id identifica el suministro compartido; no sustituye circuito |
+| `topology` | `1P2W` o `3P4W` | Perfil consumidor S02; otros perfiles requieren versión/alcance aprobados |
+| `scope` | objeto `{kind, conductors}` | kind=`phase`, `circuit_total`, `voltage_pair` o `supply`; conductors lista ordenada L1,L2,L3,N según alcance. L1/L2/L3 corresponden a A/B/C de S02; phase para magnitudes de rama, current_rms de N admite phase con [N]; voltage_pair tiene dos conductores; total/supply tienen lista vacía |
+| `observation_id` | string obligatorio, único dentro de instalación y device_id | Identifica resultado lógico, estable en reentregas; no depende de recepción |
+| `quantity`, `unit`, `value` | strings de catálogo, número finito o null | No NaN/Infinity; unidad de catálogo obligatoria incluso con null |
+| `quality` | objeto obligatorio | Cuatro dimensiones de S03.3, con evidencia observable |
+| `time` | objeto obligatorio | Soporte y conocimiento temporal S03.4 |
+| `provenance` | objeto obligatorio | origin=`synthetic` o `instrumental`; `producer_version`, `configuration_ref`, `method_ref`, `source_observation_ids`, `original`, `scenario_ref` y `lineage_ref` (nullable según reglas siguientes) |
+
+Catálogo mínimo de `quantity`: `voltage_rms`, `current_rms`, `active_power`,
+`reactive_power`, `apparent_power`, `power_factor`, `frequency`,
+`active_energy_import`, `active_energy_export`, `reactive_energy_inductive`,
+`reactive_energy_capacitive`, `active_energy_net`, `reactive_energy_net`,
+`motor_temperature`. Un contador exige `counter_epoch` string en procedencia;
+su acumulación identifica inicio y soporte hasta el punto leído. Reinicio/rollover
+es evento y nueva época, sin resta negativa interpretada como consumo.
+Métodos identifican RMS, promedio temporal P/Q, suma aritmética S, cociente FP y
+contador direccional; no equiparar promedio de RMS o FP con RMS/FP de una ventana.
+`method_ref=unknown` sólo permite guardar un resultado de semántica incompleta
+con validez unknown, excluido de cálculos que requieran la equivalencia no probada.
+
+Catálogo conceptual: instalación `plant-a`; dispositivos `sim-a` y `meter-a`;
+referencia `bus-a` (L1-N/L2-N/L3-N); circuitos `c1`, `c2` enlazados a `bus-a`,
+y asociación de cada circuito a sus canales de corriente. Una tensión de bus-a se
+observa una vez como voltage_pair con circuit_id=null. Ambos circuitos la referencian;
+no crear dos sensores ni sumar valores repetidos en bloques de registros. Dos
+instrumentos independientes sobre el mismo bus conservan device_id y observaciones
+distintos. Un total de circuito nunca es total de instalación ni fase. En 1P2W
+el total coincide numéricamente con su fase, pero conserva identidad de alcance;
+ningún consumidor suma total y fases ni mezcla métodos/ventanas incompatibles.
+
+`original` conserva valor/unidad/código originales o null si no aplican; conversiones
+registran fórmula, versión y CT/VT ya aplicado en configuration_ref/method_ref.
+`source_observation_ids` enlaza cálculos disponibles al producto, lista vacía si
+no existen. Para sintéticos scenario_ref={id,version,run_id} y lineage_ref son
+obligatorios y resuelven a soporte en el artefacto separado; para instrumentos
+pueden ser null. No exigir registro Modbus, firmware, marca ni escenario ficticio
+a un instrumento conceptual; sus metadatos opcionales no condicionan el núcleo.
+
+### S03.3 — Calidad, procedencia y desconocidos
+
+| Dimensión | Valores permitidos | Semántica |
+|---|---|---|
+| `availability` | present, missing, not_applicable, unsupported, unknown | present contiene número; missing indica observación esperada sin valor; not_applicable es ajena a topología/definición; unsupported corresponde a capacidad no ofrecida; unknown no permite decidir |
+| `validity` | valid, invalid, unknown, not_evaluated | valid satisface reglas documentadas; invalid tiene evidencia de rechazo; unknown evidencia insuficiente; not_evaluated no hubo valor que evaluar |
+| `freshness` | current, stale, unknown, not_applicable | Se evalúa en recepción usando soporte real, límite de edad versionado y reloj conocido; no deriva de validez ni método |
+| `method` | measured, calculated, estimated, unknown | measured: obtenido por cadena de medida; calculated: derivación explícita, incluida física sintética; estimated: inferencia/sustitución declarada; unknown: no documentado |
+
+quality añade `reason` string de catálogo o null y `evidence_ref` string o null.
+Se proponen razones públicas `acquisition_timeout`, `undefined_zero_denominator`,
+`topology_not_applicable`, `capability_not_supported`, `range_violation`,
+`age_exceeded`, `time_unknown`, `no_diagnostic`. No incluir nombres de inyección.
+La evidencia puede ser configuración, chequeo o estado reportado por dispositivo.
+Origen synthetic/instrumental es independiente de method: una lectura instrumental
+puede ser calculada; la salida física ideal es synthetic/calculated.
+
+Combinaciones admisibles y reglas de exclusión:
+
+- present exige value finito y validity valid/invalid/unknown; cero es un número
+  presente válido cuando cumple reglas. Un valor inválido finito se conserva para
+  trazabilidad, pero se excluye de gráficas de medición válida, integración y ML.
+- missing/not_applicable/unsupported/unknown exigen value=null y validity
+  not_evaluated; freshness=not_applicable salvo missing con soporte anterior
+  conocido, que admite stale. method puede conocerse aunque falte valor; si no,
+  unknown. No deducir método de la ausencia.
+- present admite current/stale/unknown; freshness=not_applicable sólo para una
+  magnitud sin criterio temporal aplicable expresamente documentado. valid/stale,
+  invalid/current y estimated/valid/stale son combinaciones admisibles.
+- current/stale exige política de edad, tiempo de evaluación y evidencia temporal
+  suficiente. Sin ello freshness=unknown. No usar «recibido ahora» como evidencia
+  de que la medición es actual. Una evaluación posterior conserva su tiempo y
+  política sin reescribir la observación original.
+- FP con S=0: null, not_applicable/not_evaluated/not_applicable, razón
+  undefined_zero_denominator; no cero ni error instrumental. Temperatura E07:
+  null, unsupported/not_evaluated/not_applicable, método unknown.
+
+Congelación no se infiere por repetir un valor: puede ser carga estable. Si se
+conoce el soporte original, se conserva y se evalúa edad; si un dispositivo avanza
+su reloj con un valor congelado sin diagnóstico público, validity/freshness sólo
+reflejan lo que se conoce, pudiendo seguir valid/current. La causa verdadera y
+el soporte físico oculto permanecen en el oráculo. Retraso y duplicación son
+propiedades de entrega, no magnitudes ni anomalías eléctricas. Valores no finitos
+rechazan la observación numérica y quedan como evidencia cruda de rechazo;
+un aviso de ausencia separado no debe convertirlos en cero ni en medición válida.
+
+### S03.4 — Tiempo, entregas y deduplicación
+
+Cada clave temporal existe aunque sea null por desconocimiento. Referencia UTC
+con sufijo Z para tiempos conocidos; conservar origen y transformación. No
+atribuir precisión de microsegundos a un dispositivo que sólo reporta segundos.
+
+| Campo de `time` | Semántica propuesta |
+|---|---|
+| `event_at` | Instante del evento físico identificable; null si se trata de una ventana sin un único evento o no se conoce. No equivale al tiempo de recepción |
+| `support` | `{kind,start,end}`; kind=point (start=end), interval (start<end, [start,end)), unknown (ambos null). Ventana física que el emisor puede conocer, no un período de sondeo supuesto |
+| `measured_at` | Momento en que la cadena completó la medición; null si desconocido. En sintéticos deriva de reloj simulado; no es datetime.now |
+| `clock` | `{basis,resolution_s,uncertainty_s}`; basis=simulated/device/gateway/unknown; resolución e incertidumbre no conocidas son null, nunca cero supuesto |
+| `assessment` | `{at,max_age_s,policy_ref}`; criterio y momento de evaluar freshness, nulls si no se evalúa |
+
+Para simulación existe origen UTC y tiempo relativo del manifiesto, independientes
+de velocidad de ejecución y reloj real. La transformación de ventana es method_ref;
+lineage_ref resuelve intervalos/segmentos físicos y su versión. Si la ventana cruza
+una transición se conservan todos los segmentos, nunca se atribuye al estado final.
+En instrumentos sin reloj ni ventana conocida: soporte unknown, measured_at=null,
+clock.basis=unknown; el gateway conserva recepción. El sondeo sólo acota la entrega,
+no inventa evento/ventana de medición. Un reloj incoherente se marca desconocido
+o inválido con evidencia; no se corrige silenciosamente para ordenar.
+
+Registro separado de entrega: contract_version, delivery_id, observation_key
+(installation_id,device_id,observation_id), received_at, recorded_at, status,
+duplicate_of y transport_ref. delivery_id distingue intentos; received_at es tiempo
+del receptor, recorded_at instante de admisión al almacenamiento, null en nivel 2.
+status=accepted/duplicate/conflict/rejected; duplicate_of es delivery_id o null.
+Pérdidas antes de recepción no tienen entrega aceptada ni fila de medición; el
+oráculo conserva intento y pérdida. Un timeout conocido por gateway puede emitir
+observación missing de identidad propia; no constituye recepción del valor perdido.
+
+Deduplicar por observation_key y contenido canónico inmutable: repetición idéntica
+con nueva entrega conserva una observación y varias entregas; mismo ID con contenido
+diferente es conflict, preservado para resolución, nunca overwrite. El contenido
+incluye versión, identidad, valor, unidad, calidad de origen, tiempo y procedencia;
+recepción/registro y evaluación de freshness del receptor (incluidas la razón y
+evidencia de edad producidas por esa evaluación) se almacenan en entrega o evaluación
+enlazada, fuera de la clave y comparación de contenido de origen. El envelope
+combina origen y evaluación para lectura: no sobrescribe la calidad original.
+Al canonicalizar se excluyen time.assessment y los campos de calidad producidos
+por el receptor; se conservan las razones/evidencias de validez de origen.
+Canonicalización futura: objetos por claves ordenadas, números finitos normalizados
+sin redondeo metrológico y UTF-8; fijar algoritmo/versión antes de implementar.
+No deduplicar sólo por timestamp/valor. Para dispositivos sin ID/secuencia estable,
+el adaptador asigna ID por transacción capturada; reintentos de esa transacción
+reutilizan ID. Sondeos distintos con el mismo valor no prueban duplicación del
+origen: declarar garantía limitada al gateway, sin inventar «exactly once».
+
+Aceptar retrasos y fuera de orden conservando ambos órdenes (soporte y recepción),
+sin sobrescribir último valor ni integrar otra vez un contador. Llegada tardía
+no cambia tiempo físico. Cada consumidor elige ventana y política de recálculo
+versionadas; no alimentar alertas actuales con un dato viejo sin marcarlo.
+
+**Históricos naive:** conservar valor literal y zona desconocida en la ruta legada;
+no añadir Z ni usar zona de host/navegador como prueba. No mezclarlos en una serie
+UTC canónica hasta aprobar, por lote/origen, zona IANA, reglas de horario estacional,
+ambigüedades y evidencia. Guardar original, regla, versión y resultado; ambiguos
+se aíslan. No hacer backfill ni reescribir PostgreSQL en S03. Timestamps conscientes
+se normalizan a UTC conservando offset original; precisión desconocida sigue null.
+
+### S03.5 — Ejemplos completos del límite compartido
+
+El siguiente envelope incluye todas las claves obligatorias de una observación
+y su entrega en nivel 2. IDs de referencia se resuelven conceptualmente en el
+catálogo y manifiesto indicados; no se pretende que esos archivos existan hoy.
+La configuración `cfg-a@1` define 1P2W, c1→bus-a; `methods@1/mean_active_power`
+integra P y divide por duración. run-1 usa origen 2026-10-17T12:00:00Z.
+
+```json
+{
+  "observation": {
+    "contract_version": "1.0.0",
+    "observation_id": "o1",
+    "context": {
+      "installation_id": "plant-a", "device_id": "sim-a",
+      "circuit_id": "c1", "voltage_reference_id": "bus-a",
+      "topology": "1P2W", "scope": {"kind": "phase", "conductors": ["L1"]}
+    },
+    "quantity": "active_power", "value": 900, "unit": "W",
+    "quality": {
+      "availability": "present", "validity": "valid", "freshness": "current",
+      "method": "calculated", "reason": null, "evidence_ref": "cfg-a@1"
+    },
+    "time": {
+      "event_at": null,
+      "support": {"kind": "interval", "start": "2026-10-17T12:00:00Z", "end": "2026-10-17T12:00:02Z"},
+      "measured_at": "2026-10-17T12:00:02Z",
+      "clock": {"basis": "simulated", "resolution_s": 1, "uncertainty_s": 0},
+      "assessment": {"at": "2026-10-17T12:00:02Z", "max_age_s": 5, "policy_ref": "test-age@1"}
+    },
+    "provenance": {
+      "origin": "synthetic", "producer_version": "ideal-design@1",
+      "configuration_ref": "cfg-a@1", "method_ref": "methods@1/mean_active_power",
+      "source_observation_ids": [], "original": null,
+      "scenario_ref": {"id": "window-change", "version": "1", "run_id": "run-1"},
+      "lineage_ref": "run-1/window-0-2"
+    }
+  },
+  "delivery": {
+    "contract_version": "1.0.0", "delivery_id": "d1",
+    "observation_key": ["plant-a", "sim-a", "o1"],
+    "received_at": "2026-10-17T12:00:02Z", "recorded_at": null,
+    "status": "accepted", "duplicate_of": null, "transport_ref": null
+  }
+}
+```
+
+Para evitar repetir el envelope, la tabla define **instancias completas por herencia
+explícita**: partir siempre de o1/d1, reemplazar todos los campos indicados (rutas
+con punto), conservar todos los demás, y asignar observation_key según el ID/device
+resultante. `time.assessment` y freshness son evaluación del receptor, separables
+del contenido de origen para deduplicar. No son patches de una API existente.
+Todas las instancias sintéticas del ejemplo apuntan al mismo escenario; su artefacto
+contiene los linajes indicados, incluidos los fallos, sin exponer sus causas al producto.
+
+| Caso | Reemplazos completos respecto del envelope y resultado |
+|---|---|
+| Ideal, ventana con cambio de carga | o1/d1 sin reemplazos. U=120 V; P=1200 W en [0,1), P=600 W en [1,2); Y=1/12 y 1/24 S resistivas. Media=900 W; incremento de energía=0,5 Wh, no 600×2/3600. lineage window-0-2 resuelve ambos segmentos y evento t=1 |
+| Error instrumental no diagnosticado | observation_id=o2, delivery_id=d2, value=909; provenance.producer_version=instrument-design@1, method_ref=methods@1/instrument_window, lineage_ref=run-1/instrument-0-2; quality.reason=no_diagnostic. validity=valid expresa reglas observables satisfechas, no exactitud garantizada. Sesgo +1% sólo en oráculo; P física permanece 900 W |
+| Pérdida de adquisición observable como timeout | observation_id=o3, delivery_id=d3; value=null; quality={availability:missing,validity:not_evaluated,freshness:not_applicable,method:unknown,reason:acquisition_timeout,evidence_ref:gateway-timeout-1}; time.support={kind:unknown,start:null,end:null}, measured_at=null, clock={basis:unknown,resolution_s:null,uncertainty_s:null}, assessment={at:null,max_age_s:null,policy_ref:null}; provenance.method_ref=methods@1/timeout, lineage_ref=run-1/timeout-1. d3 es entrega del aviso, no de o1; el intento perdido sólo está en oráculo. Sin timeout observable tampoco existe o3 |
+| Instrumento real conceptual, sin reloj | observation_id=r1, delivery_id=dr1, context.device_id=meter-a, value=900; quality={availability:present,validity:unknown,freshness:unknown,method:measured,reason:time_unknown,evidence_ref:cfg-real@1}; time.support={kind:unknown,start:null,end:null}, measured_at=null, clock={basis:unknown,resolution_s:null,uncertainty_s:null}, assessment={at:null,max_age_s:null,policy_ref:null}; provenance={origin:instrumental,producer_version:adapter-concept@1,configuration_ref:cfg-real@1,method_ref:unknown,source_observation_ids:[],original:{value:0.9,unit:kW},scenario_ref:null,lineage_ref:null}. cfg-real@1 define c1/bus-a y conversión kW×1000; no atribuye mapa ni marca real |
+| No aplicable por topología | observation_id=o4, delivery_id=d4; context.circuit_id=null, scope={kind:voltage_pair,conductors:[L1,L2]}; quantity=voltage_rms, unit=V, value=null; quality={availability:not_applicable,validity:not_evaluated,freshness:not_applicable,method:unknown,reason:topology_not_applicable,evidence_ref:cfg-a@1}; provenance.method_ref=methods@1/applicability, lineage_ref=run-1/na-1. Mantiene topología 1P2W; los conductores solicitados identifican el canal no aplicable, no una conexión existente |
+| Congelada con edad conocida | observation_id=o5, delivery_id=d5; time.assessment.at=2026-10-17T12:00:12Z, delivery.received_at=2026-10-17T12:00:12Z; quality.freshness=stale, reason=age_exceeded; provenance.lineage_ref=run-1/frozen-1. Conserva soporte [0,2), measured_at=12:00:02Z y valor 900; es una nueva captura con linaje a la lectura retenida, no otra ventana física. Causa de congelación sólo en oráculo |
+| Retrasada | observation_id=o6, delivery_id=d6; time.assessment.at=2026-10-17T12:00:20Z, delivery.received_at=2026-10-17T12:00:20Z; quality.freshness=stale, reason=age_exceeded; provenance.lineage_ref=run-1/delayed-1. Soporte/medición siguen en [0,2); puede llegar después de observaciones con soporte posterior |
+| Reentrega duplicada de la retrasada | Instanciar exactamente o6 del caso anterior; delivery_id=d7, received_at=2026-10-17T12:00:21Z, status=duplicate, duplicate_of=d6; observation_key=[plant-a,sim-a,o6]. Mantener evaluación original; una evaluación a t=21 se enlazaría aparte. Una observación, dos entregas, cero energía adicional |
+| Cero e invalidez finita | Dos instancias: o7/d8 con quantity=reactive_power, unit=var, value=0, provenance.method_ref=methods@1/mean_reactive_power y provenance.lineage_ref=run-1/zero-1 conserva present/valid (carga resistiva); o8/d9 con value=−10, quality.validity=invalid, reason=range_violation, evidence_ref=consumer-domain@1 y lineage_ref=run-1/invalid-1. El negativo incumple perfil consumidor; no se convierte a null sin conservar evidencia ni a Normal |
+
+Segunda ventana de contraste: parada en t=1, P=1200 W en [0,1), P=0 en [1,2).
+La misma forma que o1 produce media 600 W y ΔE=1/3 Wh; conserva ambos segmentos
+y el evento de parada en el oráculo. Una ventana que termina en t=1 sólo incluye
+el tramo anterior; la que empieza allí usa el nuevo estado. No asignar etiqueta
+Anomalo por una transición de operación. Ventanas RMS/FP necesitan su método
+propio, no la media de los valores de estado usada aquí para P.
+
+### S03.6 — Verdad física y proyección legada
+
+Artefacto de ensayo separado propuesto: manifiesto JSON versionado con referencias
+a registros JSONL de estados/segmentos físicos, eventos, ventanas instrumentales e
+intentos de adquisición. Incluye run_id, versiones de motor/escenario/contrato,
+semillas por capa, parámetros/unidades/topología, origen UTC, paso, integración,
+contadores iniciales, entorno numérico y digest de cada parte. lineage_ref resuelve
+segmentos y transformación por ventana; intentos relacionan observación y entregas,
+incluso si no llega ninguna. Incluye física verdadera, errores aplicados y causas
+multicausales; no es el bundle ML ni columna estado. Acceso de ensayo separado del
+conjunto de observaciones del producto; referencias opacas no autorizan a ML a
+leer verdad o causas. Eliminar un artefacto rompe trazabilidad: retención/integridad
+requieren política aprobada antes de persistir; no borrar ni crear estos recursos ahora.
+
+Proyección legada sólo **optativa y con pérdidas declaradas**, recomendada inicialmente
+en memoria. Configuración versionada selecciona instalación, dispositivo, circuito,
+fase L1 y referencia L1-N de una misma topología, soporte/método compatibles,
+conversiones y política de edad. En 3P4W una fase puede proyectarse con su P de fase;
+P total no se combina con I de L1 y V L1-N como si fueran monofásicos. No existe
+I total RMS escalar ni voltaje total que permita una fila total genérica. Un
+multicircuito se separa antes de proyectar; rechazar mezcla o selección implícita.
+No interpolar ni alinear ventanas por cercanía sin regla aprobada; faltas quedan nulas.
+
+| Destino legado | Mapeo y pérdida declarada |
+|---|---|
+| id | ID local de fila, no observation_id; tabla de correspondencias a todas las observaciones fuente y versión de proyección fuera de Registro |
+| timestamp | Fin de soporte conocido bajo política declarada; pierde inicio, evento, medida, recepción y registro. Si UTC→naive fuera imprescindible, sólo en dataset aislado explícitamente UTC con correspondencia; nunca mezclar con históricos sin zona |
+| corriente / voltaje | current_rms fase L1 y voltage_rms L1-N del bus asociado en A/V; el vínculo compartido y la identidad se pierden en la fila. Rechazar total o pareja de tensión equivocada |
+| potencia_activa | P de la misma fase en W canónicos; a perfil legado kW sólo con perfil aprobado W/1000 y procedencia conservada. No inferir kW global del nombre. El HTTP actual no puede anunciar unidad, requiere revisión separada para uso nuevo inequívoco |
+| temperatura_motor | null por E07; jamás rellenar con constante, ruido o estimación ficticia. La fila SQL nullable no implica compatibilidad ML ni Comparativos |
+| estado / label_anomalia | Sin etiqueta diagnóstica aprobada: estado=null→Sin estado en prepare_records. Hoy label_anomalia=0 aun en Sin estado: significa «no coincide con Anomalo», no verdad negativa. No evaluar métricas de clasificación con desconocidos; la ruta actual no ofrece esa exclusión, por lo que se bloquea su uso ML. Reglas futuras multicausales requieren aprobación |
+| Sin destino | Q, S, FP, f, energía/época, todas las identidades/alcances/unidades/versiones, calidad/procedencia, ventanas, entregas, escenario y linaje: no conservados por Registro ni CSV/HTTP actuales |
+
+Para validez invalid o freshness unknown/stale, la proyección por defecto no admite
+el número como medición utilizable; devuelve null y registra el motivo/correspondencia
+fuera de la fila. No confundir esta pérdida deliberada con el almacén canónico completo.
+No agregar enums de calidad a estado ni etiquetar una pérdida como parada/anomalía.
+La proyección aislada permite inspeccionar adaptaciones en nivel 2; no se conectará
+al dashboard vigente ni PostgreSQL sin aprobación específica y revisión de unidades.
+
+Transición recomendada: mantener generadores/datos/bundle y HTTP actuales;
+validar primero contrato y proyección en memoria; aprobar después almacenamiento
+completo aditivo y lectura común, conservando ruta legada seleccionable. No dual-write
+implícito ni reentrenamiento. Reversión: volver a seleccionar ruta legada y retirar
+adaptador nuevo, conservando observaciones, correspondencias y artefactos de ensayo;
+no restaurar/truncar bases ni sobrescribir modelo. Migración/backfill, copia de
+seguridad, atomicidad y limpieza tendrán diseño y autorización propios.
+
+### S03.7 — Límites futuros e integración por niveles
+
+Propuesta de ubicación futura, sin crear paquetes/archivos: funciones puras físicas,
+ventanas y validación del contrato en `smartenergy/analysis/` (módulos concretos
+sólo al aprobar S06); coordinación en `application/`; normalización instrumental
+sin I/O mezclado con física; ORM y repositorio en `infrastructure/models.py` y
+`persistence.py`, reutilizando una única Base. Entradas explícitas bajo
+`operations/`; consulta en API/frontend sólo tras aprobar su evolución. El objeto
+de intercambio es un DTO, no una segunda entidad Registro ni un repositorio genérico.
+No crear domain/, interfaces abstractas, driver Modbus o servicio de adquisición.
+
+| Nivel | Plan de aceptación propuesto; todavía no ejecutado |
+|---|---|
+| 1, S06/S07 | Núcleo puro, casos S02 y escenarios aprobados después en S04/S05; identidad/reproducción exactas, tolerancias físicas E06, independencia de capas y linaje de ventanas. Sin ORM/PostgreSQL. Pruebas unitarias en S06 y cierre físico S07 |
+| 2, S08 inicial | Fixtures de ideal/error/pérdida y dispositivo conceptual usan el mismo validador/DTO en memoria; matriz de combinaciones de calidad, N/A, cero, inválido, timestamps desconocidos, ventana cruzada, duplicado/conflicto/tardío. Probar selección de fase, referencia compartida y rechazo de proyección ambigua; comprobar cada pérdida y correspondencia. No afirmar persistencia. Si se modifica monitoreo en tarea autorizada, verificar cinco vistas y cuatro estados datos/ML, filtros, nulos, CSV y sólo lectura |
+| 3, S08 alcance separado | Operación de ingesta autorizada→validación común→aplicación→repositorio canónico completo→PostgreSQL aislado→repositorio de lectura→aplicación→API de consulta aprobada→consumidor de UI/CSV o fixture de consumo autorizado. Comparar contra entrada/oráculo, no sólo conteos. Si HTTP v1 sigue sin conservar campos, necesita ruta de lectura común aprobada; una proyección no completa el nivel 3 |
+
+Antes de nivel 3: aprobar diseño de almacenamiento/HTTP, destino aislado identificado,
+rol de escritura acotado y rol de lectura, permisos, datos, escrituras, respaldo,
+ensayo de fallos y reversión/limpieza. Nunca smartenergy_dev ni laboratorio protegido.
+No usar create_all/reset para migrar. Persistencia recomendada aditiva conservará
+observación inmutable y entregas relacionadas con unicidad transaccional por clave;
+el DDL, tipos/índices y estrategia concurrente se diseñarán y aprobarán por separado.
+
+| Grupo requerido | Comprobación de ida y vuelta en nivel 3 |
+|---|---|
+| Versión/identidades | Igualdad exacta de versión, IDs, configuración, topología, scope/conductores; referencias resolubles; dos circuitos comparten una referencia sin duplicar sensor; total/fase separados |
+| Magnitud/valor/unidad | Igualdad de quantity/unit y nulls; números finitos conservados según precisión de almacenamiento aprobada antes del ensayo, sin conversiones repetidas; contrastar W/kW y Wh/kWh. Comparación física E06 separada de fidelidad de serialización |
+| Calidad/procedencia | Cuatro dimensiones, razones/evidencias, método/original/conversiones, productor y enlaces exactos; no fuga de causas del oráculo a UI/ML |
+| Tiempo/contadores | Todos los instantes, soporte/límites, resolución/incertidumbre y evaluación conservados, nulls siguen null; época/inicio de contador recuperables; historial naive no convertido por defecto |
+| Entregas/linaje | IDs, recepción/registro, duplicados/conflictos y orden fuera de secuencia recuperables; una observación ante reintentos/concurrencia, ninguna overwrite de conflicto; contabilidad de pérdidas contra oráculo separado; no duplicar energía |
+| Consumo y reversión | Consulta recupera todos los campos requeridos, referencias y artefactos con integridad verificable; consumidores conservan alcances y explicitan proyección. Simular fallo de escritura/reintento sin registros parciales aceptados; volver a ruta legada sin modificar datos/modelo protegidos |
+
+Ningún campo requerido puede quedar sólo en logs efímeros, memoria del proceso o
+un archivo de correspondencia no recuperable. Si el diseño usa artefactos externos,
+el almacenamiento conservará referencia/digest y se verificará su recuperación y
+retención conjunta. Si no se autoriza esa solución o la lectura completa, nivel 3
+queda pendiente; la aceptación de niveles 1/2 no la sustituye.
+
+### S03.8 — Decisiones integrales pendientes de aprobación
+
+Todas las recomendaciones C01–C08 están **pendientes**; no constituyen aprobación
+de arquitectura industrial, implementación ni ejecución de etapas siguientes.
+
+| ID / asunto | Recomendación y fundamento | Alternativas | Riesgos y consecuencias |
+|---|---|---|---|
+| C01 Representación/versionado | Híbrida, observaciones largas + catálogo + entregas, JSON/JSONL y versión semántica; evita columnas por fabricante y conserva ventanas diferentes | Ancha por circuito; sólo larga sin vistas | Larga requiere pivot explícito; ancha fuerza sincronía/nulls. Aprobar catálogo/tipos/versión antes de S06, fijar canonicalización |
+| C02 Identidad/alcance | IDs estables, scope explícito y bus compartido, configuración versionada; respeta D01 y consumidores | Duplicar tensión por circuito con alias; ID sólo de dispositivo | Duplicación aparenta sensores; IDs débiles mezclan total/fase. Obliga a resolver referencias y seleccionar serie |
+| C03 Calidad/procedencia | Cuatro dimensiones independientes y unknown explícito; causas sólo observables en producto | Un quality_flag global; inferir causa del escenario | Flag único pierde estados; causa inyectada filtra verdad. Exige validar combinaciones y separar evidencia/oráculo |
+| C04 Tiempo | UTC explícito, soporte semiabierto, relojes/resolución conocidos o null; preservar naive histórico | Usar recepción como medida; asumir zona local histórica | Alternativas inventan edad/ventana. Exige registrar incertidumbre y aprobación por lote para backfill |
+| C05 Deduplicación | ID lógico estable + entrega por intento + conflicto sin overwrite; dedup transaccional futura | Timestamp/valor; hash sin ID; ignorar duplicados | Hash/valor confunde lecturas iguales legítimas; ID gateway limita garantía de origen. Exige unicidad/concurrencia y política de tardíos antes de integrar |
+| C06 Verdad física | Artefacto versionado separado con manifiesto/segmentos/eventos/intentos/digests y linaje por ventana | Meter verdad en Registro; conservar sólo semilla | Primera filtra etiquetas; semilla sola no permite auditar versiones/resultados. Exige integridad y retención del artefacto |
+| C07 Legado/ML | Proyección optativa seleccionada por fase, pérdidas explícitas, temperatura null y Sin estado sin verdad binaria; almacenamiento completo aditivo futuro | Reemplazar Registro ahora; fila multifase total; imputar temperatura | Alternativas requieren migración o falsean datos. Modelo actual no se acredita compatible y Comparativos puede quedar vacío; no usar ML administrativo sobre proyección incompleta |
+| C08 Integración/aceptación | Primero núcleo, luego memoria, después PostgreSQL completo aislado con autorización propia | Integración directa al legado; detenerse en memoria | Legado pierde metadatos; memoria no prueba persistencia. Obliga a evidencia por campo y evolución de lectura aprobada para nivel 3; no autoriza S04 ni S06/S08 |
 
 ### Niveles de aceptación y límites de evidencia
 
@@ -651,7 +985,7 @@ simulación y persistencia serán operaciones administrativas separadas. No alte
 | 3 — Persistencia completa y extremo a extremo | Escritura, lectura y consumo por la ruta de aplicación aprobada usando PostgreSQL aislado; contraste de valores, identidades, unidades, tiempos, calidad y procedencia contra la referencia, sin pérdidas silenciosas | Exactitud metrológica, adquisición real ni preparación industrial |
 
 Fixtures y pruebas exclusivamente en memoria pueden acreditar niveles 1/2, nunca
-validar persistencia ni sustituir el nivel 3. S03 deberá identificar qué campos
+validar persistencia ni sustituir el nivel 3. S03.6 identifica qué campos
 conserva o pierde una proyección a `Registro`; esa proyección no acredita por sí
 sola persistencia completa. Cualquier evolución necesaria del almacenamiento o
 HTTP requiere diseño y autorización separados, sin decidir aquí su estructura.
@@ -659,8 +993,9 @@ HTTP requiere diseño y autorización separados, sin decidir aquí su estructura
 Antes del nivel 3 se requiere autorización expresa del ensayo y del entorno
 PostgreSQL aislado: destino, rol, permisos, datos de prueba, escrituras permitidas,
 procedimiento de aislamiento y reversión o limpieza autorizada. No usar recursos
-protegidos ni ejecutar mantenimiento implícito. S03 definirá la ruta de extremo
-a extremo y los criterios por campo; S08 sólo podrá ejecutarla con esa autorización.
+protegidos ni ejecutar mantenimiento implícito. S03.7 propone la ruta de extremo
+a extremo y los criterios por campo; S08 sólo podrá ejecutarla con diseño aprobado
+y esa autorización.
 Si el nivel 3 no se autoriza o no pasa, se reportará pendiente o fallido, sin
 declarar validada la persistencia. Todo cierre deberá identificar el nivel y alcance
 realmente aceptados; la aceptación de un nivel no habilita automáticamente el siguiente.
@@ -676,8 +1011,8 @@ Propuesta: UTC con offset explícito y límites de intervalo inequívocos; aprob
 en S03, sin reinterpretar timestamps naive históricos.
 
 Los siguientes son **criterios del simulador**, no exactitudes de instrumentos.
-S02/S03 deben fijar tolerancias numéricas absolutas y relativas, por variable y
-dominio, antes de implementar; no se aceptan tolerancias arbitrarias posteriores
+S02.7 fija tolerancias numéricas absolutas y relativas, por variable y
+dominio, aprobadas con E06 antes de implementar; no se aceptan tolerancias arbitrarias posteriores
 para hacer pasar pruebas. Sin esa tabla no se inicia S06.
 
 | Control | Criterio de aceptación futuro |
@@ -730,23 +1065,20 @@ independientes, evitando copiar el mismo cálculo de producción en la prueba.
 
 ## 9. Decisiones abiertas y cierre de esta fase
 
-Requieren aprobación humana las propuestas E01–E07 de S02: perfil y topologías;
-nominales de ensayo; signos, contadores y método S/FP/Q; tolerancias e integración;
-temperatura y límites. D01–D06 ya están aprobadas para el cierre documental S01,
-sin aprobar firmware/mapa ni equivalencia instrumental. También siguen pendientes
-umbrales de escenarios; confirmación instrumental de variante/firmware;
-representación y versionado del contrato común; semántica temporal y deduplicación;
-artefacto de referencia; proyección legada/temperatura/etiquetas; estrategia de
-integración, nivel de aceptación pretendido y cualquier modificación de esquema,
-HTTP o recursos persistentes. S01 queda cerrada sólo para el alcance aprobado;
-sus pendientes instrumentales mantienen las condiciones D02/D05 y la regla del
-apartado 1. S02 somete a aprobación signos,
-cuadrantes, contadores y acumulación; S03, dimensiones de calidad, soporte temporal,
-compatibilidad y plan de aceptación por nivel. Los pendientes de instrumentos
-están en la matriz; no justifican inventar capacidades para el núcleo genérico.
+E01–E07 están aprobadas y S02 cerrada exclusivamente como especificación
+matemática, según la instrucción registrada en el apartado 1. D01–D06 mantienen
+el cierre documental S01 y sus diferimientos, sin aprobar firmware/mapa ni
+equivalencia instrumental. **S03 queda especificada, pendiente de revisión y
+aprobación C01–C08; S04 no iniciada.** Siguen pendientes umbrales/escenarios,
+perfiles de fallos, metrología específica, implementación y todos los niveles de
+aceptación ejecutable. Ninguna migración, cambio HTTP ni recurso persistente
+queda autorizado por la propuesta S03.
 
-La entrega documental inicial incluyó contrato, roadmap, matriz y adición mínima
-en AGENTS. Esta intervención S01/S02 sólo actualiza los tres primeros documentos.
-Validación requerida en esta fase: correspondencia estática con código, coherencia
-de fuentes/alcance, enlaces locales y diff. No se requieren servicios ni pruebas
-de aplicación. No se implementa el simulador ni se inicia la etapa siguiente.
+Esta intervención modifica únicamente este contrato y el roadmap del simulador.
+La matriz S01 se consulta sin modificar sus evidencias históricas. Verificación:
+contraste estático con ORM, repositorio, análisis, aplicación, HTTP, frontend,
+ML y generadores; revisión de identidad/unidades/calidad/tiempo, ejemplos,
+pérdidas declaradas y criterios por nivel; enlaces locales y `git diff --check`.
+No se ejecutan servicios, generadores, pruebas de aplicación, PostgreSQL ni Docker.
+Sin código implementado, ensayos experimentales, commit ni push. Los resultados
+documentales no acreditan compatibilidad ejecutada ni preparación industrial.

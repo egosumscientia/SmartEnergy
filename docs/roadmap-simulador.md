@@ -15,6 +15,11 @@ El 2026-10-17 el responsable aprobó D01–D06 y autorizó expresamente el cierr
 documental S01 y el diseño S02 mediante «SmartEnergy — Cierre formal de S01 y
 ejecución de S02». Esta intervención partió de ese commit, en `feature/simulador`
 con árbol limpio. La matriz conserva la evidencia y los diferimientos aprobados.
+El 2026-10-17, mediante «SmartEnergy — Cierre formal de S02 y ejecución
+documental de S03», el responsable aprobó E01–E07 y autorizó el cierre formal
+S02 y el diseño documental S03. Base verificada: rama `feature/simulador`, HEAD
+`0bde38154ce9630c93f6cd6c38670d4111cad29e`, árbol limpio. Se modifican únicamente
+contrato y roadmap, sin ejecución de código ni recursos persistentes.
 No se considera aceptada una etapa futura por figurar aquí. La aprobación del
 responsable debe identificar etapa, alcance, entregables, criterios y efectos
 permitidos; ninguna etapa de implementación comienza sin aprobación explícita.
@@ -31,11 +36,12 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras cierre documental S01 y propuesta S02 (2026-10-17) |
+| Etapa | Estado tras cierre formal S02 y especificación S03 (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
-| S02 | Investigada y especificada en el contrato; revisión y aprobación humana E01–E07 pendientes; no cerrada |
-| S03–S05 | No iniciadas; requisitos iniciales conservados, diseños y autorizaciones pendientes |
+| S02 | Cerrada como especificación matemática aprobada E01–E07; sin implementación ni validación experimental |
+| S03 | Especificada; pendiente de revisión y aprobación humana C01–C08; no cerrada |
+| S04–S05 | No iniciadas; diseños y autorizaciones pendientes |
 | S06–S09 | No iniciadas; implementación, integración y aceptación no autorizadas |
 
 La aceptación distingue tres niveles definidos en el
@@ -136,12 +142,12 @@ Se conserva el apartado I íntegro: aprobar diferimientos no satisface esos requ
   de topología/distorsión/exportación. Definir el contador activo exportado no
   incorpora generación exportadora al mínimo.
 
-### Resultado de S02 — propuesta disponible para revisión
+### Resultado de S02 — cierre formal aprobado
 
-La [especificación matemática](contratos/simulador-fase-1.md#propuesta-matemática-s02--pendiente-de-aprobación)
+La [especificación matemática](contratos/simulador-fase-1.md#especificación-matemática-s02--aprobada)
 contiene catálogo con dominios/nulabilidad, fuente ideal y cargas de admitancia
 prescrita, relaciones fasoriales 1P2W/3P4W, agregados, neutro y límites de √3.
-Propone S aritmética, FP con signo activo, Q inductiva/capacitiva, cuatro contadores
+Aprueba S aritmética, FP con signo activo, Q inductiva/capacitiva, cuatro contadores
 separados por alcance y tiempo físico relativo. Distingue integración exacta por
 tramos de aproximación y error numérico; temperatura auxiliar indisponible.
 
@@ -152,12 +158,16 @@ centinela próximo a cero. Los oráculos son analíticos e independientes de un
 futuro motor. Recomendación nominal: 120 V L-N y 60 Hz, con alternativas y
 dominios sintéticos; no son umbrales industriales.
 
-**Pendiente de aprobación individual:** E01 hipótesis/carga/topologías;
-E02 signos/cuadrantes/FP; E03 agregación S/FP/Q; E04 tiempo y acumuladores;
-E05 nominales/dominios; E06 tolerancias/convergencia; E07 temperatura y límites.
-Las alternativas e impactos están en S02.9 del contrato. Aprobar D01–D06 no
-aprueba estas decisiones. **S02 investigada y especificada, no cerrada; S03 no
-iniciada.** No hay código implementado ni validación instrumental/persistente.
+**Aprobación individual registrada el 2026-10-17:** E01 topologías 1P2W/3P4W,
+fuente/neutro ideales y admitancia prescrita; E02 P hacia carga, Q+ inductiva/Q−
+capacitiva y FP=P/S; E03 S aritmética, FP agregado P/S y Q algebraica; E04 intervalos
+semiabiertos y contadores direccionales por alcance; E05 120 V L-N/60 Hz y dominios;
+E06 tolerancias/convergencia de S02; E07 temperatura auxiliar indisponible.
+La instrucción S02/S03 identificada al inicio aprueba estas decisiones y cierra
+**S02 sólo como especificación matemática aprobada**, sin implementación ni
+validación experimental. Las alternativas y límites de S02.9 se conservan.
+D01–D06 y sus pendientes instrumentales mantienen su alcance; aprobar matemáticas
+no demuestra equivalencia instrumental ni habilita S04 o implementación.
 
 ## S03 — Diseñar contrato común y compatibilidad
 
@@ -192,6 +202,40 @@ iniciada.** No hay código implementado ni validación instrumental/persistente.
   artefacto de referencia, calidad multidimensional, soporte de ventanas,
   deduplicación/tiempo, proyección o evolución del esquema y plan por niveles.
   Aprobar diseño no autoriza ejecutar una migración ni modificar HTTP.
+
+### Resultado de S03 — especificación pendiente de aprobación
+
+La [propuesta S03](contratos/simulador-fase-1.md#6-contrato-común-y-compatibilidad--propuesta-s03)
+contiene inventario verificado y matriz por componente (S03.1), representación
+híbrida y catálogo de identidades/magnitudes (S03.2), cuatro dimensiones de calidad
+(S03.3), tiempos/entregas/deduplicación (S03.4), ejemplos completos por envelope y
+herencia explícita de campos (S03.5), artefacto físico separado y proyección legada
+con pérdidas/temperatura/etiquetas (S03.6), ubicaciones futuras y aceptación por
+niveles con verificación de campos en PostgreSQL aislado (S03.7).
+
+Recomendaciones individuales **C01–C08 pendientes** (S03.8): representación y
+versionado; identidad/alcance; calidad/procedencia; tiempo; deduplicación;
+artefacto físico; compatibilidad/ML; integración y aceptación. Cada una incluye
+fundamento, alternativas, riesgos y consecuencias. Se presenta el conjunto para
+revisión; ningún diseño propuesto está aprobado por esta entrega.
+
+Hallazgos de compatibilidad: Registro carece de identidad/calidad/tiempos completos;
+HTTP/CSV no transportan el nuevo contrato; unidades históricas sin confirmar;
+temperatura null conserva honestidad, pero deja Comparativos sin puntos completos
+y bloquea evaluación del modelo de cuatro variables. El ML administrativo no debe
+invocarse sobre esa proyección. Sin etiquetas diagnósticas aprobadas, Sin estado
+no es verdad negativa aunque la normalización histórica produzca label_anomalia=0.
+Una fila multifase ambigua queda rechazada; persistir sólo Registro no acredita
+nivel 3. Reversión propuesta conserva datos/modelos y ruta legada.
+
+Verificación documental: contraste estático de consumidores reales, dimensiones de
+calidad, unidades/alcances, soporte de ventanas y ejemplos, trazabilidad y pérdidas;
+enlaces y referencias locales, diff y alcance exacto de dos documentos. No se
+implementó código ni se ejecutaron servicios, generadores, PostgreSQL, Docker o
+pruebas de aplicación. No hay validación experimental, persistente ni industrial.
+**S01 y S02 cerradas para sus respectivos alcances; S03 especificada y pendiente
+de revisión/aprobación; S04 no iniciada.** Sin commit, push ni inicio automático
+de una etapa posterior.
 
 ## S04 — Diseñar escenarios físicos y perfiles
 
