@@ -65,6 +65,24 @@ del núcleo y los diferimientos instrumentales S01. La misma instrucción autori
 especificada, pendiente de revisión y aprobación; S04 no iniciada**. No autoriza
 implementación, migraciones, servicios, commit ni push.
 
+
+**Actualización S03/S04 (2026-10-17):** mediante «SmartEnergy — Cierre formal de
+S03 y diseño documental de S04», el responsable aprueba expresamente C01–C08 y
+cierra **S03 exclusivamente como especificación documental aprobada**, incluida
+la corrección puntual de S03.5. Base verificada: `feature/simulador`, HEAD
+`024d820f784aa38e321cf5970deb78a4bd838c39`, árbol limpio. Esta instrucción autoriza
+el diseño documental S04 en este contrato y el roadmap; **S04 queda propuesta,
+pendiente de revisión y aprobación F-D01–F-D05; S05–S09 no iniciadas**.
+Los estados de entregas anteriores son históricos y quedan sustituidos por este
+registro y el apartado 9; no se alteran las matemáticas S02.1–S02.9.
+
+La aprobación C01–C08 conserva pendientes la canonicalización definitiva antes de
+implementarla, unicidad y deduplicación concurrente demostrables, políticas de
+retención/recuperación de artefactos, evidencia de unidades y zonas históricas,
+adaptadores, almacenamiento/HTTP, pruebas y autorizaciones de integración por
+nivel. No habilita cambios en bases, servicios, interfaces, modelos ML ni recursos
+persistentes; tampoco acredita capacidades ejecutadas o validación industrial.
+
 ## 2. Estado real y brechas comprobadas
 
 Inspección estática, sin importar ni ejecutar generadores:
@@ -562,9 +580,9 @@ En escenarios combinados se conservarán todos los eventos y su precedencia.
 Toda observación derivada de una ventana debe identificar el intervalo físico
 de referencia, la operación o transformación aplicada, el instante de observación,
 el instante de recepción o registro según corresponda y una referencia verificable
-al escenario físico original y su versión. La propuesta S03 del apartado 6 define
-la representación y la semántica de los límites temporales, pendiente de aprobación. Se permiten referencias por intervalo o
-segmento que permitan reconstruir la relación; no se exige un enlace por cada
+al escenario físico original y su versión. La especificación S03 del apartado 6 define
+la representación y la semántica de los límites temporales, aprobadas con C04.
+Se permiten referencias por intervalo o segmento que permitan reconstruir la relación; no se exige un enlace por cada
 muestra física. Una referencia a un único instante no basta si el valor depende
 de una ventana. Las pruebas deberán incluir ventanas que atraviesen transiciones
 de operación y verificar el soporte físico y la transformación contra el oráculo
@@ -598,9 +616,223 @@ eléctrica; fallo de comunicación no significa máquina parada. La política de
 etiquetado será multicausal; una eventual proyección a `Normal`/`Anomalo` necesita
 regla explícita y aprobación, sin colapsar la referencia original.
 
-## 6. Contrato común y compatibilidad — propuesta S03
+### S04 — Escenarios físicos y perfiles propuestos
 
-**Estado:** diseño recomendado, pendiente de revisión y aprobación humana C01–C08.
+**Propuesta documental pendiente F-D01–F-D05**, sin implementación ni aceptación
+experimental. La investigación se limita a derivar casos del modelo aprobado
+S02 y del contrato S03; no requiere nuevas atribuciones instrumentales ni normas
+externas. F01–F05 conservan exactamente sus significados de la tabla anterior.
+Los sufijos siguientes son casos de esas familias; `S02:Cxx` identifica oráculos
+S02.8 y `S03:Cxx` decisiones S03.8, nunca escenarios físicos nuevos.
+
+#### S04.1 — Configuración común y manifiesto reproducible
+
+Cada fila de S04.2 es una especificación completa al combinarse con estos defaults
+y sus reemplazos explícitos. ID y versión de escenario son `<ID>@1`; cada variante
+usa `<ID>-<variante>@1` (p. ej. F01-EST-capacitiva@1, F01-REP-24h@1), con sus
+reemplazos expandidos en el manifiesto. No se reutiliza un ID para entradas distintas; modificar
+entradas o semántica exige nueva versión. No se sortean valores: seed=null y
+algoritmo aleatorio=null. Una repetición conserva entradas, reloj simulado y
+resultados, independientemente de su velocidad real de ejecución.
+
+| Elemento | Valor o regla común propuesta |
+|---|---|
+| Identidad | installation_id=plant-a, device_id=sim-a, circuit_id=c1, voltage_reference_id=bus-a; L1/L2/L3 equivalen a A/B/C de S02; 1P2W usa sólo L1-N, 3P4W usa las tres fases y neutro ideal |
+| Configuración | `s04-1p@1` o `s04-3p@1` según topología; cada manifiesto resuelve configuración, unidades y perfiles exactos de la fila, sin asumir ADW210 implementado |
+| Referencia | U_n=120 V L-N, f=60 Hz; 3P4W ángulos 0,−2π/3,+2π/3 rad. U_LL=120√3 sólo en equilibrio; no usar 208 exactos. Referencia sintética, no planta universal |
+| Tiempo | Origen 2026-10-17T12:00:00Z, t en s, soporte [0,T); transiciones rigen en su inicio. Consultar estado final en T no añade energía. Cadencia de estados de ensayo h=1 s con todas las fronteras añadidas; no es cadencia de un medidor |
+| Entradas | U_k(t) en V y Y_k(t)=G_k+jB_k en S; únicamente fuente y admitancia prescritas, con dominios S02.6 para toda la trayectoria, no sólo extremos muestreados. P/Q de referencia en la tabla sirven para especificar Y, no para un controlador de potencia constante |
+| Iniciales | E0=(E_P+,E_P−,E_Q+,E_Q−)=(0,0,0,0) por cada alcance salvo variante explícita; época `run_id/epoch-0`; eventos iniciales con estado definido, sin tramo anterior implícito |
+| Salidas físicas | U/I/P/Q/S/FP por fase, P_T/Q_T/S_A/FP_A, I_N, tensiones L-L donde aplican, f y cuatro contadores por fase/circuito. Totales y fases nunca se suman juntos. Temperatura unsupported/null; no modelo térmico |
+| Manifiesto | ID/versión, run_id, versión de contrato 1.0.0, motor futuro y entorno numérico (pendientes hasta S06), configuration_ref, perfiles/unidades, duración/transiciones, E0/época, h/fronteras, métodos de integración/observación, semillas nulas y referencias/digests del artefacto S03.6 |
+| Terminación | Fin físico T, sin dependencia de now/sleep. Rechazar antes de producir segmentos aceptados si las entradas no cumplen S04.5. No activar escrituras/retención por terminar un ensayo |
+
+#### S04.2 — Casos físicos y resultados independientes
+
+Oráculo común deducido de S02: I_k=U_k|Y_k|, P_k=U_k²G_k,
+Q_k=−U_k²B_k, S_k=U_k²|Y_k|; agregados S02.3 y neutro por suma fasorial.
+En 1P2W I_N=I_L1 y total=única fase, conservando IDs distintos. Para cada tramo,
+ΔE_P+=∫P/3600, ΔE_P−=0, ΔE_Q±=∫max(±Q,0)/3600; sumar Q de fases **antes** de
+separar signos para contadores de circuito. Los resultados de la tabla son exactos
+como fracciones/radicales/integrales, salvo decimales marcados ≈. Energías en Wh/varh;
+P/Q/S en W/var/VA. Todos los casos mantienen f=60 y temperatura indisponible.
+
+| ID / propósito / topología y T | Entradas, transiciones y estado operativo de ensayo | Oráculo de magnitudes e incrementos energéticos |
+|---|---|---|
+| F01-REP — reposo, 1P2W, T=600 | U=120, Y=0 todo [0,600); estado reposo | I/P/Q/S/I_N=0 exactos; FP indefinido, no cero; cuatro incrementos cero. Variante prolongada T=86400, E0=(100,7,20,30): final idéntico a E0; no reinicio ni pérdida de energía previa. S02:C06/C10 |
+| F01-EST — estable, 1P2W, T=600 | U=120; tres ejecuciones separadas: Y=1/12 resistiva, Y=1/15−j/20 inductiva, Y=1/15+j/20 capacitiva; estado operación | I=10 y S=1200 en todas; (P,Q,FP)=(1200,0,1), (960,720,4/5), (960,−720,4/5). ΔE respectivos (200,0,0,0), (160,0,120,0), (160,0,0,120). Variante 3P4W equilibrada con Y inductiva en cada rama: P_T=2880,Q_T=2160,S_A=3600,FP_A=4/5,I_N=0; ΔE circuito=(480,0,360,0), cada fase=(160,0,120,0). S02:C01–C04 |
+| F01-ESC — escalón y cambio de signo Q, 1P2W, T=900 | U=120; Y=(1200−j900)/14400 en [0,600), Y=(600+j900)/14400 en [600,900); operación en ambos tramos, evento de carga t=600 | Primer tramo P=1200,Q=900,S=1500,I=12,5,FP=4/5; segundo P=600,Q=−900,S=300√13≈1081,665382639,I=(5/2)√13≈9,013878189,FP=2/√13. ΔE=(250,0,150,75), saldo Q=75. Consumo capacitivo no es exportación activa. S02:C07/C08 |
+| F01-RAM — rampa de admitancia, 1P2W, T=120 | U=120; Y=(600+10t)/14400 en [0,60), Y=1/12 en [60,120); operación/rampa→estable | P=S=600+10t,Q=0,I=5+t/12 en rampa; después P=S=1200,I=10; FP=1. Áreas de potencia 900·60 y 1200·60 ⇒ ΔE_P+=15+20=35, otros cero. Y continua en t=60. Oráculo por integral de recta, S02.5 |
+| F01-Q — cruce reactivo, 1P2W, T=3600 | U=120; Y=(1200−j900(1−2t/3600))/14400; operación constante en P con cambio inductivo→capacitivo en t=1800 | P=1200,Q=900(1−2t/3600),S=√(1200²+Q²),I=S/120,FP=1200/S; en cruce FP=1; ΔE=(1200,0,225,225), saldo Q=0. E0 alternativo de S02:C10 sólo se aplica al perfil C09, no a esta rampa. Reutiliza S02:C12; control escalonado alternativo S02:C09/C10 y no lineal S02:C13 sin cambiar sus entradas/resultados |
+| F01-TUR — turno por tramos, 1P2W, T=28800 | U=120; Y=0 [0,3600); Y=(1200−j900)/14400 [3600,14400); Y=0 [14400,18000); Y=(1200+j900)/14400 [18000,25200); Y=a(1200+j900)/14400, a=1−(t−25200)/60, [25200,25260); Y=0 [25260,28800). Estados reposo/operación/reposo/operación/parada/reposo | Tramos operativos P=1200,Q=±900,S=1500,I=12,5,FP=4/5; durante parada todas las potencias y corriente se escalan por a, FP=4/5 mientras a>0. Reposo tiene FP indefinido. ΔE_P+=3600+2400+10=6010; ΔE_Q+=2700; ΔE_Q−=1800+7,5=1807,5; exportada cero. No todo cambio de turno es anomalía |
+| F02-SOB — sobrecarga acotada, 1P2W, T=120 | U=120; Y=1/12 [0,30) y [90,120), Y=1/6 [30,90). Operación; condición de ensayo respecto de I_cap=15 A y duración mínima 10 s (S04.3) | I=10→20→10, P=S=1200→2400→1200,Q=0,FP=1. Condición I>15 durante exactamente 60 s; ΔE=(60,0,0,0). 20 A cumple dominio ≤100 A; sobrecarga es relativa a capacidad de ensayo, no fuera del dominio matemático |
+| F03-SUB — respuesta a subtensión, 1P2W, T=120 | Y=1/12 fija; U=120 [0,30) y [90,120), U=60 [30,90); operación con fuente reducida | I=10→5→10; P=S=1200→300→1200; Q=0,FP=1; condición U<108 V durante 60 s. ΔE=(25,0,0,0). Variante interrupción ideal U=0 sólo en tramo central: I/P/Q/S=0,FP indefinido,f ideal=60; ΔE_P+=20. S02:C14; no suponer potencia constante ni frecuencia medible en apagón |
+| F04-CAR — desequilibrio de carga, 3P4W, T=3600 | U_k=120; Y_A=1/12,Y_B=1/6,Y_C=0, operación con rama C en reposo | I=(10,20,0),P=(1200,2400,0),Q_k=0; P_T=S_A=3600,FP_A=1,FP_C indefinido; I_N=10√3≈17,320508076; ΔE_P+ circuito=3600, fases=(1200,2400,0); demás incrementos cero. S02:C05 |
+| F04-TEN — desequilibrio de tensión, 3P4W, T=3600 | U=(120,100,120), ángulos ABC sin cambio; Y_k=1/12; operación | I=(10,25/3,10),P=S=(1200,2500/3,1200); Q=0,FP_k=FP_A=1; P_T=S_A=9700/3≈3233,333333333; I_N=5/3 A; U_AB=U_BC=√36400≈190,787840283,U_CA=120√3. ΔE_P+ circuito=9700/3 y fases iguales a sus P; otros cero. Fórmulas fasoriales S02.3, no √3·120 para todos los pares |
+| F04-COM — compensación reactiva desigual, 3P4W, T=3600 | U_k=120; Y_A=1/15−j/20,Y_B=1/15+j/20,Y_C=1/12; operación | P=(960,960,1200),Q=(720,−720,0),I_k=10,S_k=1200; P_T=3120,Q_T=0,S_A=3600,FP_A=13/15; I_N=6√3−2≈8,392304845 A (suma fasorial (3√3−1)+j(√3−9) A). ΔE_P+ circuito=3120,ΔE_Q± circuito=0; fase A acumula 720 inductivos y B 720 capacitivos. No afirmar igualdad de corrientes fasoriales por igualdad de módulos. S02:C11 |
+| F05-ARR — envolvente de arranque/parada, 1P2W, T=120 | U=120,Y=a(1/15−j/20). a=t/5 [0,10); 2 [10,20); 2−(t−20)/10 [20,30); 1 [30,90); 1−(t−90)/10 [90,100); 0 [100,120). Estados arranque [0,30),operación [30,90),parada [90,100),reposo [100,120) | I=10a,P=960a,Q=720a,S=1200a; FP=4/5 si a>0, indefinido si a=0; I máximo=20 A. ∫a dt=10+20+15+60+5=110 s ⇒ ΔE_P+=88/3≈29,333333333,ΔE_Q+=22; otros cero. Continuidad de Y en todas las fronteras, inicio con Y=0; no transitorio electromagnético ni motor dinámico |
+| F02-F03-JUN — combinación física, 1P2W, T=120 | U=120,Y=1/12 antes de 30 y desde 90; U=60,Y=1/3 en [30,90). Operación; eventos simultáneos de fuente y carga, evaluados como un nuevo estado completo | I=10→20→10,P=S=1200 todo el ensayo,Q=0,FP=1. Coexisten U<108 e I>15 durante 60 s, ΔE_P+=40, demás cero. La misma P no demuestra normalidad ni identifica la causa. No es C01 combinado de fallos, que sigue reservado a S05 |
+
+Los perfiles con potencia usada para definir Y lo hacen a la tensión de referencia
+indicada. Sólo F03-SUB varía U con Y fija; en el caso conjunto U/Y cambian según
+su tabla, sin realimentación. No exigir que una carga de admitancia mantenga P
+cuando baje U. Todas las variantes citadas de S02:C09/C10/C13/C14 conservan sus
+soportes y entradas originales, con el contexto común; no amplían el modelo.
+
+#### S04.3 — Condiciones de ensayo y límites de interpretación
+
+Propuestas exclusivamente sintéticas para aprobación F-D02:
+
+- F02-SOB: capacidad I_cap=15 A; condición sobrecarga si I_L1>15 A de forma
+  continua al menos 10 s. Umbral estricto: exactamente 15 A no cumple; 20 A
+  durante 9 s no alcanza duración, 10 s sí. La condición física comienza al
+  cruzar el umbral, pero su duración sólo se confirma tras observar el intervalo.
+- F03-SUB: U_n=120 V y umbral 0,9U_n=108 V; condición subtensión si U_L1N<108 V
+  durante al menos 10 s. Exactamente 108 V no cumple. Ni 108 V ni 15 A son
+  límites del dominio S02; no se recorta ni invalida la física por cruzarlos.
+- F04: distinguir perfil de tensión y de carga, sin atribuir índice normativo.
+  Para los casos resistivos se propone dispersión d_U=(max U_k−min U_k)/120 y
+  d_I=(max I_k−min I_k)/10; condición d_U>0,10 o d_I>0,20 durante al menos 10 s.
+  F04-CAR da d_I=2 y d_U=0; F04-TEN da d_U=1/6 y d_I=1/6, por lo que sólo el
+  criterio de tensión cruza su umbral. F04-COM es asimetría de admitancias/desfases,
+  aunque d_U=d_I=0: la cobertura física no depende de un detector por módulos.
+  No llamarlos componentes de secuencia negativa ni criterio industrial de desbalance.
+- F05-ARR tiene duración de arranque 30 s y parada 10 s, pico a=2; se verifica
+  su envolvente de ensayo, sin inferir rotor, par, inercia ni corriente subciclo.
+  Sus estados operativos no implican automáticamente F02 ni etiqueta diagnóstica.
+
+Evento físico (p. ej. cambio de U), estado operativo (arranque/reposo), condición
+física (umbral de ensayo cumplido), etiqueta diagnóstica y predicción ML son
+objetos distintos. No rellenar `estado=Anomalo` por estos escenarios. La condición
+conocida por el oráculo y su confirmación temporal no se publican como diagnóstico
+del producto; el detector puede no observarla y aquí no se evalúa ML. Una
+observación ideal de sobrecarga o subtensión dentro de los dominios S02 puede
+ser válida; cruzar el umbral de condición física no implica invalidez del dato.
+
+#### S04.4 — Ventanas ideales y fronteras temporales
+
+Pruebas futuras con soporte explícito y linaje a **todos** los segmentos intersectados.
+Para W=[a,b), Δt=b−a>0: P_media=∫_W P/Δt, Q_media=∫_W Q/Δt. Usar áreas
+analíticas, dividir en transiciones y cruces de Q. La observación ideal de potencia
+media no es la del último estado; tampoco max(Q_media,0)·Δt reproduce necesariamente
+un contador direccional. Los contadores leídos al final conservan acumulación desde
+su época y soporte; los incrementos de ventana se calculan como diferencias con
+oráculo, sin sumar lecturas acumuladas. No introducir una nueva definición de S/FP:
+las salidas de estado siguen S02; medias RMS/S/FP de ventanas no se inventan por
+promediar estados. Las ventanas aquí especificadas son medias de P/Q y contraste
+de contadores; no prometen un algoritmo instrumental de ventana para otras magnitudes.
+
+| Frontera / caso | Soporte y resultado independiente |
+|---|---|
+| Transición en inicio, F01-ESC | [600,610): sólo estado nuevo, P_media=600,Q_media=−900; ΔE=(5/3,0,0,5/2) |
+| Transición en final, F01-ESC | [590,600): sólo estado anterior, P_media=1200,Q_media=900; ΔE=(10/3,0,5/2,0). El estado en t=600 no añade duración |
+| Una transición interior, F01-ESC | [590,610): P_media=900,Q_media=0; ΔE=(5,0,5/2,5/2). Linaje a ambos tramos; Q_media=0 no borra las dos acumulaciones |
+| Varias transiciones, F01-TUR | [14390,18010): 10 s inductivos, 3600 s de reposo, 10 s capacitivos; P_media=1200/181≈6,629834254 W,Q_media=0; ΔE=(20/3,0,5/2,5/2). Incluir eventos t=14400 y 18000; no asignar los 3620 s al último estado |
+| Cruce continuo de Q, F01-Q | [0,3600): P_media=1200,Q_media=0; separar t=1800 para E_Q±=225. Q negativa válida con P positiva; no invalidarla ni sumar a energía activa exportada |
+| Arranque/parada, F05-ARR | [0,10): a_media=1,P_media=960,Q_media=720; [95,105): ∫a dt=5/4 s, P_media=120,Q_media=90,ΔE_P+=1/3,ΔE_Q+=1/4; linaje a parada y reposo; FP de estado es indefinido desde t=100 |
+| Reposo prolongado | F01-REP [0,86400): P_media=Q_media=0; incrementos cero exactos y contadores iniciales conservados. No interpretar cero válido como lectura congelada |
+
+Un evento en frontera tiene instante puntual e IDs de sujetos; las ventanas que
+terminan allí excluyen el estado posterior, sin excluir el evento del historial
+de verdad. Estados finales y transiciones simultáneas se consultan de forma
+coherente, sin estados intermedios de duración positiva no prescritos.
+
+#### S04.5 — Rechazo, precisión y aceptación futura
+
+Rechazar duración T≤0 o T>86400; ventanas de duración cero/negativa, fuera del
+soporte de ejecución, con extremos no finitos o sin referencia temporal; tiempos
+de transición desordenados/fuera del soporte; perfiles de carga incompletos,
+contradictorios para el mismo sujeto/instante o no finitos. Eventos simultáneos en
+sujetos/campos distintos son admisibles como F02-F03-JUN: el manifiesto agrupa sus
+cambios en una única frontera. Un fin de rampa en T no crea un tramo de duración cero.
+Rechazar U/G/B, frecuencia, I resultante o contadores iniciales fuera de S02.6;
+G<0 no se admite en el mínimo, Q<0 sí. Rechazar 3P3W, cargas L-L, ángulos de fuente
+fuera del perfil aprobado, neutro flotante, exportación activa y modelo térmico.
+Una consulta de estado inicial con duración de integración nula sigue permitida
+por S02.5; no equivale a un escenario/ventana de duración cero.
+
+Todos los casos aceptados deben cumplir S02.7 sin cambiar tolerancias: U/I/f y
+ángulos, P/Q/S/FP, contadores y saldos con sus unidades y guardas cerca de cero.
+Comparar cada fase, luego agregado, cada incremento, luego contador final/saldo;
+identidad, nulabilidad, tiempos de frontera, ausencia de E_P− añadido, monotonía
+y reposo estructural exactos. Para estados discontinuos evaluar ambos lados,
+no promediar la verdad física. Las rampas lineales en Y con U fija dan P/Q
+lineales y energía por áreas exactas; partir siempre en cruces de Q.
+Como control adicional suave reutilizar íntegro S02:C13: E_ref=1400 Wh,
+N=100/200/400 da errores 0,01/0,0025/0,000625 Wh, cociente 4; el último cumple
+presupuesto de discretización 0,0024 Wh además de redondeo. h=3600/N sustituye
+la cadencia común en ese control. No confundir esa aproximación con los resultados
+analíticos de la tabla ni validar contra el mismo integrador del futuro código.
+
+#### S04.6 — Artefactos, identidad y cobertura
+
+Cada ejecución futura producirá estados/segmentos físicos con parámetros y
+resultados, eventos de carga/fuente/operación y ventanas ideales con method_ref,
+soporte [a,b), measured_at=b y lineage_ref a segmentos/versiones. Manifest/run_id
+resuelve escenario ID/versión y configuración; IDs estables de segmento/evento/
+observación derivan del manifiesto y orden lógico, nunca de now(). La igualdad de
+manifiesto en el entorno fijado deberá reproducir identidades/valores; no se
+promete igualdad entre versiones del motor. Los digests/serialización definitivos
+siguen pendientes de canonicalización C01/C05, sin inventar hoy garantías binarias.
+
+Como en S03, observaciones idealmente calculadas llevan origin=synthetic,
+method=calculated, availability=present y validity=valid sólo si pasan sus reglas;
+freshness=current requiere evaluación explícita en el ensayo (recepción ideal en b,
+max_age_s=5, política test-age@1), no sólo conocer el oráculo. Con referencia temporal
+insuficiente freshness=unknown. En un punto usar measured_at=t y soporte point, event_at sólo si hay un evento
+físico identificable en ese instante;
+ventanas usan interval; una media con varios eventos lleva event_at=null y el
+linaje resuelve sus eventos. Temperatura unsupported, FP con S=0 not_applicable,
+ambos null/not_evaluated/not_applicable como S03.3, sin completar ML. Frecuencia
+ideal a 60 Hz durante interrupción es parámetro calculado, no lectura de un medidor.
+Tensión y frecuencia del bus compartido se emiten una vez por referencia; potencias,
+corrientes y contadores identifican circuito/fase o total, con unidad canónica.
+
+El artefacto físico S03.6 guarda causas/condiciones y transiciones; el conjunto
+consumible sólo magnitudes, soporte y procedencia observables, sin etiquetas de
+verdad ni causas inyectadas en features. S04 no introduce ruido, sesgo, congelación,
+pérdidas, retrasos o transporte real: la recepción ideal es convención de fixture
+futuro, recorded_at=null; no diseño de fallos S05 ni persistencia. No se crean los
+artefactos en esta entrega.
+
+| Caso / familia | Topología / fenómeno y variables verificadas | Oráculos asociados | Fronteras / rechazo específico | Nivel futuro / límite |
+|---|---|---|---|---|
+| F01-REP / F01 | 1P2W, cero, FP nulo, cuatro contadores | S02:C06/C10 | Inicio/fin, reposo 24 h; rechazar reinicio tácito | 1; no congelación ni retención |
+| F01-EST / F01 | 1P2W y variante 3P4W; P/Q/S/FP,I_N,energía resistiva/inductiva/capacitiva | S02:C01–C04/C07 | Ventanas constantes; rechazar Q negativa tratada como inválida | 1; sinusoidal ideal |
+| F01-ESC / F01 | 1P2W; escalón P/Q, contadores separados | S02:C08/C09/C10 como controles | Inicio/final/interior de ventana; rechazar doble conteo | 1; sin transitorio subciclo |
+| F01-RAM, F01-Q, F01-TUR / F01 | 1P2W; rampas/turno/signo reactivo/reposo, continuidad Y, energía | S02.5,C12/C13 | Cruce por cero, varias transiciones; rechazar ventanas vacías o asignación al estado final | 1; no dinámica de motor |
+| F02-SOB / F02 | 1P2W; I/P/S, duración y nominal de ensayo | S02:C01 y áreas | Fronteras 30/90, umbral/duración exactos; rechazar I>100 A | 1; no umbral industrial |
+| F03-SUB / F03 | 1P2W; U/I/P/FP, Y fija, interrupción | S02:C14 | 30/90 y U=0; rechazar conservación artificial de P | 1; no frecuencia instrumental en apagón |
+| F04-CAR,TEN,COM / F04 | 3P4W; fases/totales, U_LL,I_N,S_A,FP_A y compensaciones | S02:C05/C11 y fasores S02.3 | Estado inicial/ventanas constantes; rechazar √3 indebida y suma de contadores de fase como total | 1; índices por módulos no detectan todo desfase |
+| F05-ARR / F05 | 1P2W; envolvente I/P/Q/S, estados y energía | Áreas S04.2, S02.5 | 0/10/20/30/90/100/120; rechazar parámetros que rompan continuidad declarada o dominios | 1; no simulación electromagnética |
+| F02-F03-JUN / F02+F03 | 1P2W; carga/fuente simultáneas, I/U y energía | S02.3/5 y áreas | 30/90, cambios atómicos de estado; rechazar perfiles contradictorios | 1; no C01 combinado I/A |
+
+Las ventanas/identidades de estos casos aportarán fixtures al nivel 2, que exige
+validación independiente del contrato/consumidores en S08. Ningún cálculo documental
+acredita ya nivel 1, 2 o 3. Cobertura física F01–F05 especificada, no ejecutada:
+quedan pendientes I01–I04/A01–A02/C01 (S05), estadísticas/perfiles instrumentales,
+implementación/pruebas unitarias (S06), aceptación con tolerancias y reproducción
+(S07), compatibilidad ejecutada/persistencia autorizada (S08) y cierre operativo
+(S09). Reinicio/rollover y cercanía a cero conservan los controles S02/S03, sin
+simularlos como fenómenos nuevos S04. D02/D05 siguen bloqueando equivalencia de
+instrumentos específicos; no bloquean estos perfiles genéricos ni se dan por cumplidos.
+
+#### S04.7 — Decisiones propuestas para aprobación humana
+
+Todas pendientes. Aprobar diseño S04 no autorizará S05/S06 ni ejecución posterior.
+
+| ID | Recomendación y fundamento | Alternativas | Consecuencias / riesgos / aprobación requerida |
+|---|---|---|---|
+| F-D01 | Aprobar catálogo S04.2 y defaults/manifiesto S04.1: casos deterministas de U/Y, ambas topologías y oráculos analíticos | Series aleatorias o sólo estables | Determinismo permite contrastar fronteras, no acredita realismo de planta. Aprobar IDs/versiones/parámetros/duraciones y suficiencia de cobertura F01–F05 |
+| F-D02 | Aprobar capacidades/umbrales/duraciones de S04.3 sólo como condiciones de ensayo; distinguir dispersión por módulos de desfases | No etiquetar condiciones o usar índices normativos tras investigación separada | Riesgo de interpretar nominal como protección industrial; sin diagnóstico legado. Aprobar 15 A, 108 V, 10 s y definiciones d_U/d_I, más envolvente 30/10 s, sin alterar dominios E05 |
+| F-D03 | Aprobar ventanas de P/Q, contadores y fronteras de S04.4 con áreas independientes y tolerancias E06 | Sólo puntos finales; usar integración del propio motor como esperado | Alternativas ocultan transiciones/compensaciones. Aprobar soportes y criterios/rechazos, manteniendo pendientes métodos instrumentales de otras ventanas |
+| F-D04 | Aprobar estados/eventos/condiciones separados de diagnóstico/ML y artefactos/linaje S04.6 conforme a S03 | Etiqueta binaria automática; verdad mezclada en observaciones | Riesgo de fuga de causas y evaluación ficticia; requiere trazabilidad de todos los segmentos. Aprobar separación y calidad ideal sin adelantar fallos S05 |
+| F-D05 | Aprobar suficiencia documental y plan de aceptación física futuro nivel 1, fixtures posteriores nivel 2, sin acreditar persistencia | Exigir integración inmediata o dar pruebas por aprobadas con estas cuentas | Las cuentas no validan código; mantener D02/D05, pendientes de S03 y autorizaciones de S05–S09. Aprobar límites/pendientes y cierre documental S04 sólo tras revisión humana |
+
+## 6. Contrato común y compatibilidad — S03 aprobada
+
+**Estado:** especificación documental aprobada C01–C08 y cerrada por la instrucción
+S03/S04 registrada en el apartado 1; sin implementación ni pruebas de integración.
 Inspección exclusivamente estática sobre el HEAD registrado en el apartado 1;
 no se importó código, abrió una conexión ni ejecutó operaciones. Los ejemplos
 son datos conceptuales de contrato, no mediciones ni fixtures ejecutados. Los
@@ -640,7 +872,7 @@ sólo como proyecciones explícitas para consumidores actuales. JSON es el forma
 de intercambio conceptual; JSONL por tipo de registro es la propuesta de artefacto
 de ensayo, sin crear archivos ahora. No es un esquema SQL ni un endpoint nuevo.
 
-Versión candidata `1.0.0`, todavía no aprobada. Cambio mayor para semántica, unidad,
+Versión de diseño `1.0.0`, aprobada con C01; aún no implementada. Cambio mayor para semántica, unidad,
 identidad, obligatoriedad o enum incompatible; menor para campos opcionales que el
 lector pueda ignorar; parche para aclaraciones sin cambio observable. Rechazar mayor
 desconocida y enums desconocidos en campos críticos, conservar payload rechazado en
@@ -969,10 +1201,18 @@ el almacenamiento conservará referencia/digest y se verificará su recuperació
 retención conjunta. Si no se autoriza esa solución o la lectura completa, nivel 3
 queda pendiente; la aceptación de niveles 1/2 no la sustituye.
 
-### S03.8 — Decisiones integrales pendientes de aprobación
+### S03.8 — Decisiones integrales aprobadas y límites
 
-Todas las recomendaciones C01–C08 están **pendientes**; no constituyen aprobación
-de arquitectura industrial, implementación ni ejecución de etapas siguientes.
+**C01–C08 aprobadas expresamente el 2026-10-17** por la instrucción S03/S04 del
+apartado 1: representación híbrida/catalogación/versionado; identidad/alcances y
+tensión compartida; calidad/procedencia; UTC/soporte/históricos; identidad de
+observaciones/entregas/deduplicación; verdad física/linaje; proyección legada con
+pérdidas y restricciones ML; integración y aceptación por niveles. Se conservan
+los fundamentos, alternativas y riesgos de la tabla como registro de la decisión.
+S03 queda cerrada sólo documentalmente. La aprobación no resuelve los trabajos
+pendientes enumerados en el apartado 1 ni autoriza implementación, migración,
+pruebas persistentes o arquitectura industrial. S04 se autoriza únicamente para
+el diseño documental mediante la misma instrucción, no por efecto automático de C08.
 
 | ID / asunto | Recomendación y fundamento | Alternativas | Riesgos y consecuencias |
 |---|---|---|---|
@@ -983,7 +1223,7 @@ de arquitectura industrial, implementación ni ejecución de etapas siguientes.
 | C05 Deduplicación | ID lógico estable + entrega por intento + conflicto sin overwrite; dedup transaccional futura | Timestamp/valor; hash sin ID; ignorar duplicados | Hash/valor confunde lecturas iguales legítimas; ID gateway limita garantía de origen. Exige unicidad/concurrencia y política de tardíos antes de integrar |
 | C06 Verdad física | Artefacto versionado separado con manifiesto/segmentos/eventos/intentos/digests y linaje por ventana | Meter verdad en Registro; conservar sólo semilla | Primera filtra etiquetas; semilla sola no permite auditar versiones/resultados. Exige integridad y retención del artefacto |
 | C07 Legado/ML | Proyección optativa seleccionada por fase, pérdidas explícitas, temperatura null y Sin estado sin verdad binaria; almacenamiento completo aditivo futuro | Reemplazar Registro ahora; fila multifase total; imputar temperatura | Alternativas requieren migración o falsean datos. Modelo actual no se acredita compatible y Comparativos puede quedar vacío; no usar ML administrativo sobre proyección incompleta |
-| C08 Integración/aceptación | Primero núcleo, luego memoria, después PostgreSQL completo aislado con autorización propia | Integración directa al legado; detenerse en memoria | Legado pierde metadatos; memoria no prueba persistencia. Obliga a evidencia por campo y evolución de lectura aprobada para nivel 3; no autoriza S04 ni S06/S08 |
+| C08 Integración/aceptación | Primero núcleo, luego memoria, después PostgreSQL completo aislado con autorización propia | Integración directa al legado; detenerse en memoria | Legado pierde metadatos; memoria no prueba persistencia. Obliga a evidencia por campo y evolución de lectura aprobada para nivel 3; por sí sola no autoriza S04 ni S06/S08 |
 
 ### Niveles de aceptación y límites de evidencia
 
@@ -1016,7 +1256,7 @@ semilla y algoritmo aleatorio, entorno numérico relevante, instante inicial,
 cadencia, duración, topología, perfiles, eventos y política de integración.
 Separar secuencias aleatorias por capa evitará que activar una pérdida cambie la
 física. El tiempo simulado no dependerá de `now()` ni de esperas del reloj real.
-Propuesta: UTC con offset explícito y límites de intervalo inequívocos; aprobación
+UTC con offset explícito y límites de intervalo inequívocos, aprobados con C04
 en S03, sin reinterpretar timestamps naive históricos.
 
 Los siguientes son **criterios del simulador**, no exactitudes de instrumentos.
@@ -1074,20 +1314,19 @@ independientes, evitando copiar el mismo cálculo de producción en la prueba.
 
 ## 9. Decisiones abiertas y cierre de esta fase
 
-E01–E07 están aprobadas y S02 cerrada exclusivamente como especificación
-matemática, según la instrucción registrada en el apartado 1. D01–D06 mantienen
-el cierre documental S01 y sus diferimientos, sin aprobar firmware/mapa ni
-equivalencia instrumental. **S03 queda especificada, pendiente de revisión y
-aprobación C01–C08; S04 no iniciada.** Siguen pendientes umbrales/escenarios,
-perfiles de fallos, metrología específica, implementación y todos los niveles de
-aceptación ejecutable. Ninguna migración, cambio HTTP ni recurso persistente
-queda autorizado por la propuesta S03.
+D01–D06 mantienen el cierre documental S01 con sus diferimientos instrumentales;
+E01–E07, la especificación matemática aprobada S02. C01–C08 quedan aprobadas y
+S03 cerrada exclusivamente como especificación documental mediante la instrucción
+S03/S04 del apartado 1. **S04 especificada en S04.1–S04.7, pendiente de revisión
+y aprobación F-D01–F-D05; S05–S09 no iniciadas.** Se mantienen los pendientes
+operativos de S03, la metrología específica y todos los ensayos de aceptación.
+No se aprueban umbrales industriales, etiquetas ML ni nuevas convenciones físicas.
 
-Esta intervención modifica únicamente este contrato y el roadmap del simulador.
-La matriz S01 se consulta sin modificar sus evidencias históricas. Verificación:
-contraste estático con ORM, repositorio, análisis, aplicación, HTTP, frontend,
-ML y generadores; revisión de identidad/unidades/calidad/tiempo, ejemplos,
-pérdidas declaradas y criterios por nivel; enlaces locales y `git diff --check`.
-No se ejecutan servicios, generadores, pruebas de aplicación, PostgreSQL ni Docker.
-Sin código implementado, ensayos experimentales, commit ni push. Los resultados
-documentales no acreditan compatibilidad ejecutada ni preparación industrial.
+Esta intervención modifica sólo contrato y roadmap. La investigación recupera
+familias F01–F05 y reutiliza E01–E07, el contrato S03 y los oráculos S02, sin
+reabrir instrumentos ni modificar S02.1–S02.9. La comprobación numérica independiente
+usa aritmética racional, integrales analíticas y sumas fasoriales, sin importar
+el producto ni ejecutar un simulador. Se revisan cobertura, dominios, linaje,
+identificadores, enlaces y `git diff --check`; no equivale a validar implementación.
+No se ejecutan servicios, generadores, migraciones, PostgreSQL, Docker, ML ni
+pruebas de aplicación. Sin código implementado, nuevos archivos, commit ni push.

@@ -20,6 +20,13 @@ documental de S03», el responsable aprobó E01–E07 y autorizó el cierre form
 S02 y el diseño documental S03. Base verificada: rama `feature/simulador`, HEAD
 `0bde38154ce9630c93f6cd6c38670d4111cad29e`, árbol limpio. Se modifican únicamente
 contrato y roadmap, sin ejecución de código ni recursos persistentes.
+El 2026-10-17, mediante «SmartEnergy — Cierre formal de S03 y diseño documental
+de S04», el responsable aprueba C01–C08 (con la corrección S03.5 ya incorporada)
+y cierra S03 exclusivamente como especificación documental. Autoriza sólo diseñar
+S04 en contrato y roadmap. Base: `feature/simulador`, HEAD
+`024d820f784aa38e321cf5970deb78a4bd838c39`, árbol limpio. Se conservan D01–D06,
+E01–E07 y todos los diferimientos instrumentales; no se autorizan implementación,
+servicios, bases, interfaces, ML ni integración persistente.
 No se considera aceptada una etapa futura por figurar aquí. La aprobación del
 responsable debe identificar etapa, alcance, entregables, criterios y efectos
 permitidos; ninguna etapa de implementación comienza sin aprobación explícita.
@@ -36,12 +43,13 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras cierre formal S02 y especificación S03 (2026-10-17) |
+| Etapa | Estado tras cierre documental S03 y propuesta S04 (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
 | S02 | Cerrada como especificación matemática aprobada E01–E07; sin implementación ni validación experimental |
-| S03 | Especificada; pendiente de revisión y aprobación humana C01–C08; no cerrada |
-| S04–S05 | No iniciadas; diseños y autorizaciones pendientes |
+| S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
+| S04 | Escenarios y perfiles especificados; pendiente de revisión y aprobación F-D01–F-D05; no cerrada |
+| S05 | No iniciada; diseño y autorización pendientes |
 | S06–S09 | No iniciadas; implementación, integración y aceptación no autorizadas |
 
 La aceptación distingue tres niveles definidos en el
@@ -203,9 +211,9 @@ no demuestra equivalencia instrumental ni habilita S04 o implementación.
   deduplicación/tiempo, proyección o evolución del esquema y plan por niveles.
   Aprobar diseño no autoriza ejecutar una migración ni modificar HTTP.
 
-### Resultado de S03 — especificación pendiente de aprobación
+### Resultado de S03 — cierre documental aprobado
 
-La [propuesta S03](contratos/simulador-fase-1.md#6-contrato-común-y-compatibilidad--propuesta-s03)
+La [especificación S03](contratos/simulador-fase-1.md#6-contrato-común-y-compatibilidad--s03-aprobada)
 contiene inventario verificado y matriz por componente (S03.1), representación
 híbrida y catálogo de identidades/magnitudes (S03.2), cuatro dimensiones de calidad
 (S03.3), tiempos/entregas/deduplicación (S03.4), ejemplos completos por envelope y
@@ -213,11 +221,16 @@ herencia explícita de campos (S03.5), artefacto físico separado y proyección 
 con pérdidas/temperatura/etiquetas (S03.6), ubicaciones futuras y aceptación por
 niveles con verificación de campos en PostgreSQL aislado (S03.7).
 
-Recomendaciones individuales **C01–C08 pendientes** (S03.8): representación y
+Decisiones individuales **C01–C08 aprobadas el 2026-10-17** (S03.8): representación y
 versionado; identidad/alcance; calidad/procedencia; tiempo; deduplicación;
 artefacto físico; compatibilidad/ML; integración y aceptación. Cada una incluye
-fundamento, alternativas, riesgos y consecuencias. Se presenta el conjunto para
-revisión; ningún diseño propuesto está aprobado por esta entrega.
+fundamento, alternativas, riesgos y consecuencias conservados como registro.
+La instrucción S03/S04 identificada al inicio cierra S03 sólo documentalmente.
+Siguen pendientes canonicalización definitiva antes de implementarla, garantías
+de deduplicación concurrente, retención/recuperación de artefactos, evidencia de
+unidades/zonas históricas, adaptadores, persistencia, pruebas y autorizaciones de
+integración por nivel. Aprobar el contrato no demuestra esas capacidades ni
+habilita cambios de esquema, HTTP o ML.
 
 Hallazgos de compatibilidad: Registro carece de identidad/calidad/tiempos completos;
 HTTP/CSV no transportan el nuevo contrato; unidades históricas sin confirmar;
@@ -233,9 +246,9 @@ calidad, unidades/alcances, soporte de ventanas y ejemplos, trazabilidad y pérd
 enlaces y referencias locales, diff y alcance exacto de dos documentos. No se
 implementó código ni se ejecutaron servicios, generadores, PostgreSQL, Docker o
 pruebas de aplicación. No hay validación experimental, persistente ni industrial.
-**S01 y S02 cerradas para sus respectivos alcances; S03 especificada y pendiente
-de revisión/aprobación; S04 no iniciada.** Sin commit, push ni inicio automático
-de una etapa posterior.
+**S01 y S02 cerradas para sus respectivos alcances; S03 aprobada y cerrada sólo
+documentalmente.** El diseño S04 se autoriza expresamente por la instrucción
+actual; no es consecuencia automática de ese cierre. Sin commit ni push.
 
 ## S04 — Diseñar escenarios físicos y perfiles
 
@@ -254,6 +267,47 @@ de una etapa posterior.
   convertir parámetros de ensayo en umbrales industriales del producto.
 - **Aprobación humana:** catálogo mínimo, umbrales de escenarios y utilidad para
   SmartEnergy; ampliaciones de realismo sólo con necesidad verificable.
+
+### Resultado de S04 — propuesta documental pendiente de aprobación
+
+La [propuesta de escenarios S04](contratos/simulador-fase-1.md#s04--escenarios-físicos-y-perfiles-propuestos)
+conserva las familias F01–F05. S04.1 fija defaults, identidades, versiones,
+condiciones iniciales y manifiesto reproducible; S04.2 define casos con U/Y
+prescritas y resultados independientes; S04.3 propone condiciones sintéticas,
+sin convertirlas en umbrales industriales. S04.4 incluye ventanas con transición
+en inicio/final/interior y varias transiciones, cambio de signo Q, reposo y parada;
+S04.5 define rechazo y tolerancias heredadas E06. S04.6 fija linaje y matriz de
+cobertura; S04.7 somete **F-D01–F-D05 a aprobación**, sin cerrar S04.
+
+Catálogo: F01-REP/EST/ESC/RAM/Q/TUR (reposo, estable resistivo/inductivo/capacitivo,
+escalón, rampa, cruce reactivo y turno); F02-SOB (sobrecarga relativa a capacidad
+de ensayo); F03-SUB (subtensión con Y fija e interrupción ideal); F04-CAR/TEN/COM
+(desequilibrio de carga/tensión y compensación reactiva por fases); F05-ARR
+(envolvente de arranque/parada); F02-F03-JUN (combinación física compatible, sin
+fallos I/A). Topologías 1P2W y 3P4W, referencia 120 V L-N/60 Hz, temperatura
+indisponible. No equivalen a motor dinámico ni perfiles de una instalación real.
+
+Los oráculos reutilizan S02:C01–C14 cuando corresponden y añaden áreas e integrales
+analíticas con sumas fasoriales. Se distinguen de decisiones S03:C01–C08 y F-D01–F-D05.
+Se especifican contadores por alcance, ventanas y transiciones, incluida Q negativa
+válida con P no negativa; condición física, operación, diagnóstico y resultado ML
+permanecen separados. No hay etiquetado Anomalo automático.
+
+Decisiones pendientes: F-D01 catálogo/defaults/manifiesto; F-D02 condiciones y
+umbrales de ensayo; F-D03 ventanas/oráculos/rechazos; F-D04 identidad/calidad y
+separación de verdad/diagnóstico; F-D05 cobertura/límites/aceptación futura.
+Cada una registra fundamento, alternativas, consecuencias, riesgos y aprobación
+necesaria. La matriz identifica pendientes de S05–S09 y mantiene D02/D05.
+
+Verificación de esta entrega: cálculos independientes no destructivos (fracciones,
+productos e integrales analíticas y fasores), coherencia con S02/S03, IDs,
+enlaces/anclas, diff y alcance de dos archivos. Las secciones S02.1–S02.9 y la
+matriz instrumental se conservan sin cambios. No se ejecuta simulador, servicios,
+generadores, PostgreSQL, Docker, ML o pruebas de aplicación; ningún nivel de
+aceptación queda demostrado por estas cuentas documentales.
+**S01 cerrada con diferimientos; S02 aprobada; S03 aprobada y cerrada documentalmente;
+S04 especificada, pendiente de revisión y aprobación; S05–S09 no iniciadas.**
+No se crean archivos ni se hace commit/push ni se avanza a la siguiente etapa.
 
 ## S05 — Diseñar instrumentación y adquisición defectuosas
 
