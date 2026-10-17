@@ -8,6 +8,12 @@ La guía complementaria está en [docs/guia-de-ingenieria.md](docs/guia-de-ingen
 Antes de cualquier intervención relacionada con la reestructuración, leer también
 [docs/roadmap-tecnico.md](docs/roadmap-tecnico.md) y respetar el prompt principal y el alcance autorizados.
 
+Antes de cualquier trabajo relacionado con el simulador, es obligatorio leer
+[docs/contratos/simulador-fase-1.md](docs/contratos/simulador-fase-1.md) y
+[docs/roadmap-simulador.md](docs/roadmap-simulador.md), además de estas instrucciones
+y la guía de ingeniería. Respetar sus límites y obtener aprobación explícita antes
+de iniciar cada etapa de implementación; la documentación no autoriza su ejecución.
+
 ## Decisiones vigentes y límites
 
 - El stack principal es Python, PostgreSQL, SQLAlchemy, FastAPI y Apache ECharts. El desarrollo
@@ -124,9 +130,14 @@ pruebas o calidad; no modifica las restricciones de seguridad ni el alcance auto
   consulta para monitoreo y permisos administrativos sólo para tareas autorizadas.
 - No eliminar datos, reinicializar bases, recrear recursos ni ejecutar operaciones
   destructivas o irreversibles sin autorización explícita y reversión o respaldo viable.
-- Revisar scripts antes de ejecutarlos o importarlos: algunos escriben al importarse.
-  Los generadores aplican retención; `reset_db` trunca tablas. Un ejemplo del README
-  no constituye autorización para ejecutar mantenimiento ni levantar Compose.
+- Revisar scripts y sus dependencias antes de ejecutarlos o importarlos para
+  identificar posibles efectos secundarios. En el código actual, las entradas
+  operativas y la API tienen importaciones sin efectos operativos, según la
+  [arquitectura](docs/arquitectura.md) y las
+  [pruebas de importación existentes](tests/test_import_safety.py); no generalizar esta garantía a código
+  nuevo o externo sin inspeccionarlo. Al invocarse explícitamente, los generadores
+  escriben y aplican retención; `reset_db` trunca tablas. Un ejemplo del README no
+  constituye autorización para ejecutar mantenimiento ni levantar Compose.
 
 ## Validación, eficiencia y control de cambios
 
