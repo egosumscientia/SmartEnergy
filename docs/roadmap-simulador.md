@@ -41,6 +41,11 @@ Autoriza únicamente pasos internos 1–3 de S06: inspección/estructura mínima
 núcleo S02 y pruebas independientes locales. Los pasos 4–8 (escenarios,
 instrumentación, adquisición, contrato/composición y pruebas integrales en memoria)
 requieren nueva autorización. No habilita infraestructura ni integración.
+El 2026-10-17, mediante «SmartEnergy — S06, paso 4: implementación de escenarios
+físicos S04», el responsable acepta el incremento inicial y autoriza exclusivamente
+el catálogo físico. Base verificada: `feature/simulador`, HEAD
+`c456aa09d5278b6d3c0be7fe47d9606aaa215828`, árbol limpio. El paso 4 queda
+implementado y sometido a revisión; pasos 5–8 y S07–S09 requieren autorización.
 No se considera aceptada una etapa futura por figurar aquí. La aprobación del
 responsable debe identificar etapa, alcance, entregables, criterios y efectos
 permitidos; ninguna etapa de implementación comienza sin aprobación explícita.
@@ -57,14 +62,14 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras cierre documental S05 e incremento inicial S06 (2026-10-17) |
+| Etapa | Estado tras implementación del paso 4 de S06, pendiente de revisión (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
 | S02 | Cerrada como especificación matemática aprobada E01–E07; núcleo implementado y probado en el incremento S06, sin validación industrial |
 | S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
-| S04 | Cerrada únicamente como especificación documental aprobada F-D01–F-D05; sin pruebas ejecutadas |
+| S04 | Especificación documental aprobada F-D01–F-D05; catálogo físico implementado y probado en S06 paso 4, pendiente de auditoría |
 | S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; mecanismos sin implementar |
-| S06 | Iniciada: pasos internos 1–3 completados, sólo núcleo matemático S02 y pruebas aisladas; pasos 4–8 pendientes de autorización |
+| S06 | Pasos 1–3 aceptados; paso 4 implementado con pruebas unitarias y sometido a revisión; pasos 5–8 pendientes de autorización |
 | S07–S09 | No iniciadas; validación integral, integración y cierre no autorizados |
 
 La aceptación distingue tres niveles definidos en el
@@ -484,6 +489,81 @@ este cálculo matemático sin artefactos persistidos. No se modificó infraestru
 persistencia, configuración, servicios, API, frontend o modelos; no se ejecutaron
 generadores legados, PostgreSQL, Docker ni suite general. Sin commit ni push.
 Se detiene aquí para revisión humana.
+
+### Resultado de S06 — catálogo físico S04 (paso 4)
+
+Implementado exclusivamente el incremento autorizado, sin modificar las interfaces
+ni los archivos del núcleo S02. Archivos nuevos:
+[`simulator_scenarios.py`](../smartenergy/analysis/simulator_scenarios.py) y
+[`test_simulator_scenarios.py`](../tests/test_simulator_scenarios.py).
+El resultado queda sometido a auditoría independiente y aprobación humana;
+no cierra S06 ni inicia S07. El apartado de pasos 1–3 conserva su estado histórico.
+
+`SCENARIO_IDS` y `build_scenario(id)` exponen 21 definiciones inmutables con
+parámetros fijos, sin overrides bajo un mismo ID@1. Incluyen los trece casos
+F01-REP/EST/ESC/RAM/Q/TUR, F02-SOB, F03-SUB, F04-CAR/TEN/COM,
+F05-ARR y F02-F03-JUN. Variantes: REP-24h con E0; EST inductiva,
+capacitiva y 3P4W (la base EST es resistiva); SUB-interrupcion. Los sufijos
+locales ESC-C09/ESC-C10 y Q-C13 identifican los controles S02 citados por S04,
+conservando sus entradas y soportes. Los ejes reactivos C14 siguen cubiertos
+por las pruebas S02; no se inventa un soporte temporal nuevo para ellos.
+
+Interfaces físicas: `PhysicalSegment`, `PhysicalScenario`, `PhysicalEvent`,
+`PhysicalCondition` y `sustained_condition`. Los tramos mantienen U fija e
+interpolan exclusivamente Y; el control C13 utiliza Y cuadrática. Los extremos
+válidos y la convexidad de la trayectoria garantizan el límite de corriente entre
+nodos. `state_at(t, side="left"/"right")` distingue el límite anterior de una
+frontera y su estado nuevo; `segment_at` permite consultar el estado operativo.
+En t=0 se devuelve el inicial definido y en T el límite izquierdo terminal;
+fuera de [0,T] se rechaza. `energy(a,b)` exige ventana positiva y devuelve
+incrementos por fase/circuito; `counters_at(t)` añade E0 sin mutarlo y permite
+t=0. Se reutilizan `PowerInterval`, `CircuitEnergy`, `integrate_intervals` e
+`integrate_smooth`, sin otro motor eléctrico ni de integración. C13 requiere
+considerar el error de discretización; N=400 por defecto por tramo recortado,
+con N explícito para comprobar convergencia. No promete aditividad exacta entre
+discretizaciones distintas de ese control suave.
+
+Eventos: inicio/fin, fronteras de perfil, cambios de fuente/carga/operación y
+cruce reactivo continuo. Los cambios simultáneos de fuente/carga de JUN se
+agrupan en una frontera; no se crea un estado intermedio. Condiciones conocidas
+por el ensayo: I_L1>15 A y U_L1N<108 V en sus casos prescritos, dispersión d_I>0,20
+y d_U>0,10 en los casos resistivos F04. Exigen al menos 10 s continuos;
+conservan inicio físico, inclusión del punto inicial y tiempo de confirmación.
+No se aplica F02 automáticamente a la envolvente ARR ni se deriva un diagnóstico
+de las condiciones o de los estados operativos.
+
+Verificación ejecutada con el entorno existente, sin dependencias nuevas:
+
+```bash
+.venv/bin/python -B -m unittest -v tests.test_simulator_physics tests.test_simulator_scenarios
+git diff --check
+```
+
+**40 pruebas aprobadas: 23 S02 conservadas y 17 nuevas, cero fallos.** Cada
+identidad del catálogo tiene contraste energético independiente. Oráculos S04:
+ESC=(250,0,150,75); RAM=35 Wh; Q=225 varh por dirección; TUR=(6010,0,2700,1807,5);
+SOB=60 Wh; SUB=25/20 Wh; ARR=88/3 Wh y 22 varh; JUN=40 Wh.
+CAR verifica I_N=10√3, TEN I_N=5/3 y tensiones L-L; COM verifica
+P=3120,Q=0,S_A=3600,FP=13/15 y contadores reactivos por fase distintos del circuito.
+Se verifican variantes estables, iniciales no nulos, reposo/reanudación, ventanas
+S04.4, ambos lados de fronteras, continuidad ARR, Q=0, desigualdades estrictas,
+9/10 s, reproducción, inmutabilidad, rechazos e invariantes por fase/agregados.
+C13 contrasta 1400 Wh con errores 0,01/0,0025/0,000625 y convergencia de orden 2.
+
+La prueba de aislamiento en intérprete separado importa y consulta todo el
+catálogo bloqueando configuración, infraestructura, operaciones, aplicación,
+ML, escrituras, red, procesos y reloj time.time/sleep; no altera el RNG global.
+No se ejecutaron servicios, generadores, PostgreSQL, Docker, frontend, API,
+migraciones ni ML. El laboratorio protegido permanece intacto. Sin commit/push.
+
+Límites: definiciones y resultados sólo en memoria; no hay DTO de observaciones,
+manifiesto/run_id, canonicalización, digests, artefactos persistidos ni mecanismo
+S05. Los IDs de sujetos son los defaults S04; la composición y el linaje completo
+S03 siguen pendientes. La cadencia h=1 s de futuros estados de ensayo no es un
+reloj ni una adquisición implementada. S01–S05 conservan su aprobación documental
+y diferimientos; pasos 5–8 requieren autorización; S07–S09 no iniciadas. Esta
+prueba unitaria aporta evidencia física parcial de nivel 1; no declara aceptación
+del nivel completo, integración ni validación industrial. Se detiene en el paso 4.
 
 ## S07 — Validar coherencia física, matemática y temporal
 
