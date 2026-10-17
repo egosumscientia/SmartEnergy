@@ -92,6 +92,17 @@ este contrato y el roadmap para diseñar S05. **S05 especificada, pendiente de
 revisión y aprobación I-D01–I-D07; S06–S09 no iniciadas.** No autoriza implementación,
 servicios, infraestructura, PostgreSQL, Docker, ML, commit ni push.
 
+**Actualización S05/S06 (2026-10-17):** mediante «SmartEnergy — Cierre documental
+de S05 e implementación controlada de S06», el responsable aprueba expresamente
+I-D01–I-D07 y cierra **S05 exclusivamente como especificación documental aprobada**.
+Base verificada: `feature/simulador`, HEAD
+`33d6a91726ea61908afb5cbe976cdc89ac65ebb6`, árbol inicialmente limpio.
+Autoriza sólo los pasos internos 1–3 de S06: inspección/estructura mínima, núcleo
+matemático S02 y pruebas locales independientes. No autoriza aún escenarios S04,
+instrumentación, adquisición, contrato común ejecutable ni composición; tampoco
+aplicación, servicios, API, frontend, PostgreSQL, Docker o ML. **S06 iniciada
+únicamente para ese incremento; S07–S09 no iniciadas.** Sin commit ni push.
+
 ## 2. Estado real y brechas comprobadas
 
 Inspección estática, sin importar ni ejecutar generadores:
@@ -855,10 +866,12 @@ infraestructura ni inicio de S06. Aprobar S04 por sí solo no autoriza otra etap
 | F-D04 | Aprobar estados/eventos/condiciones separados de diagnóstico/ML y artefactos/linaje S04.6 conforme a S03 | Etiqueta binaria automática; verdad mezclada en observaciones | Riesgo de fuga de causas y evaluación ficticia; requiere trazabilidad de todos los segmentos. Aprobar separación y calidad ideal sin adelantar fallos S05 |
 | F-D05 | Aprobar suficiencia documental y plan de aceptación física futuro nivel 1, fixtures posteriores nivel 2, sin acreditar persistencia | Exigir integración inmediata o dar pruebas por aprobadas con estas cuentas | Las cuentas no validan código; mantener D02/D05, pendientes de S03 y autorizaciones de S05–S09. Aprobar límites/pendientes y cierre documental S04 sólo tras revisión humana |
 
-### S05 — Instrumentación y adquisición propuestas
+### S05 — Instrumentación y adquisición aprobadas
 
-**Propuesta documental pendiente de revisión y aprobación I-D01–I-D07.** No
-implementa funciones, clases, módulos ni almacenamiento. I01 es ruido/error
+**Especificación documental aprobada I-D01–I-D07 el 2026-10-17**, conforme a la
+instrucción S05/S06 del apartado 1; S05 cerrada sólo documentalmente. Se conservan
+las recomendaciones y alternativas como fundamento del diseño aprobado. Este
+apartado no implementa instrumentación, adquisición ni almacenamiento. I01 es ruido/error
 acotado; I02 sesgo/deriva/descalibración; I03 congelación/intermitencia; I04
 relación CT/VT incorrecta; A01 pérdida/retraso/duplicación; A02 caída/recuperación.
 C01 conserva exactamente F02 + I03 + A01 del catálogo mínimo. No se confunde con
@@ -1233,10 +1246,18 @@ de contador independiente podría aportar evidencia adicional, pero no se emite 
 este caso. No crear estado=Anomalo ni evaluar detector. Se verifica física idéntica
 con/sin I03/A01 y observabilidad separada de presencia de condición física.
 
-#### S05.8 — Decisiones pendientes y aceptación futura
+#### S05.8 — Decisiones aprobadas y aceptación futura
 
-**Todas I-D01–I-D07 pendientes de aprobación humana.** Cada aprobación fijaría
-sólo el diseño indicado, sin autorizar S06, servicios, infraestructura o persistencia.
+**I-D01–I-D07 aprobadas expresamente el 2026-10-17** mediante la instrucción
+S05/S06 del apartado 1, sobre HEAD `33d6a91726ea61908afb5cbe976cdc89ac65ebb6`.
+Se aprueban individualmente modelos/dominios (I-D01), composición/energía/escala
+(I-D02), RNG y estadística (I-D03), retención/calidad (I-D04), adquisición y
+recuperación (I-D05), combinado y linaje (I-D06), cobertura/aceptación (I-D07).
+La tabla conserva fundamentos, alternativas, riesgos y pendientes. **S05 cerrada
+exclusivamente como especificación documental**; la aprobación no acredita
+pruebas instrumentales ni de adquisición. La autorización separada de esa misma
+instrucción inicia únicamente el núcleo S02 y sus pruebas en S06, sin servicios,
+infraestructura o persistencia, y se detiene antes de los pasos internos 4–8.
 
 | ID | Recomendación y fundamento | Alternativas | Riesgos, consecuencias de aprobar y pendientes no resueltos |
 |---|---|---|---|
@@ -1253,7 +1274,8 @@ transformaciones/calendarios contra las cuentas independientes de esta sección;
 nivel 2 valida DTO/calidad/identidad/dedup/proyección en memoria conforme S03;
 nivel 3 exige escritura, lectura y consumo completos en PostgreSQL aislado, con
 permiso expreso, diseño aprobado y reversión propia. S05 no acredita ninguno.
-Sin aprobar I-D01–I-D07 no se cierra S05 ni se inicia S06. Perfiles de marca,
+I-D01–I-D07 quedan aprobadas; implementar sus mecanismos requiere la autorización
+del incremento correspondiente de S06. Perfiles de marca,
 incertidumbre CT/medidor, tiempos/resolución/sentinelas, emulación y hardware siguen
 pendientes D02/D05; tampoco se resuelven unidades/zonas históricas, compatibilidad
 ML con temperatura nula, retención de artefactos ni integración persistente.
@@ -1725,11 +1747,12 @@ independientes, evitando copiar el mismo cálculo de producción en la prueba.
   requisito de diseño y propuesta pendiente. No atribuir a SmartEnergy funciones
   del catálogo de un instrumento.
 - Obtener aprobación explícita antes de cada etapa de implementación; el cierre de
-  una etapa no habilita la siguiente. La autorización presente sólo cubre documentación.
+  una etapa no habilita la siguiente. La autorización S05/S06 sólo cubre cierre
+  documental S05 y pasos internos 1–3 de S06; detenerse después de sus pruebas.
 - No introducir dependencias, migraciones, reorganización arquitectónica o cambios
-  de API sin autorización específica. La tarea documental actual prohíbe ejecutar
-  generadores y operar PostgreSQL o Docker. Las futuras pruebas del núcleo usarán
-  aislamiento; cualquier ensayo de persistencia requerirá la autorización de nivel 3.
+  de API sin autorización específica. La intervención S05/S06 prohíbe ejecutar
+  generadores y operar PostgreSQL o Docker. Las pruebas autorizadas del núcleo
+  son locales y aisladas; cualquier ensayo de persistencia requerirá autorización de nivel 3.
   No ejecutar mantenimiento, entrenamiento, detección persistente ni operaciones
   destructivas como atajo de validación.
 - Preservar `.env`, `.venv`, credenciales, esquemas, datos, artefactos y bloqueos ML;
@@ -1745,17 +1768,22 @@ independientes, evitando copiar el mismo cálculo de producción en la prueba.
 
 D01–D06 mantienen el cierre documental S01 con diferimientos; E01–E07 la
 especificación matemática aprobada S02; C01–C08 el contrato común aprobado S03.
-F-D01–F-D05 fueron aprobadas expresamente el 2026-10-17: **S04 cerrada sólo como
-especificación documental aprobada**. **S05 especificada en S05.1–S05.8, pendiente
-de revisión y aprobación I-D01–I-D07; S06–S09 no iniciadas.** Los estados históricos
+F-D01–F-D05 e I-D01–I-D07 fueron aprobadas expresamente el 2026-10-17:
+**S04 y S05 cerradas sólo como especificaciones documentales aprobadas**.
+**S06 iniciada: exclusivamente núcleo matemático S02 y pruebas aisladas,
+pasos internos 1–3; S07–S09 no iniciadas.** Los estados históricos
 anteriores no sustituyen este registro vigente. No se aprueban umbrales industriales,
 etiquetas ML, equivalencia instrumental ni nuevas convenciones físicas.
 
-Esta intervención sólo modifica contrato y roadmap. Conserva S02.1–S02.9 y
-S03.1–S03.8, la matriz instrumental y los
-diferimientos D02/D05. Se contrastan fórmulas, recuentos, bandas estadísticas,
-identificadores y enlaces con oráculos documentales independientes; `git diff --check`
-y alcance de archivos se verifican sin importar el producto. No se ejecutan
-simulador, servicios, generadores, PostgreSQL, Docker, migraciones, ML ni pruebas
-de aplicación. No se crean archivos adicionales ni se hace commit/push.
-Ningún nivel de aceptación está acreditado por esta especificación.
+Se conservan S02.1–S02.9, S03.1–S03.8, la matriz instrumental y los diferimientos
+D02/D05. El incremento implementado y su evidencia están en el
+[resultado S06 del roadmap](../roadmap-simulador.md#resultado-de-s06--núcleo-matemático-aislado-pasos-13).
+No hay escenarios, instrumentación, adquisición, DTO, manifiestos o artefactos
+persistentes implementados; canonicalización/integridad/retención S03 siguen
+pendientes y no son necesarias para estas funciones matemáticas en memoria.
+Pruebas unitarias del núcleo aportan evidencia parcial al nivel 1, sin cerrar
+S06, S07 ni acreditar el nivel 1 completo, integración (nivel 2), persistencia
+(nivel 3), equivalencia instrumental o preparación industrial.
+No se ejecutan servicios, generadores legados, PostgreSQL, Docker, migraciones,
+ML ni pruebas generales de aplicación. No se hace commit ni push. La intervención
+se detiene para revisión humana; los pasos internos 4–8 requieren nueva autorización.

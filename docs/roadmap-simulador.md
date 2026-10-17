@@ -33,6 +33,14 @@ especificación documental. Base: `feature/simulador`, HEAD
 `a9ae8ef8c7039882271ef2600400db7950986576`, árbol limpio. Autoriza únicamente el
 diseño documental S05 en contrato y roadmap. D02/D05 y aceptación futura siguen
 pendientes; no hay autorización de implementación ni infraestructura.
+El 2026-10-17, mediante «SmartEnergy — Cierre documental de S05 e implementación
+controlada de S06», el responsable aprueba I-D01–I-D07 y cierra S05 sólo como
+especificación documental. Base: `feature/simulador`, HEAD
+`33d6a91726ea61908afb5cbe976cdc89ac65ebb6`, árbol inicialmente limpio.
+Autoriza únicamente pasos internos 1–3 de S06: inspección/estructura mínima,
+núcleo S02 y pruebas independientes locales. Los pasos 4–8 (escenarios,
+instrumentación, adquisición, contrato/composición y pruebas integrales en memoria)
+requieren nueva autorización. No habilita infraestructura ni integración.
 No se considera aceptada una etapa futura por figurar aquí. La aprobación del
 responsable debe identificar etapa, alcance, entregables, criterios y efectos
 permitidos; ninguna etapa de implementación comienza sin aprobación explícita.
@@ -49,14 +57,15 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras cierre documental S04 y propuesta S05 (2026-10-17) |
+| Etapa | Estado tras cierre documental S05 e incremento inicial S06 (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
-| S02 | Cerrada como especificación matemática aprobada E01–E07; sin implementación ni validación experimental |
+| S02 | Cerrada como especificación matemática aprobada E01–E07; núcleo implementado y probado en el incremento S06, sin validación industrial |
 | S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
 | S04 | Cerrada únicamente como especificación documental aprobada F-D01–F-D05; sin pruebas ejecutadas |
-| S05 | Instrumentación y adquisición especificadas; revisión y aprobación I-D01–I-D07 pendientes |
-| S06–S09 | No iniciadas; implementación, integración y aceptación no autorizadas |
+| S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; mecanismos sin implementar |
+| S06 | Iniciada: pasos internos 1–3 completados, sólo núcleo matemático S02 y pruebas aisladas; pasos 4–8 pendientes de autorización |
+| S07–S09 | No iniciadas; validación integral, integración y cierre no autorizados |
 
 La aceptación distingue tres niveles definidos en el
 [contrato](contratos/simulador-fase-1.md#niveles-de-aceptación-y-límites-de-evidencia):
@@ -339,9 +348,9 @@ expresamente el diseño S05 siguiente; no es una consecuencia automática del ci
 - **Aprobación humana:** perfiles/bandas estadísticas, orden de efectos y políticas
   de cola/recuperación. No se añade emulación de protocolo ni servicio de red.
 
-### Resultado de S05 — propuesta documental pendiente de aprobación
+### Resultado de S05 — cierre documental aprobado
 
-La [especificación S05](contratos/simulador-fase-1.md#s05--instrumentación-y-adquisición-propuestas)
+La [especificación S05](contratos/simulador-fase-1.md#s05--instrumentación-y-adquisición-aprobadas)
 conserva los IDs y criterios originales: I01 ruido/error acotado, I02 sesgo/deriva/
 descalibración, I03 congelación/intermitencia, I04 CT/VT incorrecto; A01 pérdida/
 retraso/duplicación, A02 caída/recuperación. Fuentes primarias, fronteras conceptuales
@@ -372,21 +381,23 @@ todas de 10 A. Con soporte antiguo, tres recibidas son stale; con reloj aparente
 actual puede no haber diagnóstico. Todas las causas permanecen en el artefacto
 separado; no etiquetas Anomalo ni evaluación ML.
 
-**I-D01–I-D07 pendientes**, con recomendación, fundamento, alternativas, riesgos,
+**I-D01–I-D07 aprobadas expresamente el 2026-10-17**, con recomendación, fundamento, alternativas, riesgos,
 consecuencias y pendientes individuales en S05.8: modelos/parámetros; composición;
 RNG/estadística; congelación/calidad; adquisición/recuperación; combinado/linaje;
-cobertura/aceptación. No se declaran aprobadas ni se cierra S05. Se conservan los
+cobertura/aceptación. **S05 cerrada exclusivamente como especificación documental**
+por la instrucción S05/S06 identificada al inicio. Se conservan los
 criterios originales de cada familia, la cobertura física previa y D02/D05.
 
-Verificación documental de esta entrega: fórmulas y momentos teóricos, bandas,
+Verificación documental de la entrega original de diseño S05: fórmulas y momentos teóricos, bandas,
 recuentos de observaciones/intentos/entregas, calendarios, identidad/soporte/calidad,
 correspondencia I01–I04/A01–A02/C01, referencias y enlaces/anclas, alcance exclusivo
 de contrato/roadmap y git diff --check. No se ejecuta simulador, generadores,
 servicios, PostgreSQL, Docker, migraciones, ML ni pruebas de aplicación. Ningún
 nivel 1/2/3 queda demostrado. No hay código, archivos adicionales, commit ni push.
-**S01 cerrada con diferimientos; S02 matemática aprobada; S03 contrato aprobado;
-S04 aprobada y cerrada sólo documentalmente; S05 especificada pendiente de revisión
-y aprobación humana; S06–S09 no iniciadas.** La intervención termina aquí.
+La aprobación posterior I-D01–I-D07 cierra esa especificación sin atribuirle
+ejecución ni validación. **S01–S05 aprobadas para sus alcances documentales, con
+diferimientos S01 conservados; S06 iniciada únicamente para el núcleo S02;
+S07–S09 no iniciadas.** Los resultados del incremento se detallan a continuación.
 
 ## S06 — Implementar núcleo incremental aislado
 
@@ -406,6 +417,73 @@ y aprobación humana; S06–S09 no iniciadas.** La intervención termina aquí.
 - **Aprobación humana:** inicio de implementación y cualquier desviación; cambios
   de dependencias/arquitectura requieren autorización específica. Los incrementos
   internos no implican permiso de integración ni deben convertirse en prompts triviales.
+
+### Resultado de S06 — núcleo matemático aislado (pasos 1–3)
+
+Implementación iniciada con autorización S05/S06 del 2026-10-17. Se completan sólo
+inspección/estructura, núcleo S02 y pruebas independientes. No se cierra S06 ni se
+inician sus pasos 4–8 o S07–S09. Ubicaciones conforme a S03.7, sin reorganizar el
+repositorio ni reutilizar generadores con efectos de persistencia:
+
+| Archivo | Interfaz y responsabilidad |
+|---|---|
+| [`simulator_physics.py`](../smartenergy/analysis/simulator_physics.py) | `CircuitState(topology, voltages_v, admittances_s, nominal_voltage_v=120, frequency_hz=60)` valida U/Y y calcula `PhaseState`, fasores ABC, I/P/Q/S/FP, sumas aritméticas/algebraicas, neutro y tensiones L-L. Dataclasses congeladas y entradas convertidas a tuplas; temperatura None, sin observaciones/diagnósticos |
+| [`simulator_energy.py`](../smartenergy/analysis/simulator_energy.py) | `PowerInterval(start_s, end_s, left, right)` declara P/Q lineales o constantes en [a,b); `right` es el límite anterior al salto final. `integrate_intervals(..., start_s=..., end_s=...)` calcula incrementos por fase/circuito, con cortes de signo y ventanas. `integrate_smooth(state_at, start_s, end_s, subintervals)` aproxima un tramo suave con trapecios. `EnergyCounters`/`CircuitEnergy` mantienen alcances separados, saldos y acumulación inmutable con `plus` |
+| [`test_simulator_physics.py`](../tests/test_simulator_physics.py) | Oráculos S02:C01–C14 con referencias analíticas independientes; rechazos, reproducción, inmutabilidad y seguridad de importación/cálculo sin dependencias externas |
+
+Sólo biblioteca estándar Python; entorno verificado `.venv`, Python 3.13.5.
+No hay componentes existentes compatibles para reutilizar cálculos fasoriales o
+contadores. Los módulos matemáticos se separan por responsabilidad y permanecen
+independientes de configuración, aplicación, ORM y ML; no se crea paquete genérico,
+servicio, DTO o adaptador. El orden L1/L2/L3 de resultados y contadores es explícito.
+
+Invariantes: consumidor G≥0, Q con signo, S aritmética y FP=P/S (None sólo con
+denominador cero); U/I/f y duración en dominios S02.6, sin saturar. Los tramos
+deben ser contiguos y ordenados; se rechazan huecos, solapes y duración cero.
+Una consulta a=a dentro del soporte devuelve incremento cero. Los contadores
+del circuito separan signos después de sumar P/Q, nunca después de integrar fases.
+Los iniciales se añaden explícitamente con `plus`, conservando el incremento para
+validarlo aun con grandes valores iniciales. No hay reset/rollover implícito.
+
+La linealidad P/Q de `PowerInterval` es una hipótesis explícita del llamador;
+no se deduce de interpolar U/I. Para perfiles suaves, el llamador debe separar
+discontinuidades, proporcionar el límite izquierdo final y garantizar el dominio
+entre nodos; el muestreo no demuestra esas propiedades. El catálogo de escenarios
+que resolverá esos perfiles sigue sin implementar. Underflow que convertiría
+una carga o incremento no nulo en cero se rechaza; no se usa E06 como umbral de
+ausencia. Desbordamientos fuera del dominio numérico tampoco se saturan.
+
+Validación ejecutada, exclusivamente sobre el nuevo código:
+
+```bash
+.venv/bin/python -B -m unittest -v tests.test_simulator_physics
+git diff --check
+```
+
+**23 pruebas aprobadas, cero fallos.** C01–C06: ramas, signos, equilibrio,
+desequilibrio, fasores y reposo; C07–C10: integración constante/por tramos,
+cambio reactivo, contadores iniciales y reanudación; C11: compensación por fases
+frente a circuito; C12: áreas direccionales del cruce lineal; C13: integral
+1400 Wh, aproximaciones 1400,01/1400,0025/1400,000625 y cociente de errores 4,
+último error dentro de 0,0024 Wh; C14: Y fija bajo subtensión/interrupción y
+reactancia pura. E06 se conserva, con controles relativos y de signo para ambos
+centinelas de baja potencia, además de ventanas en fronteras, rampas, varias
+transiciones y conservación del incremento con grandes iniciales.
+
+La prueba en intérprete separado bloquea dependencias de infraestructura/ML,
+configuración y operaciones, acceso a `.env`, escrituras, red, procesos, reloj
+time.time y sleep; importar y calcular no altera el RNG global. Verificación
+documental de enlaces locales, alcance y conservación de S02.1–S02.9/S03.1–S03.8
+y matriz instrumental. Evidencia parcial del núcleo para nivel 1; no cierre del
+nivel completo, integración de nivel 2, persistencia de nivel 3 ni ensayo industrial.
+
+Pendientes: catálogo S04, mecanismos S05, contrato/composición, manifiestos,
+linaje y pruebas integrales, con nueva autorización antes del paso 4. Siguen
+pendientes canonicalización e integridad/retención S03 y D02/D05; no bloquean
+este cálculo matemático sin artefactos persistidos. No se modificó infraestructura,
+persistencia, configuración, servicios, API, frontend o modelos; no se ejecutaron
+generadores legados, PostgreSQL, Docker ni suite general. Sin commit ni push.
+Se detiene aquí para revisión humana.
 
 ## S07 — Validar coherencia física, matemática y temporal
 
