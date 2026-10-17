@@ -976,6 +976,13 @@ si se retiene el canal de contador, la siguiente lectura puede saltar al valor
 interno actual. Época e iniciales son explícitos, sin reset implícito. Un sesgo
 sólo de P reportada no afecta energía salvo que el perfil declare esa ruta.
 
+**Aclaración de implementación S06 paso 5 (2026-10-17):** las innovaciones I01
+están definidas por índice de captura, sin trayectoria temporal entre capturas.
+El responsable decidió mantener pendiente, con rechazo explícito, la integración
+energética de una ruta con ruido hasta especificar esa trayectoria. No se adopta
+interpolación ni retención implícita de muestras. Los contadores deterministas y
+las capturas con ruido permanecen dentro del alcance; I-D01–I-D07 no cambian.
+
 Cuantización opcional genérica `q*round_ties_to_even(z/q)`, q>0 en unidad de
 salida, |error|≤q/2; q=null la desactiva. No representa resolución de fabricante.
 Normalizar después preserva el escalón original (q kW equivale a 1000q W).

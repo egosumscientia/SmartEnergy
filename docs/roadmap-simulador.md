@@ -51,6 +51,13 @@ responsable debe identificar etapa, alcance, entregables, criterios y efectos
 permitidos; ninguna etapa de implementación comienza sin aprobación explícita.
 No hay fechas ni estimaciones de esfuerzo asignadas.
 
+El 2026-10-17, mediante «SmartEnergy — S06, paso 5: implementación aislada de
+instrumentación S05», el responsable acepta formalmente el paso 4 y autoriza
+exclusivamente I01–I04. Base verificada: `feature/simulador`, HEAD
+`7c1cefb29cde9b5a77f4bfc04f62c78f71808fac`, árbol limpio. El paso 5 queda
+implementado con el pendiente de contadores con ruido registrado más abajo,
+sometido a auditoría independiente; pasos 6–8 siguen sin autorización.
+
 Secuencia: S01 → S02 → S03 → S04 → S05 → S06 → S07 → S08 → S09.
 El núcleo inicial puede ser genérico, pero S01 conserva la investigación obligatoria
 del ADW210 y el contraste documental del apartado I del roadmap técnico. S02 puede
@@ -62,14 +69,14 @@ S07 verifica físicamente el núcleo
 antes de integrarlo; S06 ya incluye pruebas unitarias, no se posponen hasta S07.
 Cada etapa se detiene al concluir su alcance y presenta evidencia para revisión.
 
-| Etapa | Estado tras implementación del paso 4 de S06, pendiente de revisión (2026-10-17) |
+| Etapa | Estado tras implementación del paso 5 de S06, pendiente de revisión (2026-10-17) |
 |---|---|
 | S01 | Cerrada para el alcance documental y núcleo genérico aprobados; D01–D06 registradas, pendientes instrumentales conservados |
 | S02 | Cerrada como especificación matemática aprobada E01–E07; núcleo implementado y probado en el incremento S06, sin validación industrial |
 | S03 | Cerrada exclusivamente como especificación documental aprobada C01–C08; sin integración ejecutada |
-| S04 | Especificación documental aprobada F-D01–F-D05; catálogo físico implementado y probado en S06 paso 4, pendiente de auditoría |
-| S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; mecanismos sin implementar |
-| S06 | Pasos 1–3 aceptados; paso 4 implementado con pruebas unitarias y sometido a revisión; pasos 5–8 pendientes de autorización |
+| S04 | Especificación documental aprobada F-D01–F-D05; implementación del paso 4 aceptada formalmente |
+| S05 | Cerrada exclusivamente como especificación documental aprobada I-D01–I-D07; instrumentación I01–I04 implementada en paso 5, pendiente de auditoría; adquisición sin implementar |
+| S06 | Pasos 1–4 aceptados; paso 5 implementado y pendiente de auditoría, con rechazo explícito de integración energética con ruido; pasos 6–8 no autorizados |
 | S07–S09 | No iniciadas; validación integral, integración y cierre no autorizados |
 
 La aceptación distingue tres niveles definidos en el
@@ -564,6 +571,93 @@ reloj ni una adquisición implementada. S01–S05 conservan su aprobación docum
 y diferimientos; pasos 5–8 requieren autorización; S07–S09 no iniciadas. Esta
 prueba unitaria aporta evidencia física parcial de nivel 1; no declara aceptación
 del nivel completo, integración ni validación industrial. Se detiene en el paso 4.
+
+### Resultado de S06 — instrumentación S05 (paso 5)
+
+Incremento aislado, sin modificar `simulator_physics.py`, `simulator_energy.py`,
+`simulator_scenarios.py` ni sus 40 pruebas. Se crean
+[`simulator_instrumentation.py`](../smartenergy/analysis/simulator_instrumentation.py) y
+[`test_simulator_instrumentation.py`](../tests/test_simulator_instrumentation.py).
+El resultado está pendiente de auditoría y aceptación humana. Los apartados de
+pasos 1–4 conservan la evidencia histórica de sus entregas.
+
+Interfaces públicas del módulo nuevo:
+
+| Interfaz | Responsabilidad |
+|---|---|
+| `RandomIdentity` | Tupla de ensayo/réplica; `seed(channel, profile)` implementa SHA-256/JSON exacto I-D03 |
+| `TransformerRatios` | Relaciones real/configurada y lugar único device/adapter; no aplica otra escala al normalizar |
+| `ErrorProfile`, `ChannelConfig` | Ganancia, sesgo secundario, deriva temporal con meseta, ruido absoluto uniforme o u prescritos; canal/alcance, unidad original, cuantización y fuente común opcional c=1 |
+| `Retention`, `InstrumentConfig` | Grupo explícito retenido, captura fuente, intervalo semiabierto, evidencia temporal; máscara de silencios; época/iniciales y ruta energética explícitas |
+| `VirtualInstrument` | `capture(times)` procesa calendario ordenado reproducible; `energy(a,b)` devuelve incrementos instrumentales y `counters_at(t)` añade iniciales explícitos |
+| `Reading`, `InstrumentCapture` | Valor original/canónico, soporte declarado por canal, identidad de dispositivo/captura, instante programado y producción; `freshness_at` evalúa sólo evidencia observable, sin modelar recepción |
+| `ChannelTrace`, `CaptureTrace` | Artefacto privado en memoria: primario físico, secundario ideal/instrumentado, indicado, innovación, soporte real y enlace retenido; semillas y versión exacta Python |
+
+Canales U de bus-a se calculan una vez por fase, I por fase de c1; se derivan
+P/Q/S/FP por fase/circuito, neutro y tensiones L-L con ángulos físicos preservados.
+Dos instrumentos pueden consultar el mismo escenario inmutable con configuración
+independiente. No hay emulación comercial, protocolo, DTO S03, artefacto persistido
+ni composición de circuitos/adquisición. Los perfiles de error son constantes
+durante el ensayo salvo su deriva continua; no se añaden cambios de configuración
+por tramos ni activaciones abruptas implícitas.
+
+Orden efectivo: consulta S02/S04 → primario ideal → secundario por CT/VT real →
+ganancia/sesgo/deriva/ruido secundario → relación configurada → derivados →
+contadores internos separados → fallos explícitos de resultado → conversión a
+unidad original y cuantización → retención/silencio → normalización única del
+original seleccionado. No se repara la incoherencia de un fallo de resultado.
+Las salidas finitas fuera del dominio conservan valor y `invalid/range_violation`;
+módulos instrumentales negativos se rechazan sin saturar ni volver a sortear.
+
+Energía instrumental: integración adaptativa de P/Q de la trayectoria instrumental,
+dividida en eventos físicos y fronteras de deriva; signos separados por fase y
+después de agregar para circuito. Tolerancia interna 1e-9 Wh/varh por ventana;
+rechazo explícito si no converge. No convierte estados instrumentales defectuosos
+en `CircuitState` ni integra observaciones. `primary` excluye errores posteriores
+de P/Q; `reported_power` incluye los errores de P/Q declarados por alcance, antes
+de cuantización/retención. Retener un contador no detiene su acumulación interna.
+
+**Pendiente acotado aceptado por el responsable en esta intervención:** S05 define
+innovaciones por captura, sin trayectoria entre ellas. Se mantiene pendiente la
+integración energética de canales con ruido, con `ValueError` explícito al solicitarla;
+no se inventa retención de orden cero, interpolación ni energía a partir de lecturas.
+Esto no bloquea las capturas con ruido ni los contadores deterministas. El error
+de salida de un contador puede instrumentarse después de integrar una trayectoria
+determinista. Avisos públicos de ausencia y evaluación en recepción quedan para
+composición S03/adquisición; aquí I03 produce silencio explícito sin lectura.
+
+Validación nativa aislada, Python 3.13.5, sin dependencias nuevas:
+
+```bash
+.venv/bin/python -B -m unittest -v tests.test_simulator_physics tests.test_simulator_scenarios tests.test_simulator_instrumentation
+git diff --check
+```
+
+**69 pruebas aprobadas, cero fallos: 40 conservadas y 29 nuevas.** Oráculos
+I01-AC/UNI, I02-GAN/DER/QNT, I03-RET/INT/EST e I04-CT/VT/DOB cubiertos.
+I01-UNI usa exactamente n=10000, seed/perfil/réplica especificados, α=0,001,
+media, segundo momento, fracción negativa y diez frecuencias con bandas
+predefinidas; no acredita independencia estadística de canales ni realismo metrológico.
+Ganancia: 176 Wh/132 varh; deriva: 655/3 Wh frente a 200 Wh físicos; CT: 320 Wh;
+VT: 180 V inválidos conservados. DOB rechaza el lugar doble de escala y contrasta
+un candidato negativo explícito de 200 A como inválido.
+
+Composición cubierta: dos instrumentos sobre la misma física, flujos por canal,
+fuente común c=1, misma réplica/cambio de réplica, sorteos bajo retención y silencio,
+inmutabilidad, compensación 3P4W, U/I con deriva simultánea, cruce Q y perfil suave,
+ventana ESC [590,610), iniciales, resultado incoherente y rutas energéticas,
+retención conocida/actual/desconocida, límites semiabiertos y edad 5/>5 s.
+Proceso separado bloquea configuración, infraestructura, ML, aplicación,
+operaciones, API, .env, escrituras, red, procesos y reloj; importar, capturar ruido
+y consultar contadores no altera RNG global. No hay efectos externos.
+
+Documentos modificados: este roadmap (avance/aprobación/evidencia) y contrato
+(aclaración del pendiente aceptado, sin cambiar I-D01–I-D07). No se tocaron
+PostgreSQL, Docker, laboratorio protegido, servicios, API/frontend ni generadores.
+Sin commit ni push. S01–S05 mantienen aprobación documental; S06 pasos 1–4
+aceptados, paso 5 pendiente de auditoría con el límite indicado; pasos 6–8 no
+autorizados; S07–S09 no iniciadas. No acredita validación industrial, metrológica,
+integración ni cierre de un nivel completo. Se detiene en el paso 5.
 
 ## S07 — Validar coherencia física, matemática y temporal
 
