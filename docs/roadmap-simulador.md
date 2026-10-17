@@ -899,15 +899,21 @@ se conserva `smartenergy-jcs-nfc@1.0.0`. Reglas y vectores documentales en
 
 - **D2.1 — Dominio numérico:** RFC 8785, IEEE 754 binary64 y serialización
   ECMAScript. Admitir `float` internos finitos compatibles con binary64. En JSON
-  externo conservar el token antes de convertir; exigir conversión exacta para
-  enteros. Para decimales, comparar mediante aritmética decimal exacta el valor
-  declarado con el decimal canónico JCS del binary64 obtenido; no exigir exactitud
-  binaria del decimal. Aceptar diferencias sintácticas equivalentes y rechazar
-  pérdida de precisión declarada, desbordamiento, no finitos y subdesbordamiento
-  no nulo a cero. Separar valor declarado, binary64 y bytes canónicos; sin strings,
+  externo conservar el token, obtener su decimal exacto y convertir a binary64;
+  rechazar desbordamiento, no finitos y subdesbordamiento no nulo a cero, y obtener
+  su serialización JCS. Conforme a la corrección documental D2.1 aprobada, admitir
+  enteros si la conversión binaria es exacta o su decimal coincide exactamente con
+  el decimal JCS; para decimales exigir únicamente esta última coincidencia.
+  Comparación decimal exacta, sin confundirla con representación binaria exacta.
+  Se garantiza readmisión de la salida JCS, no admisión de todas las formas
+  numéricas matemáticamente equivalentes. Separar valor declarado, binary64 y
+  bytes canónicos; sin strings,
   tolerancias E06, conversiones metrológicas ni cambios de S03.2. Vectores:
   `0.1` admisible, `0.10000000000000001` rechazado; `1e3`/`1000` equivalentes;
-  enteros exactos e inexactos y extremos de magnitud detallados en el contrato.
+  `295147905179352825856` aceptado por conversión exacta y su salida JCS
+  `295147905179352830000` readmitida por coincidencia decimal; la forma
+  `295147905179352825856.0` y `9007199254740993` rechazadas. Se conservan los
+  demás vectores de enteros y extremos de magnitud del contrato, sin ejecutarlos.
 - **D2.2 — Dominio temporal:** ISO 8601 extendido, fecha/hora completas y segundos
   obligatorios; zona `Z` o `±HH:MM`, años 0001–9999 y offsets entre −14:00 y +14:00.
   En `±HH:MM`: `00 ≤ HH ≤ 14`, `00 ≤ MM ≤ 59` y, si `HH = 14`, `MM = 00`.

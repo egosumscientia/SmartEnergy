@@ -1514,16 +1514,22 @@ la serialización JCS, su orden de propiedades por unidades UTF-16 y salida UTF-
 
 - **D2.1 — Números:** JCS conforme a RFC 8785, IEEE 754 binary64 y serialización
   ECMAScript. Admitir números internos `float` si son finitos y compatibles con
-  binary64. Para JSON externo, conservar el token numérico original antes de
-  convertirlo: los enteros requieren conversión exacta a binary64; para los
-  decimales, obtener su valor decimal exacto y convertirlo a binary64. Admitir un
-  decimal sólo si su valor coincide numéricamente, mediante aritmética decimal
-  exacta, con la representación decimal canónica JCS del binary64 obtenido.
+  binary64. Para todo número JSON externo, conservar el token original antes de
+  convertirlo, obtener su valor decimal exacto, convertirlo a binary64 y rechazar
+  desbordamientos, resultados no finitos y subdesbordamientos no nulos a cero.
+  Obtener después la serialización numérica JCS del binary64 resultante.
+  Admitir un entero JSON externo si su conversión a binary64 es matemáticamente
+  exacta **o** si su valor decimal coincide exactamente con el valor decimal de
+  esa serialización JCS. Admitir un decimal JSON externo únicamente cuando su
+  valor decimal coincida exactamente con el valor decimal de la serialización JCS.
+  Comparar valores decimales mediante aritmética decimal exacta, sin tolerancias.
   Esta equivalencia decimal no exige representación binaria exacta: `0.1` puede
-  admitirse aunque no sea una fracción binaria exacta. Aceptar diferencias sólo
-  sintácticas de notación científica, ceros finales o formatos decimales
-  equivalentes. Rechazar pérdida de precisión declarada, desbordamiento, resultados
-  no finitos y subdesbordamiento de un valor no nulo a cero. `1` y `1.0` son
+  admitirse aunque no sea una fracción binaria exacta. Las diferencias sintácticas
+  de notación científica, ceros finales o formatos decimales equivalentes se
+  admiten sólo si satisfacen la regla correspondiente al token. La política
+  garantiza la readmisión de la representación JCS producida desde una entrada
+  admitida, pero no admite todas las formas numéricas matemáticamente equivalentes.
+  Rechazar los tokens que no satisfagan las condiciones anteriores. `1` y `1.0` son
   equivalentes; `-0` y `0` también. Mantener separados valor declarado,
   representación binary64 y bytes canónicos. Un `float` interno no permite
   recuperar la precisión declarada de un token externo ya perdido; no omitir
@@ -1563,8 +1569,11 @@ la serialización JCS, su orden de propiedades por unidades UTF-16 y salida UTF-
 mediante «SmartEnergy — S06, paso 7: consolidación documental D2.1–D2.2», sobre
 `feature/simulador`, HEAD `fe7c4b8`, árbol limpio. Sustituyen los pendientes de
 dominio numérico y formatos/rangos temporales de la consolidación D1–D3.
-RFC 8785 no garantiza conservar exactamente cualquier número JSON: el control
-adicional de admisión externa de D2.1 evita aceptar pérdida de precisión declarada.
+RFC 8785 no garantiza conservar exactamente cualquier número JSON. La corrección
+documental D2.1 aprobada mediante «SmartEnergy — S06, paso 7: corrección documental
+D2.1» añade la coincidencia decimal JCS como segunda condición de admisión para
+enteros externos y garantiza la readmisión de la representación JCS; sigue sin
+implementar canonicalización ni admisión.
 No cambia la política `smartenergy-jcs-nfc@1.0.0`, S03.2, D1, D2.3–D2.5 ni D3.
 
 **Vectores documentales de aceptación futura (no ejecutados).** Los fragmentos
@@ -1575,7 +1584,8 @@ distintos, no rechazo; la admisibilidad contractual se verifica por separado.
 |---|---|---|
 | Números externos equivalentes | `1` / `1.0` → `1`; `-0` / `0` → `0`; `1e3` / `1000` / `1000.00` → `1000` | `0.10000000000000001`: rechazo; su binary64 se serializa como `0.1`, decimal diferente del declarado |
 | Decimal externo | `0.1` / `0.10` / `1e-1` → `0.1`, equivalencia decimal exacta con la salida JCS | No exigir que `0.1` tenga representación binaria exacta ni usar E06 para aceptar el vector anterior |
-| Enteros externos | `9007199254740992` y `9007199254740994`: conversiones exactas, cada uno conserva su valor | `9007199254740993`: rechazo por conversión inexacta; no imponer como límite global el mayor entero consecutivo exacto |
+| Enteros externos | `9007199254740992` y `9007199254740994`: conversiones exactas, cada uno conserva su valor | `9007199254740993`: rechazo; conversión inexacta y decimal distinto de la salida JCS `9007199254740992`; no imponer como límite global el mayor entero consecutivo exacto |
+| Readmisión JCS | `295147905179352825856`: aceptar por conversión binaria exacta, salida JCS `295147905179352830000`; este último entero se acepta al reingresar por coincidencia decimal JCS | `295147905179352825856.0`: rechazar, su valor decimal difiere del decimal JCS `295147905179352830000`; no se garantiza admisión de todas las formas matemáticamente equivalentes |
 | Magnitudes externas extremas | `1.7976931348623157e308` → `1.7976931348623157e+308`; `5e-324` → `5e-324` | `1e309`: desbordamiento; `1e-400`: subdesbordamiento no nulo a cero; `4.9e-324`: su salida `5e-324` cambia el decimal declarado; todos rechazados |
 | Números internos | `float` binary64 finito: admisible como valor interno, sin atribuirle un token externo | NaN/Infinity: rechazo; haber convertido antes el token externo no elimina el control de precisión declarada |
 | Tiempo equivalente | `2026-10-17T07:00:00.125000-05:00` / `2026-10-17T12:00:00.125Z` → segundo formato; `.000000Z` → `Z` | Fracciones `.1234567` y `.1234560`: rechazo por longitud, incluso con cero final |
